@@ -53,5 +53,3 @@ Project Details
     • Appointment booking system for follow-up consultations with the operating doctor. 
     • On-time medication remainders delivered by the chatbot. 
 
-problem 
-Mar
