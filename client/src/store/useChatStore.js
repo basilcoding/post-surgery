@@ -79,7 +79,7 @@ export const useChatStore = create((set, get) => ({
         socket.off('newMessage');
     },
 
-    subscribeToRoom: (roomId) => {
+    subscribeToRoom: (roomId) => { // This is done to ensure that the user joins back (socket room) to the correct room even if the user reloads the browser. (since when the user reloads the socket address changes each time) (i think it happens because when the broswer is reloaded the socket is disconnected which makes it to leave the room, so we have to force the user to join back to the room if the user reloads...)
         const { socket } = useAuthStore.getState();
         if (socket && roomId) {
             socket.emit("joinRoom", { roomId: roomId });
@@ -162,6 +162,10 @@ export const useChatStore = create((set, get) => ({
         set({ selectedUser: otherUser, currentRoomId: roomId });
         // localStorage.setItem("selectedUser", JSON.stringify(user));
         // localStorage.setItem("currentRoomId", roomId); // persist roomId
+    },
+
+    clearNavigationTarget: () => {
+        set({ navigationTarget: null });
     },
 
     clearChat: () => {

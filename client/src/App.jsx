@@ -16,7 +16,7 @@ const App = () => {
   const navigate = useNavigate();
 
   const { authUser, checkAuth, checkActiveRoom, isCheckingAuth } = useAuthStore();
-  const { navigationTarget } = useChatStore();
+  const { navigationTarget, clearNavigationTarget } = useChatStore();
   const { theme } = useThemeStore();
 
   // only run once on mount (avoid infinite loop)
@@ -39,8 +39,9 @@ const App = () => {
     if (!navigationTarget) return;
     navigate(navigationTarget);
     // clear the flag so subsequent code can set it again later without any 
-    useChatStore.setState({ navigationTarget: null }); // VERY VERY IMPORTANT DONT TOUCH: DANGEROUS
-  }, [navigationTarget]);
+    clearNavigationTarget() // VERY VERY IMPORTANT DONT TOUCH: DANGEROUS
+     // VERY VERY IMPORTANT DONT TOUCH: DANGEROUS
+  }, [navigationTarget, navigate, clearNavigationTarget]);
 
   console.log({ authUser })
 
