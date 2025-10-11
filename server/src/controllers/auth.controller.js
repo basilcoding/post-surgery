@@ -6,7 +6,61 @@ import fs from 'fs';
 import jwt from 'jsonwebtoken';
 
 
+export const signup = async (req, res) => {
+    const { fullName, email, password, adminCode } = req.body;
+    // console.log(req.body);
+    try {
+        // Only the person with the admin code can register which is written in the .env file
 
+        if (!fullName || !email || !password || !adminCode) {
+            return res.status(400).json({ message: "All fields are required!" })
+        }
+        if (password.length < 6) {
+            return res.status(400).json({ message: "Password must be at least 6 characters" })
+        }
+
+        const user = await User.findOne({ email }) // check if a user aldready exits with the same email
+        if (user) {
+            return res.status(400).json({ message: "Email aldready exits" })
+        }
+
+        const salt = await bcrypt.genSalt(10); // generate salt to be combined with password
+        const hashedPassword = await bcrypt.hash(password, salt); // hash the password with the salt
+        const isAdmin = await bcrypt.compare(adminCode, process.env.ADMIN_CODE);
+
+        if (!isAdmin) {
+            return res.status(400).json({ message: 'Sorry, You are not an Admin!' })
+        }
+
+        const newUser = new User({
+            fullName,
+            email,
+            password: hashedPassword,
+            role: 'admin',
+        })
+
+
+        if (newUser) {
+            // generate JWT token here
+            // generateToken(newUser._id, res); // generate token and set it in the cookie (function written in utils.js)
+            await newUser.save();
+
+            res.status(201).json({
+                _id: newUser._id,
+                fullName: newUser.fullName,
+                email: newUser.email,
+                profilePic: newUser.profilePic,
+            });
+
+        } else {// If user is not successfully created
+            res.status(400).json({ message: 'Invalid user data' })
+        }
+
+    } catch (error) {
+        console.log('Error in signup:', error.message);
+        res.status(500).json({ message: 'Internal Server Error' })
+    }
+}
 // export const adminRegister = async (req, res) => {
 //     try {
 //         const { fullName, email, password, role } = req.body;
