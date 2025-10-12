@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import toast from 'react-hot-toast';
 import { axiosInstance } from '../lib/axios.js';
 import { useAuthStore } from './useAuthStore.js';
+import { useUIStore } from './useUIStore.js';
 
 export const useChatStore = create((set, get) => ({
     messages: [],
@@ -10,8 +11,6 @@ export const useChatStore = create((set, get) => ({
     currentRoomId: null, // store active roomId //localStorage.getItem("currentRoomId") || 
     isUsersLoading: false,
     isMessagesLoading: false,
-    // chatNavigationTarget: null, // state flag for navigation, holds the destination path (eg: doctor or patient)
-    navigationTarget: null,
 
     connectChatSocketListeners: (socket) => {
 
@@ -22,16 +21,6 @@ export const useChatStore = create((set, get) => ({
         // socket.off('roomCreated');
         socket.off('roomNotify');
         socket.off('roomEnded');
-
-        // socket.on("roomCreated", async ({ roomId, invitee }) => {
-        //     try {
-        //         const { authUser } = useAuthStore.getState();
-        //         await axiosInstance.post(`/auth/create-room-token/${authUser._id}`, { roomId });
-        //         get().setSelectedUser(invitee, roomId);
-        //     } catch (error) {
-        //         console.error("Error in roomCreated:", error?.message);
-        //     }
-        // });
 
         socket.on("roomNotify", async ({ roomId, otherUser }) => {
             const { authUser } = useAuthStore.getState();
@@ -63,9 +52,6 @@ export const useChatStore = create((set, get) => ({
             } catch (error) {
                 console.log("Error in roomEnded:", error?.message);
                 // toast.error("Error handling room close");
-            } finally {
-                // Patient should be redirected
-                set({ navigationTarget: path });
             }
         });
     },
@@ -104,7 +90,7 @@ export const useChatStore = create((set, get) => ({
         const { messages } = get();
 
         try {
-            
+
             const res = await axiosInstance.post(
                 `/messages/room/${roomId}/send`, formData,
                 { headers: { "Content-Type": "multipart/form-data" }, withCredentials: true }
@@ -162,10 +148,6 @@ export const useChatStore = create((set, get) => ({
         set({ selectedUser: otherUser, currentRoomId: roomId });
         // localStorage.setItem("selectedUser", JSON.stringify(user));
         // localStorage.setItem("currentRoomId", roomId); // persist roomId
-    },
-
-    clearNavigationTarget: () => {
-        set({ navigationTarget: null });
     },
 
     clearChat: () => {

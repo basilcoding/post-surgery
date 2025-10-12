@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 
 import { useAuthStore } from './store/useAuthStore.js';
 import { useThemeStore } from './store/useThemeStore.js';
-import { useChatStore } from './store/useChatStore.js';
+import { useUIStore } from './store/useUIStore.js';
 
 import { Loader } from 'lucide-react';
 import { Toaster } from 'react-hot-toast';
@@ -16,7 +16,6 @@ const App = () => {
   const navigate = useNavigate();
 
   const { authUser, checkAuth, checkActiveRoom, isCheckingAuth } = useAuthStore();
-  const { navigationTarget, clearNavigationTarget } = useChatStore();
   const { theme } = useThemeStore();
 
   // only run once on mount (avoid infinite loop)
@@ -34,14 +33,6 @@ const App = () => {
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
   }, []);
-
-  useEffect(() => {
-    if (!navigationTarget) return;
-    navigate(navigationTarget);
-    // clear the flag so subsequent code can set it again later without any 
-    clearNavigationTarget() // VERY VERY IMPORTANT DONT TOUCH: DANGEROUS
-     // VERY VERY IMPORTANT DONT TOUCH: DANGEROUS
-  }, [navigationTarget, navigate, clearNavigationTarget]);
 
   console.log({ authUser })
 

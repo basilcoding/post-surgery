@@ -9,6 +9,7 @@ import PatientRoutes from "./routes/PatientRoutes";
 import HomePage from './pages/HomePage.jsx';
 import LoginPage from './pages/LoginPage'
 import ChatRoom from "./pages/ChatRoom.jsx";
+import SignUpPage from './pages/SignUpPage.jsx';
 
 export default function AppRoutes() {
 
@@ -18,6 +19,7 @@ export default function AppRoutes() {
     <Routes>
       {/* public routes */}
       <Route path="/" element={<HomePage />} />
+      <Route path="/signup" element={<SignUpPage />} />
 
       {/* Login */}
       <Route

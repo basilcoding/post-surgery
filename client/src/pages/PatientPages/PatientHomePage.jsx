@@ -3,14 +3,15 @@ import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 
 import Chatbot from "../../components/ChatBotComponents/ChatBot";
-import { useAuthStore } from "../../store/useAuthStore";
+// import { useAuthStore } from "../../store/useAuthStore";
 import { useChatStore } from "../../store/useChatStore";
+// import { useUIStore } from "../../store/useUIStore";
 
 export default function PatientHomePage() {
     const [roomId, setRoomId] = useState(null);
     const navigate = useNavigate();
-    const { socket, checkRoomAuth } = useAuthStore();
-    const { currentRoomId, navigationTarget } = useChatStore();
+    // const { socket, checkRoomAuth } = useAuthStore();
+    const { currentRoomId } = useChatStore();
 
     useEffect(() => {
         if (currentRoomId) {

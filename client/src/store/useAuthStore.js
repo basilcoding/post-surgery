@@ -2,8 +2,9 @@ import { create } from 'zustand';
 import { axiosInstance } from '../lib/axios';
 import { toast } from 'react-hot-toast';
 import { io } from 'socket.io-client';
-import { useChatStore } from './useChatStore';
-import { useSummaryStore } from './useSummaryStore';
+import { useChatStore } from './useChatStore.js';
+import { useSummaryStore } from './useSummaryStore.js';
+import { useUIStore } from './useUIStore.js';
 
 const BASE_URL = 'http://localhost:5000';
 
@@ -49,6 +50,22 @@ export const useAuthStore = create((set, get) => ({
             console.error("Failed to check for active session:", error);
             // If this fails, clear any potentially stale chat state
             useChatStore.getState().clearChat();
+        }
+    },
+
+    signup: async (data) => {
+        set({ isSigningUp: true });
+        try {
+            const res = await axiosInstance.post('/auth/signup', data);
+            set({ authUser: res.data }); // res.data contains user info
+            toast.success('Signup Successful!');
+            get().connectSocket();
+
+            // return true; // return true on success
+        } catch (error) {
+            toast.error(error.response.data.message);
+        } finally {
+            set({ isSigningUp: false });
         }
     },
 
@@ -179,7 +196,6 @@ export const useAuthStore = create((set, get) => ({
         } catch (error) {
 
             // socket.emit("endRoom", { roomId: currentRoomId || "" });
-            // useChatStore.setState({ navigationTarget: path });
             // toast.error(error?.response?.data?.message || "Failed to send message");
             useChatStore.getState().clearChat();
             navigate(path);
