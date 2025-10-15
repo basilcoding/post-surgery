@@ -148,7 +148,7 @@ export const logout = (req, res) => {
     try {
         res.cookie("jwt", "", { maxAge: 0 });
         res.cookie("roomToken")
-        const token = req.cookies.roomToken; // ✅ read from cookies
+        const token = req.cookies.roomToken; // read from cookies
         if (token) {
             res.cookie('roomToken', "", { maxAge: 0 });
         }
@@ -244,10 +244,11 @@ export const checkRoomStatus = async (req, res) => {
 
 export const createRoomToken = async (req, res) => {
     try {
-        const { id } = req.params; // userId from the url
-        const { roomId, selectedUser } = req.body; // frontend generates or gets roomId
-        if (!roomId || id !== req.user._id.toString()) {
-            return res.status(400).json({ message: "Room ID is required AND must match user ID" });
+        const id = req.user._id; // userId from the url
+        const { roomId } = req.params;
+        const { selectedUser } = req.body; // frontend generates or gets roomId
+        if (!roomId) {
+            return res.status(400).json({ message: "Room ID is required!" });
         }
         // sign a room-specific token
         const roomToken = jwt.sign({ roomId, userId: id, selectedUser: selectedUser }, process.env.JWT_SECRET, {

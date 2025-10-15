@@ -26,7 +26,7 @@ export const useChatStore = create((set, get) => ({
             const { authUser } = useAuthStore.getState();
             const path = authUser?.role === "doctor" ? "/doctor" : "/patient";
             try {
-                const res = await axiosInstance.post(`/auth/create-room-token/${authUser._id}`, { roomId, selectedUser: otherUser });
+                const res = await axiosInstance.post(`/auth/create-room-token/${roomId}`, { selectedUser: otherUser });
 
                 get().setSelectedUserAndCurrentRoomId(otherUser, roomId);
                 toast.success(otherUser.role === 'creator' ? 'Room created' : 'You were invited');

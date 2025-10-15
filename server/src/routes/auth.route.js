@@ -13,7 +13,7 @@ router.post('/signup', signup);
 
 router.post('/login', login)
 
-router.post('/logout', logout) // no need to protect this route because a user can only invalidate his own token and not others token (unless one user gets some other logged in persons token).
+router.post('/logout', protectRoute, logout) // no need to protect this route because a user can only invalidate his own token and not others token (unless one user gets some other logged in persons token).
 
 // to update the database, the user must be authenticated using protectRoute
 router.put('/update-profile', protectRoute, requireRole(['admin']), upload.single("profilePic"), updateProfile);
@@ -24,7 +24,7 @@ router.get('/check', protectRoute, checkAuth);
 // No need to do /room-status/:userId because protectRoute will attach req object with .user taken from the token (i.e if a malicious user does not have the token of another user, the malicious user can't get the active session of another user)
 router.get('/room-status', protectRoute, checkRoomStatus);
 
-router.post('/create-room-token/:id', protectRoute, createRoomToken);
+router.post('/create-room-token/:roomId', protectRoute, createRoomToken);
 
 router.post('/clear-room-token/:roomId', protectRoute, protectRoom, clearRoomToken)
 
