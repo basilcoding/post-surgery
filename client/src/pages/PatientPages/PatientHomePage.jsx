@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 
-import Chatbot from "../../components/ChatBotComponents/ChatBot";
+import Chatbot from "../../components/ChatbotComponents/Chatbot";
 // import { useAuthStore } from "../../store/useAuthStore";
 import { useChatStore } from "../../store/useChatStore";
 // import { useUIStore } from "../../store/useUIStore";

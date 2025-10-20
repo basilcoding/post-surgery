@@ -84,7 +84,7 @@ export const protectRoom = async (req, res, next) => {
         let { roomId } = req.params;
         const id = req.user._id;
 
-        const token = req.cookies.roomToken; // ✅ read from cookies
+        const token = req.cookies.roomToken; //  read from cookies
 
         if (!token) {
             return res.status(401).json({ message: "Unauthorized, you do not have a valid token!" });

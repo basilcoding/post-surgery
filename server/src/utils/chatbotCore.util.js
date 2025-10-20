@@ -51,7 +51,7 @@ export const chatbot = async function (userId, message, isEnd, req, res) {
             ];
 
             const stopAndEmergencyResponse = await ai.models.generateContent({
-                model: "gemini-1.5-flash",
+                model: "gemini-2.0-flash",
                 contents: emergencyCheckContents,
                 config: {
                     systemInstruction: stopAndEmergencyResponsePrompt,
@@ -89,7 +89,7 @@ export const chatbot = async function (userId, message, isEnd, req, res) {
 
         // Generate AI response
         const conversationResponse = await ai.models.generateContent({
-            model: "gemini-1.5-flash",
+            model: "gemini-2.0-flash",
             contents: conversationContents,
             config: { systemInstruction }
         });
@@ -107,7 +107,7 @@ export const chatbot = async function (userId, message, isEnd, req, res) {
             if (chats.isEmergency && !chats.isEnd) { // run this code if it is IS AN EMERGENCY and if conversation has NOT ALDREADY ENDED
                 console.log("emergency conversation has ended, so creating emergency summary");
                 const emergencySummaryBot = await ai.models.generateContent({
-                    model: "gemini-1.5-flash",
+                    model: "gemini-2.0-flash",
                     contents: JSON.parse(JSON.stringify(chats.history)),
                     config: {
                         systemInstruction: emergencySummaryBotPrompt,
@@ -123,7 +123,7 @@ export const chatbot = async function (userId, message, isEnd, req, res) {
                 // Run this code if conversation has NOT ended. Then flag it has ended. So since we flag it as ended, next time this code wont run because conversation HAS ended.
                 console.log("jounaling conversation has ended, so creating normal summary");
                 const journalSummaryBot = await ai.models.generateContent({
-                    model: "gemini-1.5-flash",
+                    model: "gemini-2.0-flash",
                     contents: JSON.parse(JSON.stringify(chats.history)),
                     config: {
                         systemInstruction: journalSummaryBotPrompt,

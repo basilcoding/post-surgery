@@ -17,7 +17,7 @@ export const getMessages = async (req, res) => {
 
 export const sendMessage = async (req, res) => {
     try {
-        const { text, receiverId } = req.body; // ✅ receiverId comes from frontend
+        const { text, receiverId } = req.body; // receiverId comes from frontend
         const { roomId } = req.params;
         const senderId = req.user._id;
 

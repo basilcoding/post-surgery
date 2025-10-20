@@ -17,6 +17,19 @@ export default function Chatbot() {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [messages]);
 
+    const getChatbotMessages = async () => {
+        try {
+            const res = await axiosInstance.get(`/chatbot/message/${authUser._id}`)
+            setMessages([...res.data.messages])
+        } catch {
+            setMessages(prev => [...prev, { role: "bot", message: "Oops! Something went wrong." }]);
+        }
+    }
+
+    useEffect(() => {
+        getChatbotMessages();
+    }, [])
+
     const sendMessage = async () => {
         if (!input.trim()) return;
         const userMessage = { role: "user", message: input.trim() };
@@ -26,8 +39,7 @@ export default function Chatbot() {
 
         try {
             console.log("Sending chatbot message for user:", userId);
-            const res = await axiosInstance.post("/chatbot/sendMessage", {
-                userId,
+            const res = await axiosInstance.post("/chatbot/message", {
                 message: input.trim(),
             });
 
