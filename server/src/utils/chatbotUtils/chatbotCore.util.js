@@ -1,11 +1,10 @@
 import { GoogleGenAI } from "@google/genai";
 
-import Chatbot from '../models/chatbot.model.js';
-import Relationship from "../models/relationship.model.js";
+import Chatbot from '../../models/chatbot.model.js';
 
 import { emitSummary } from "./emitSummary.util.js";
 
-import { ioInstance } from "../lib/socket.js";
+import { ioInstance } from "../../lib/socket.js";
 
 import {
     stopAndEmergencyResponsePrompt,
@@ -27,7 +26,7 @@ function getRecentHistory(history, n = 8) {
     return Array.isArray(history) ? history.slice(-n) : [];
 }
 
-export const chatbot = async function (userId, message, isEnd, req, res) {
+export const chatbot = async function (userId, message, isEnd) {
     try {
         console.log("\nchatAgent called successfully called");
         console.log(`userId: ${userId}, Message: "${message}", isEnd: ${isEnd}`);
@@ -142,12 +141,15 @@ export const chatbot = async function (userId, message, isEnd, req, res) {
         await chats.save();
         console.log("chat history saved, now total length is: ", chats.history.length);
 
+        const data = {
+            role: 'bot',
+            message: botResponseText
+        }
+        // console.log("Emitting botReply to", userId, "payload:", botResponseText);
+        ioInstance().to(userId.toString()).emit("botReply", data);
 
-
-        // Send response to client
-        return res.json({ message: botResponseText });
-
-    } catch (err) {
-        console.error("error in chatAgent function: ", err);
+    } catch (error) {
+        ioInstance().to(userId.toString()).emit("botError", error);
+        console.error("error in chatAgent function: ", error);
     }
 };

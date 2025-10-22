@@ -2,58 +2,41 @@ import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { axiosInstance } from "../../lib/axios";
 import { useAuthStore } from "../../store/useAuthStore";
+import { useChatbotStore } from "../../store/useChatbotStore";
 
 export default function Chatbot() {
-    const { authUser } = useAuthStore();
+    const { authUser, socket } = useAuthStore();
     const [userId] = useState(authUser?._id);
-    const [messages, setMessages] = useState([
-        { role: "bot", message: "Hey There! Let's start your Questionnaire for today!" },
-    ]);
     const [input, setInput] = useState("");
     const messagesEndRef = useRef(null);
-    const [isLoading, setIsLoading] = useState(false);
     const [bubbleClicked, setBubbleClicked] = useState(false);
-    useEffect(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    }, [messages]);
 
-    const getChatbotMessages = async () => {
-        try {
-            const res = await axiosInstance.get(`/chatbot/message/${authUser._id}`)
-            setMessages([...res.data.messages])
-        } catch {
-            setMessages(prev => [...prev, { role: "bot", message: "Oops! Something went wrong." }]);
-        }
-    }
+    const { messages, getChatbotMessages, sendMessage, isLoading, disconnectChatbotSocketListeners } = useChatbotStore();
+    // scroll when messages change OR when the chat is opened/closed
+    useEffect(() => {
+        // scroll after a tiny delay so DOM/animations can finish
+        const scrollToBottom = () => {
+            messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+        };
+
+        const timer = setTimeout(scrollToBottom, 200); // 50ms is enough in most cases
+        return () => clearTimeout(timer);
+    }, [messages, bubbleClicked]);
 
     useEffect(() => {
         getChatbotMessages();
+        if (!socket) return;
+        return () => disconnectChatbotSocketListeners(socket);
     }, [])
 
-    const sendMessage = async () => {
-        if (!input.trim()) return;
-        const userMessage = { role: "user", message: input.trim() };
-        setMessages(prev => [...prev, userMessage]);
+    const handleSendMessage = async (message) => {
+        await sendMessage(message);
+
         setInput("");
-        setIsLoading(true);
-
-        try {
-            console.log("Sending chatbot message for user:", userId);
-            const res = await axiosInstance.post("/chatbot/message", {
-                message: input.trim(),
-            });
-
-            const botReply = res.data.message || "(Bot didn’t reply)";
-            setMessages(prev => [...prev, { role: "bot", message: botReply }]);
-        } catch {
-            setMessages(prev => [...prev, { role: "bot", message: "Oops! Something went wrong." }]);
-        } finally {
-            setIsLoading(false);
-        }
-    };
+    }
 
     const handleKeyPress = (e) => {
-        if (e.key === "Enter") sendMessage();
+        if (e.key === "Enter") handleSendMessage(input);
     };
 
     return (
@@ -71,13 +54,12 @@ export default function Chatbot() {
                         <div className="flex flex-col w-[325px] h-[500px] bg-primary rounded-2xl shadow-lg overflow-hidden">
                             {/* Chat Header */}
                             <div className="bg-black-800 text-white px-4 py-3 font-bold rounded-2xl">
-                                Please enter quit to finish and send...
-                                Please Enter the responses in detail...
+                                <div>Virtual Health Assistant</div>
+                                <span className={`text-xs ${socket?.connected ? 'text-green-400' : 'text-red-400'}`}>{socket?.connected ? 'Available' : 'Offline'}</span>
                             </div>
-
                             {/* Chat Messages */}
                             <div className="flex-1 overflow-y-auto p-4 space-y-3 scrollbar-hide">
-                                {messages.map((msg, index) => (
+                                {(messages || []).map((msg, index) => (
                                     <div key={index} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
                                         <motion.div
                                             initial={{ opacity: 0, y: 10 }}
@@ -105,7 +87,7 @@ export default function Chatbot() {
                                     onKeyDown={handleKeyPress}
                                 />
                                 <button
-                                    onClick={sendMessage}
+                                    onClick={() => handleSendMessage(input)}
                                     className="bg-blue-600 text-white px-4 py-2 rounded-r-xl hover:bg-blue-700 transition"
                                 >
                                     Send
@@ -114,19 +96,38 @@ export default function Chatbot() {
                         </div>
                     </motion.div>
                 )}
-                {/* Floating Chat Button */}
 
+                {/* Floating Chat Button */}
             </AnimatePresence>
 
-
-
-            <div
+            <motion.div
                 className="fixed bottom-4 right-4 cursor-pointer w-16 h-16 flex items-center justify-center bg-primary text-white shadow-lg rounded-full z-50"
                 onClick={() => setBubbleClicked(!bubbleClicked)}
+                whileTap={{
+                    rotate: -150,        // tiny rotation for tactile feel
+                }}
+                animate={{ scale: bubbleClicked ? 0.9 : 1 }} // shrink when open
+                transition={{ type: "spring", stiffness: 500, damping: 15 }}
             >
                 {bubbleClicked ? "Close" : "Chat"}
-            </div>
-
+            </motion.div>
+            {bubbleClicked &&
+                <motion.div
+                    className="fixed bottom-5 right-22 cursor-pointer w-14 h-14 flex items-center justify-center bg-accent text-white shadow-lg rounded-full z-50"
+                    onClick={() => handleSendMessage("send")}
+                    whileTap={{
+                        scale: 0.9,
+                        rotate: -10,
+                    }}
+                    transition={{
+                        type: "spring",
+                        stiffness: 500,
+                        damping: 20,
+                    }}
+                >
+                    quit
+                </motion.div>
+            }
         </>
     );
 }

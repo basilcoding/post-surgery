@@ -17,7 +17,7 @@ export default function SummariesContainer({ summaries, activeView, onMarkViewed
                 <div className="card-body">
                     <h2 className="card-title">
                         {activeView === 'new' && <p>New Summaries</p>}
-                        {activeView === 'viewed' && <p>Recently Viewed Summaries</p>}
+                        {activeView === 'recentlyViewed' && <p>Recently Viewed Summaries</p>}
                         {activeView === 'history' && <p>Past Summaries</p>}
 
                     </h2>
@@ -25,21 +25,21 @@ export default function SummariesContainer({ summaries, activeView, onMarkViewed
                         {summaries.length === 0 ? (
                             <div className="text-gray-500">
                                 {activeView === 'new' && <p>No New Summaries yet.</p>}
-                                {activeView === 'viewed' && <p>No Recently Viewed Summaries yet.</p>}
+                                {activeView === 'recentlyViewed' && <p>No Recently Viewed Summaries yet.</p>}
                                 {activeView === 'history' && <p>No Past Summaries yet.</p>}
                             </div>
                         ) : (
                             summaries.map((summary) => (
                                 <div key={summary._id} className='relative bg-base-300 border-base-300 border py-1 rounded-3xl'>
-                                    <div className='flex items-center justify-end z-50 absolute top-1/2 right-8 -translate-y-1/2'>
+                                    <div className='flex items-center justify-end z-50 absolute top-0 right-7'>
                                         <span className="text-sm text-accent p-3">
                                             {/* <div className={`btn mx-1 ${summary.viewed === true ? 'bg-gray-400 text-black hover:disabled:* ': ''}`} onClick={(e) => { onMarkViewed(summary._id) }}>
                                                 {summary.viewed === true ? 'Viewed' : 'Mark as Read'}
                                             </div> */}
                                             <div
                                                 className={`btn mx-2 rounded-4xl ${summary.viewed === true
-                                                        ? 'bg-gray-400 text-gray-800 opacity-50'
-                                                        : '' // Keep your default styles for the active button here
+                                                    ? 'bg-gray-400 text-gray-800 opacity-50'
+                                                    : '' // Keep your default styles for the active button here
                                                     }`}
                                                 onClick={(e) => {
                                                     // You might want to prevent the click if it's already viewed

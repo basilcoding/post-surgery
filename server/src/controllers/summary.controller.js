@@ -17,7 +17,6 @@ export const getSummariesForDoctor = async (req, res) => {
             BotSummary.find({ doctor: doctorId, type: type, viewed: true, createdAt: { $gte: sevenDaysAgo } }).lean().populate("patient"),
             BotSummary.find({ doctor: doctorId, type: type, createdAt: { $lt: sevenDaysAgo } }).lean().populate("patient")
         ]);
-
         return res.json({
             summaries: {
                 type: type,

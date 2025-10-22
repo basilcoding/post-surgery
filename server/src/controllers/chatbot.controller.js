@@ -3,7 +3,7 @@ import bcrypt from 'bcryptjs';
 import cloudinary from '../lib/cloudinary.js';
 import fs from 'fs';
 import jwt from 'jsonwebtoken';
-import { chatbot } from '../utils/chatbotCore.util.js'
+import { chatbot } from '../utils/chatbotUtils/chatbotCore.util.js'
 import Chatbot from '../models/chatbot.model.js';
 
 export const sendMessage = async (req, res) => {
@@ -14,7 +14,9 @@ export const sendMessage = async (req, res) => {
 
         // console.log(chats[userId]) // undefined
         const isEnd = /^(?:quit|quite|quitt|quti|qit|qut|quyt|kwit|qiut|qiot|qujt|cuit|q|quuit|kuit|qwit|qu\s?it|qutit|qwiut|\/quit|syut|quik|qutting|kuite|qauit|:q|:wq|wuit|qq|done|send|sent|sen|sends)$/i.test(message.trim());
-        chatbot(userId, message, isEnd, req, res);
+        chatbot(userId, message, isEnd);
+        return res.status(200).json({ message: 'sendMessage Controller called successfully' });
+
     } catch (error) {
         console.log("Chatbot sendMessage in the server had a problem!")
     }
@@ -25,9 +27,10 @@ export const getMessages = async (req, res) => {
         const userId = req.user._id;
         const chatbotDoc = await Chatbot.findOne({ userId })
         if (!chatbotDoc) {
-            console.log("No chat found for this user");
+            res.json("No chat found for this user!");
+            return;
         }
-        
+
         const formattedMessages = (chatbotDoc.history || []).map((message) => {
             // parts is an array of { text: string } — join them (or pick first) depending on your needs
             return {

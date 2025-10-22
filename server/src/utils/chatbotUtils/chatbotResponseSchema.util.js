@@ -10,6 +10,17 @@ export const stopAndEmergencyResponseSchema = {
     propertyOrdering: ["isEmergency", "isConversationEnded"]
 }
 
+// export const chatbotResponseSchema = {
+//     type: Type.OBJECT,
+//     properties: {
+//         isEmergency: { type: Type.BOOLEAN },
+//         isConversationEnded: { type: Type.BOOLEAN },
+//         botResponse: { type: Type.STRING } // The new property
+//     },
+//     required: ["isEmergency", "isConversationEnded", "botResponse"],
+//     propertyOrdering: ["isEmergency", "isConversationEnded", "botResponse"]
+// }
+
 export const emergencySummaryBotSchema = {
     type: Type.OBJECT,
     properties: {

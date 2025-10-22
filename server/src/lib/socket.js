@@ -36,14 +36,11 @@ export function initSocket(server) {
         }
     });
 
-    // let roomId;
-
     io.on("connection", (socket) => {
         console.log("User connected:", socket.id);
         const userId = socket.userId; // from the middleware above
         if (userId) {
-            socket.join(userId); // private user room
-            //working
+            socket.join(String(userId)); // make the user join the room with their own userId (ALERT! MAKE USERID AS STRING, THIS SMALL ISSUE WAS A BIG PROBLEM BECAUSE THE CHATBOTCOREUTIL FILE WILL BE EMITING TO room string formatted USERID).
         };
 
         socket.on("createRoom", async ({ inviteeEmail }) => {
@@ -131,7 +128,7 @@ export function initSocket(server) {
     // helper function
     async function broadcastOnlineUsers() {
         const sockets = await io.fetchSockets();
-        const userIds = sockets.map((s) => s.userId); // ✅ use socket.userId
+        const userIds = sockets.map((s) => s.userId); // use socket.userId
         io.emit("getOnlineUsers", { userIds });
     }
 }

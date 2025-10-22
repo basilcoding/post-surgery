@@ -13,38 +13,6 @@ const ChatRoom = () => {
 
     const navigate = useNavigate();
 
-    //Important: wait for protectRoute middleware to authenticate and then call checkRoomAuth
-    // useEffect(() => {
-    //     const validate = async () => {
-    //         // wait for global auth check to finish
-    //         if (isCheckingAuth) return;
-    //         if (!roomId) return;
-    //         console.log('this is being called after first validation')
-    //         // if we already have the room state and it matches the url → do nothing
-    //         if (currentRoomId && selectedUser && currentRoomId === roomId) return;
-    //         console.log('this is being called after second validation')
-
-    //         // avoid calling again while a room check is in progress
-    //         // if (isRoomChecking) return;
-    //         console.log('this is being called after third validation')
-
-
-    //         await checkRoomAuth(roomId, navigate);
-
-    //     };
-
-    //     validate();
-    // }, [
-    //     roomId,
-    //     authUser,
-    //     isCheckingAuth,
-    //     isRoomChecking,
-    //     currentRoomId,
-    //     selectedUser,
-    //     checkRoomAuth,
-    //     navigate,
-    // ]);
-
     // Effect 1: Authorize the room, but only if needed.
     // VERY VERY IMPORTANT, THIS STUFF CAUSED A LOT OF BUGS :(
     useEffect(() => {

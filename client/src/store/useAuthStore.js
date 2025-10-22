@@ -5,6 +5,7 @@ import { io } from 'socket.io-client';
 import { useChatStore } from './useChatStore.js';
 import { useSummaryStore } from './useSummaryStore.js';
 import { useUIStore } from './useUIStore.js';
+import { useChatbotStore } from './useChatbotStore.js';
 
 const BASE_URL = 'http://localhost:5000';
 
@@ -158,10 +159,15 @@ export const useAuthStore = create((set, get) => ({
 
         useChatStore.getState().connectChatSocketListeners(newSocket);
         useSummaryStore.getState().connectSummarySocketListeners(newSocket);
+        useChatbotStore.getState().connectChatbotSocketListeners(newSocket);
     },
 
     disconnectSocket: () => {
-        if (get().socket?.connected) get().socket.disconnect(); // only disconnect if the user is connected
+        if (get().socket) {
+            get().socket.removeAllListeners();
+            get().socket.disconnect();
+            set({ socket: null });
+        }
     },
 
     // For creator

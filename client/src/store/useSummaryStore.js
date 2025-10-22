@@ -19,20 +19,20 @@ export const useSummaryStore = create((set, get) => ({
         socket.off('emergencySummaryCreated');
         socket.off('noDoctorAvailable');
 
-        socket.on("journalSummaryCreated", (data) => {
-            set({ newSocketSummary: data });
+        socket.on("journalSummaryCreated", ({ summary }) => {
+            // set({ newSocketSummary: data });
             set((prev) => ({
-                newSummaries: [get().newSocketSummary, ...prev.newSummaries]
+                newSummaries: [summary, ...prev.newSummaries]
             }));
             toast.success("New journal summary received");
         });
 
-        socket.on("emergencySummaryCreated", (data) => {
-            set({ newSocketSummary: data });
+        socket.on("emergencySummaryCreated", ({ summary }) => {
+            // set({ newSocketSummary: data });
             set((prev) => ({
-                newSummaries: [get().newSocketSummary, ...prev.newSummaries]
+                newSummaries: [summary, ...prev.newSummaries]
             }));
-            toast.error("New Emergency summary received!", { duration: 12000 });
+            toast.error("New Emergency summary received!", { duration: 1000 });
         });
 
         socket.on("noDoctorAvailable", (data) => {
