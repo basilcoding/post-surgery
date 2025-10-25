@@ -1,25 +1,32 @@
 import { GoogleGenAI, Type } from "@google/genai";
 
-export const stopAndEmergencyResponseSchema = {
+export const chatbotResponseSchema = {
     type: Type.OBJECT,
     properties: {
         isEmergency: { type: Type.BOOLEAN },
-        isConversationEnded: { type: Type.BOOLEAN }
+        isEnd: { type: Type.BOOLEAN },
+        botResponse: { type: Type.STRING },
+        
     },
-    required: ["isEmergency", "isConversationEnded"],
-    propertyOrdering: ["isEmergency", "isConversationEnded"]
-}
-
+    required: ["isEmergency", "isEnd", "botResponse"],
+    propertyOrdering: ["isEmergency", "isEnd", "botResponse"]
+};
 // export const chatbotResponseSchema = {
 //     type: Type.OBJECT,
 //     properties: {
 //         isEmergency: { type: Type.BOOLEAN },
-//         isConversationEnded: { type: Type.BOOLEAN },
-//         botResponse: { type: Type.STRING } // The new property
+//         isEnd: { type: Type.BOOLEAN },
+//         botResponse: { type: Type.STRING },
+//         conversationType: {
+//             type: Type.STRING,
+//             enum: ["normal", "emergency"], // only these two values allowed
+//             description: "Indicates whether the conversation is normal or emergency."
+//         },
 //     },
-//     required: ["isEmergency", "isConversationEnded", "botResponse"],
-//     propertyOrdering: ["isEmergency", "isConversationEnded", "botResponse"]
-// }
+//     required: ["isEmergency", "isEnd", "botResponse", "conversationType"],
+//     propertyOrdering: ["isEmergency", "isEnd", "botResponse", "conversationType"]
+// };
+
 
 export const emergencySummaryBotSchema = {
     type: Type.OBJECT,

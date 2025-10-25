@@ -7,6 +7,7 @@ import { ioInstance } from "../../lib/socket.js";
 
 export const emitSummary = async function (userId, chats, summaryObj, res) {
     try {
+        
         const io = ioInstance();
 
         // Fetch patient user (for email)

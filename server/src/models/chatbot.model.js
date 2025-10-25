@@ -41,6 +41,10 @@ const chatbotSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
+    isEndBot: {
+        type: Boolean,
+        default: false
+    },
     createdAt: {
         type: Date,
         default: Date.now,
@@ -48,5 +52,10 @@ const chatbotSchema = new mongoose.Schema({
     }
 });
 
+// conversationType: {
+//         type: String,
+//         default: 'normal',
+//         enum: ['normal', 'emergency'],
+//     },
 const Chatbot = mongoose.model('ChatbotMessages', chatbotSchema);
 export default Chatbot;

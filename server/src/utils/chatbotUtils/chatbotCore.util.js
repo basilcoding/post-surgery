@@ -7,22 +7,21 @@ import { emitSummary } from "./emitSummary.util.js";
 import { ioInstance } from "../../lib/socket.js";
 
 import {
-    stopAndEmergencyResponsePrompt,
-    emergencyConversationBotPrompt,
+    chatbotPrompt,
     emergencySummaryBotPrompt,
-    conversationBotResponsePrompt,
-    journalSummaryBotPrompt
+    journalSummaryBotPrompt,
+    
 } from './chatbotPrompts.util.js';
 
 import {
-    stopAndEmergencyResponseSchema,
+    chatbotResponseSchema,
     emergencySummaryBotSchema,
     journalSummaryBotSchema
 } from './chatbotResponseSchema.util.js';
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
-function getRecentHistory(history, n = 8) {
+function getRecentHistory(history, n = 16) {
     return Array.isArray(history) ? history.slice(-n) : [];
 }
 
@@ -33,6 +32,7 @@ export const chatbot = async function (userId, message, isEnd) {
 
         // Load chat from DB or create a new one
         let chats = await Chatbot.findOne({ userId });
+
         if (!chats) {
             chats = new Chatbot({ userId });
             console.log("creating new record.");
@@ -40,70 +40,103 @@ export const chatbot = async function (userId, message, isEnd) {
             console.log(`found a chat. length is ${chats.history.length}`);
         }
 
-        // if it is NOT an emergency and if the conversation has NOT ended, THEN only... run the below code
-        if (!chats.isEmergency && !chats.isEnd) { // if conversation has ended after normalJournal conversation i dont want the stopAndEmergencyBot to run.
-            console.log("checking if its an emergency");
-            const contextForEmergency = getRecentHistory(chats.history, 4);
-            const emergencyCheckContents = [
-                ...JSON.parse(JSON.stringify(contextForEmergency)),
-                { role: "user", parts: [{ text: message }] }
-            ];
-
-            const stopAndEmergencyResponse = await ai.models.generateContent({
-                model: "gemini-2.0-flash",
-                contents: emergencyCheckContents,
-                config: {
-                    systemInstruction: stopAndEmergencyResponsePrompt,
-                    responseMimeType: "application/json",
-                    responseSchema: stopAndEmergencyResponseSchema
-                }
-            });
-
-            const parsedEmergency = JSON.parse(stopAndEmergencyResponse.text);
-            console.log("emergency checking bots result: ", parsedEmergency);
-
-            // Only update if the check detects a new emergency
-            if (parsedEmergency.isEmergency) {
-                chats.isEmergency = true;
-                console.log("its an emergency, now emergency state wont change");
-            }
-        } else {
-            console.log("its aldready an emergency so not checking if its an emergency");
-        }
-
-        //Prepare conversation context
-        const recentHistory = getRecentHistory(chats.history, 8);
-        const conversationContents = [
-            ...JSON.parse(JSON.stringify(recentHistory)), // dont get confused, this .stringify will remove all the object id stuff (meta data) of the data that is retrieved and make it (parse it)
+        console.log("checking if its an emergency");
+        const recentHistory = getRecentHistory(chats.history, 50);
+        const chatbotContext = [
+            ...JSON.parse(JSON.stringify(recentHistory)),
             { role: "user", parts: [{ text: message }] }
         ];
 
-        // choose the systemInstruction including metadata
-        // i'm thinking , this line isEndSignal=${isEnd} is not necessary to add in as metadata, if it proves to be wrong, we could add it later
-        const systemInstruction = chats.isEmergency
-            ? `${emergencyConversationBotPrompt}\nMetadata: isEmergencyState=${chats.isEmergency} isEnd=${chats.isEnd}`
-            : `${conversationBotResponsePrompt}\nMetadata: isEmergencyState=${chats.isEmergency} isEnd=${chats.isEnd}`;
+        // let chatbotPrompt = ; // choose the systemInstruction including metadata
+        // let promptType = ''; // For logging
+        // if (chats.isEnd) {
+        //     chatbotPrompt = `${postSessionPrompt}\nMetadata: isEmergencyState=${chats.isEmergency} isEnd=${chats.isEnd}`;
+        //     promptType = 'Post-Session';
+        // } else if (chats.isEmergency) {
+        //     chatbotPrompt = `${emergencyConversationBotPrompt}\nMetadata: isEmergencyState=${chats.isEmergency} isEnd=${chats.isEnd}`;
+        //     promptType = 'Emergency';
+        // } else {
+        //     chatbotPrompt = `${conversationBotResponsePrompt}\nMetadata: isEmergencyState=${chats.isEmergency} isEnd=${chats.isEnd}`;
+        //     promptType = 'Normal';
+        // }
 
-        console.log(`the prompt used is '${chats.isEmergency ? "Emergency" : "Normal"}' prompt`);
+        // console.log(`the prompt used is '${promptType}' prompt`);
 
-        // Generate AI response
-        const conversationResponse = await ai.models.generateContent({
+        const chatbotResponse = await ai.models.generateContent({
             model: "gemini-2.0-flash",
-            contents: conversationContents,
-            config: { systemInstruction }
+            contents: chatbotContext,
+            config: {
+                systemInstruction: chatbotPrompt,
+                responseMimeType: "application/json",
+                responseSchema: chatbotResponseSchema
+            }
         });
 
-        const botResponseText = conversationResponse.text;
+        const parsedResponse = JSON.parse(chatbotResponse.text);
+        console.log("emergency checking bots result: ", parsedResponse);
+
+        const botResponseText = parsedResponse.botResponse;
         console.log("bot response is: ", botResponseText);
 
+        const aiDetectedEmergency = parsedResponse.isEmergency;
+
+        // --- Key logic: if chat was ended but AI now detects emergency, reopen/allow conversation ---
+        let allowAppendToHistory = false;
+        console.log("The value of chats.isEnd is: ", chats.isEnd);
+        if (chats.isEnd) {
+            // chat was previously ended
+            if (aiDetectedEmergency) {
+                // reopen conversation for emergency
+                chats.isEmergency = true;     // set emergency
+                chats.isEnd = false;         // reopen so we WILL append and continue
+                allowAppendToHistory = true; // allow history update for this emergency message
+                console.log("Chat was ended but AI detected new emergency so reopening chat and recording emergency.");
+            } else {
+                // chat ended and no emergency detected -> do NOT append history
+                allowAppendToHistory = false;
+                console.log("Chat is ended and AI did not detect emergency so not appending to the history.");
+            }
+        } else {
+            // chat not ended: normal flow
+            // preserve emergency flag if previously true, or set if AI says so
+            chats.isEmergency = aiDetectedEmergency;
+            allowAppendToHistory = true;
+        }
+
+        // Append to history only if allowed (this implements your requirement)
+        if (allowAppendToHistory) {
+            // push user message then model response
+            chats.history.push({ role: 'user', parts: [{ text: message }] });
+            chats.history.push({ role: 'model', parts: [{ text: botResponseText }] });
+        }
+
+        // if (chats.isEmergency && chats.isEnd) { // New emergency
+        //     canPatientEndSession = false; // Override end signal
+        // } else if (chats.isEmergency) { // Existing emergency
+        //     canPatientEndSession = false; // Override end signal
+        // }
+
         // Add new messages to chat history
-        chats.history.push({ role: 'user', parts: [{ text: message }] });
-        chats.history.push({ role: 'model', parts: [{ text: botResponseText }] });
+        // if (chats.isEmergency || !canPatientEndSession) {
+        //     chats.history.push({ role: 'user', parts: [{ text: message }] });
+        //     chats.history.push({ role: 'model', parts: [{ text: botResponseText }] });
+        // }
+
+        const data = {
+            role: 'bot',
+            message: botResponseText
+        }
+        // console.log("Emitting botReply to", userId, "payload:", botResponseText);
+        ioInstance().to(userId.toString()).emit("botReply", data);
+
+        if (parsedResponse.isEnd) {
+            chats.isEndBot = true;
+        }
 
         // Handle summaries if conversation ends
         if (isEnd) { // This isEnd needs to be true, then only the chats.isEnd will be checked. eg: even if isEnd is true, chats.End condition will not allow the user to make any more responses. (chats.isEnd is specified inside the else if condition )
             let summary = null;
-            if (chats.isEmergency && !chats.isEnd) { // run this code if it is IS AN EMERGENCY and if conversation has NOT ALDREADY ENDED
+            if (chats.isEmergency && chats.isEndBot && !chats.isEnd) { // run this code if it is IS AN EMERGENCY
                 console.log("emergency conversation has ended, so creating emergency summary");
                 const emergencySummaryBot = await ai.models.generateContent({
                     model: "gemini-2.0-flash",
@@ -115,10 +148,11 @@ export const chatbot = async function (userId, message, isEnd) {
                     }
                 });
                 chats.isEnd = true;
+                chats.isEndBot = false;
                 summary = JSON.parse(emergencySummaryBot.text);
                 emitSummary(userId, chats, summary);
                 console.log("successfully created emergency summary:", JSON.parse(emergencySummaryBot.text));
-            } else if (!chats.isEnd) {
+            } else if (!chats.isEnd && chats.isEndBot) {
                 // Run this code if conversation has NOT ended. Then flag it has ended. So since we flag it as ended, next time this code wont run because conversation HAS ended.
                 console.log("jounaling conversation has ended, so creating normal summary");
                 const journalSummaryBot = await ai.models.generateContent({
@@ -134,19 +168,13 @@ export const chatbot = async function (userId, message, isEnd) {
                 emitSummary(userId, chats, summary);
                 console.log("journal summary created successfully ", JSON.parse(journalSummaryBot.text));
                 chats.isEnd = true; // This will prevent any further user responses because even if isEnd = true, !chats.isEnd = false "always... after making the furst summary"
+                chats.isEndBot = false;
             }
         }
 
         // Save updated chat (this will now save the sticky isEmergency flag)
         await chats.save();
         console.log("chat history saved, now total length is: ", chats.history.length);
-
-        const data = {
-            role: 'bot',
-            message: botResponseText
-        }
-        // console.log("Emitting botReply to", userId, "payload:", botResponseText);
-        ioInstance().to(userId.toString()).emit("botReply", data);
 
     } catch (error) {
         ioInstance().to(userId.toString()).emit("botError", error);
