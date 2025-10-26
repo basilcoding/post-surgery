@@ -11,6 +11,7 @@ const AssignRelationshipForm = () => {
     const [doctor, setDoctor] = useState(null);
     const [patient, setPatient] = useState(null);
     const [notes, setNotes] = useState("");
+    const [surgeryName, setSurgeryName] = useState("");
     const [resetFormInput, setResetFormInput] = useState(false);
 
     const { fetchDoctors, fetchPatients } = useUserStore();
@@ -24,6 +25,7 @@ const AssignRelationshipForm = () => {
             doctorId: doctor._id,
             patientId: patient._id,
             notes,
+            surgeryName
         });
 
         if (result) {
@@ -31,6 +33,7 @@ const AssignRelationshipForm = () => {
             setPatient(null);
             setNotes("");
             setResetFormInput(true);
+            setSurgeryName("")
         }
         // flip the boolean so child always detects change
         setResetFormInput(prev => !prev);
@@ -57,7 +60,14 @@ const AssignRelationshipForm = () => {
                     selectedUser={(pat) => setPatient(pat)}
                     resetSignal={resetFormInput}
                 />
-
+                <input
+                    type="text"
+                    name="surgeryName"
+                    className="input input-bordered w-full"
+                    placeholder="Enter the Surgery Name"
+                    value={surgeryName}
+                    onChange={(e) => setSurgeryName(e.target.value)}
+                />
                 {/* Notes */}
                 <textarea
                     value={notes}
@@ -65,6 +75,8 @@ const AssignRelationshipForm = () => {
                     className="textarea textarea-bordered w-full"
                     placeholder="Notes (optional)"
                 />
+
+
 
                 {/* Submit */}
                 <button
