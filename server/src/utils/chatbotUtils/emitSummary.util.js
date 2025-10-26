@@ -77,14 +77,7 @@ export const emitSummary = async function (userId, chats, summaryObj, res) {
                         await summary.populate(["patient", "doctor"]); // populate both before emit
 
                         io.to(targetDoctor._id.toString()).emit("emergencySummaryCreated", { summary });
-                        // io.to(targetDoctor._id.toString()).emit("emergencySummaryCreated", {
-                        //     _id: summary._id.toString(),
-                        //     patient: patientUser,   // <-- include patient email
-                        //     email: targetDoctor.email,    // <-- include doctor email
-                        //     type: "emergency",
-                        //     content: summaryObj.notes,
-                        //     questionsAsked: summaryObj.followUpQuestions,
-                        // });
+                       
                         console.log(`Emergency routed to available ${specialtyNeeded} doctor: ${targetDoctor.fullName}`);
                     } else {
                         console.log("No online doctors are there.");

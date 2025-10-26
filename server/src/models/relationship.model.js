@@ -11,6 +11,16 @@ const relationshipSchema = new mongoose.Schema({
         ref: "User",
         required: true,
     },
+    surgeryName: {
+        type: String,
+        default: null
+    },
+    specialty: {
+        type: String,
+        enum: ['cardiology', 'general', 'psychiatry'],
+        required: true
+    },
+    active: { type: Boolean, default: true },
     notes: { type: String, default: "" },
     assignedAt: { type: Date, default: Date.now },
 });

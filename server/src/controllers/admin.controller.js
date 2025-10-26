@@ -116,7 +116,7 @@ export const adminRegister = async (req, res) => {
 
 export const assignRelationship = async (req, res) => {
     try {
-        const { doctorId, patientId, notes } = req.body;
+        const { doctorId, patientId, notes, surgeryName } = req.body;
 
         // Validate doctor and patient
         const doctor = await User.findById(doctorId);
@@ -140,6 +140,8 @@ export const assignRelationship = async (req, res) => {
             doctor: doctorId,
             patient: patientId,
             notes,
+            surgeryName,
+            specialty: doctor.specialty
         });
 
         await relationship.save();

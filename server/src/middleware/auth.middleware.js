@@ -126,11 +126,11 @@ export const requireRole = (roles = []) => {
 export const requireSelfAndRole = (roles = []) => {
     return (req, res, next) => {
         try {
-            const { userId } = req.params;
+            const { id } = req.params;
 
-            const isSelf = req.user._id.toString() === userId;
+            const isSelf = req.user._id.toString() === id;
             const hasRole = roles.includes(req.user.role);
-            console.log(req.params.userId)
+            console.log(req.params.id)
             if (isSelf && hasRole) {
 
                 return next();

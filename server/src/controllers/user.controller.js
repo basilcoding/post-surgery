@@ -54,8 +54,9 @@ export const getAllPatients = async (req, res) => {
 };
 
 // For implementing patient page
-export const getPatientProfile = (req, res) => {
-    res.json(req.user); // already attached by protectRoute
+export const getPatientProfile = async (req, res) => {
+    const relationships = await Relationship.find({ patient: req.user._id}).populate('doctor')
+    res.json(relationships); // already attached by protectRoute
 };
 
 export const getDoctorProfile = async (req, res) => {

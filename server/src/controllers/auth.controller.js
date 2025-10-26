@@ -1,4 +1,8 @@
+
 import User from '../models/user.model.js';
+import PatientProfile from '../models/patientProfile.model.js'
+import DoctorProfile from '../models/doctorProfile.model.js'
+
 import bcrypt from 'bcryptjs';
 import { generateToken } from '../utils/generateToken.util.js';
 import cloudinary from '../lib/cloudinary.js';
@@ -123,6 +127,7 @@ export const login = async (req, res) => {
     const { email, password } = req.body;
     try {
         const user = await User.findOne({ email });
+        let profile;
         if (!user) return res.status(400).json({ message: "Invalid Credentials!" });
 
         const isPasswordCorrect = await bcrypt.compare(password, user.password);
@@ -136,6 +141,7 @@ export const login = async (req, res) => {
             email: user.email,
             role: user.role,
             profilePic: user.image?.[0]?.profilePic || "",
+            
         });
     } catch (error) {
         console.log("Error in login:", error.message);
