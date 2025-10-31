@@ -14,7 +14,7 @@ export default function JournalSummaryPage() {
   const { newSummaries, recentlyViewedSummaries, summariesHistory, fetchSummaries, markViewed } = useSummaryStore();
   const [viewType, setViewType] = useState('new');
   // const [summaryId, setSummaryId] = useState('');
-  const [clickedSummary, setClickedSummary] = useState({ summaryId: '', viewedBy: '' });
+  const [clickedSummary, setClickedSummary] = useState({ summaryId: '' , viewedStatus: false});
 
 
   useEffect(() => {
@@ -29,14 +29,14 @@ export default function JournalSummaryPage() {
 
     const handleSummaryIdClick = async () => {
       try {
-        await markViewed(clickedSummary.summaryId, clickedSummary.viewedBy);
+        await markViewed(clickedSummary.summaryId, clickedSummary.viewedStatus);
         await fetchSummaries('journal'); // re-fetch to refresh lists (or your markViewed could update store and you could skip)
       } catch (err) {
         console.error(err);
-        setClickedSummary({ summaryId: '', viewedBy: authUser?._id || '' });
+        setClickedSummary({ summaryId: '', viewedStatus: false });
         toast.error("Failed to mark summary read");
       } finally {
-        if (!cancelled) setClickedSummary({ summaryId: '', viewedBy: authUser?._id || '' });
+        if (!cancelled) setClickedSummary({ summaryId: '', viewedStatus: false });
       }
     }
     handleSummaryIdClick();
@@ -53,8 +53,8 @@ export default function JournalSummaryPage() {
   }, []);
 
   // pass a function down that sets both id + doctor id
-  const handleMarkViewedProp = (id) => {
-    setClickedSummary({ summaryId: id, viewedBy: authUser?._id || '' });
+  const handleMarkViewedProp = (summaryId, viewedStatus) => {
+    setClickedSummary({ summaryId: summaryId, viewedStatus: viewedStatus });
   };
 
   return (

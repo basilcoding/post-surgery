@@ -12,6 +12,8 @@ import adminRoutes from './routes/admin.route.js';
 import chatbotRoutes from './routes/chatbot.route.js';
 import userRoutes from './routes/user.route.js';
 import summaryRoutes from './routes/summary.route.js';
+import relationshipRoutes from './routes/relationships.route.js';
+import patientRoutes from './routes/patient.route.js';
 
 dotenv.config();
 
@@ -35,6 +37,8 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/chatbot', chatbotRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/summaries', summaryRoutes);
+app.use('/api/relationships', relationshipRoutes);
+app.use('/api/patients', patientRoutes);
 
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {

@@ -4,17 +4,28 @@ import cloudinary from '../lib/cloudinary.js';
 import fs from 'fs';
 import jwt from 'jsonwebtoken';
 import { chatbot } from '../utils/chatbotUtils/chatbotCore.util.js'
+
 import Chatbot from '../models/chatbot.model.js';
+import Relationship from '../models/relationship.model.js';
 
 export const sendMessage = async (req, res) => {
     try {
         // const { userId, message } = req.body;
         const userId = req.user._id; // from the verified token
-        const { message } = req.body; // from the client request body
+        const { message, activeDoctor } = req.body; // from the client request body
+        // Find the relationship document with current activeDoctor ONLY!
+        const relationship = await Relationship.findOne({ patient: userId, doctor: activeDoctor, status: true }).populate(["patient", "doctor"]);
 
-        // console.log(chats[userId]) // undefined
         const isEnd = /^(?:quit|quite|quitt|quti|qit|qut|quyt|kwit|qiut|qiot|qujt|cuit|q|quuit|kuit|qwit|qu\s?it|qutit|qwiut|\/quit|syut|quik|qutting|kuite|qauit|:q|:wq|wuit|qq|done|send|sent|sen|sends)$/i.test(message.trim());
-        chatbot(userId, message, isEnd);
+
+        if (!relationship) {
+            res.status(400).json("No relationship found! Please select a valid doctor profile!");
+            return;
+        }
+
+        // The relationship with the current ACTIVEDOCTOR is given to chatbot
+        chatbot(userId, message, isEnd, relationship);
+
         return res.status(200).json({ message: 'sendMessage Controller called successfully' });
 
     } catch (error) {

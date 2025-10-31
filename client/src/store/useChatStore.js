@@ -24,12 +24,12 @@ export const useChatStore = create((set, get) => ({
 
         socket.on("roomNotify", async ({ roomId, otherUser }) => {
             const { authUser } = useAuthStore.getState();
-            const path = authUser?.role === "doctor" ? "/doctor" : "/patient";
             try {
+                // console.log('otherUser is: ', otherUser);
                 const res = await axiosInstance.post(`/auth/create-room-token/${roomId}`, { selectedUser: otherUser });
 
                 get().setSelectedUserAndCurrentRoomId(otherUser, roomId);
-                toast.success(otherUser.role === 'creator' ? 'Room created' : 'You were invited');
+                toast.success(otherUser.role === 'doctor' ? 'Room created' : 'You were invited');
 
             } catch (error) {
                 console.log("Error in roomNotify socket Listener: ", error?.message);
@@ -95,7 +95,7 @@ export const useChatStore = create((set, get) => ({
                 `/messages/room/${roomId}/send`, formData,
                 { headers: { "Content-Type": "multipart/form-data" }, withCredentials: true }
             );
-            console.log("res is: ", res.data);
+            // console.log("res is: ", res.data);
             set({ messages: [...messages, res.data] });
         } catch (error) {
             console.log(error?.response?.data?.message || "Failed to load messages");
@@ -114,11 +114,10 @@ export const useChatStore = create((set, get) => ({
 
         // newMessage is an object and not a string
         socket.on("newMessage", (newMessage) => {
+            // console.log('newmessage is: ', newMessage);
             // if newMessage's roomId is not equal to the current users roomId then do set the messages (the currentUser can be anyone, any doc or patient)
             const currentRoomId = get().currentRoomId; // <-- read latest
-            console.log("newMessage is: ", newMessage);
             if (newMessage.roomId !== currentRoomId) return;
-            console.log('newmessage is: ', newMessage);
             set({ messages: [...get().messages, newMessage] });
             // console.log(get().messages);
         });

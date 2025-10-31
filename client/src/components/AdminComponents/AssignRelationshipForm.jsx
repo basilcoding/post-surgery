@@ -4,6 +4,7 @@ import { toast } from "react-hot-toast";
 
 import { useAdminStore } from "../../store/useAdminStore.js";
 import { useUserStore } from "../../store/useUserStore.js";
+import { useRelationshipsStore } from "../../store/useRelationshipsStore.js";
 
 import SearchableInput from "../CommonComponents/SearchableInput.jsx";
 
@@ -15,13 +16,13 @@ const AssignRelationshipForm = () => {
     const [resetFormInput, setResetFormInput] = useState(false);
 
     const { fetchDoctors, fetchPatients } = useUserStore();
-    const { assignRelationship, isAssigning } = useAdminStore();
+    const { createRelationship, isAssigning } = useRelationshipsStore();
 
     const handleAssign = async (e) => {
         e.preventDefault();
         if (!doctor || !patient) return toast.error("Select both doctor and patient");
 
-        const result = await assignRelationship({
+        const result = await createRelationship({
             doctorId: doctor._id,
             patientId: patient._id,
             notes,

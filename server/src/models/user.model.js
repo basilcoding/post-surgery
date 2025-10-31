@@ -33,11 +33,6 @@ const userSchema = new mongoose.Schema(
             enum: ["doctor", "patient", "admin"],
             required: true
         },
-        // track which chat room the user is currently in
-        currentRoomId: {
-            type: String,
-            default: null
-        },
     },
     { timestamps: true } // Automatically adds createdAt and updatedAt fields
 )

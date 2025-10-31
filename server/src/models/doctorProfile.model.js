@@ -16,6 +16,11 @@ const doctorProfileSchema = new mongoose.Schema({
             publicId: String
         }
     ],
+    currentRoomId: {
+        type: String,
+        default: null,
+        index: true
+    }
 });
 
 export default mongoose.model("DoctorProfile", doctorProfileSchema);

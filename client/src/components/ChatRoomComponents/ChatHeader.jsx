@@ -6,6 +6,7 @@ import { useEffect } from "react";
 const ChatHeader = () => {
     const { selectedUser, setSelectedUser, unsubscribeFromMessages, currentRoomId, endConversation } = useChatStore();
     const { onlineUsers } = useAuthStore();
+    // console.log('otherUser is: ', selectedUser);
 
     // useEffect(() => {
     //     if (!currentRoomId) return;
@@ -32,6 +33,7 @@ const ChatHeader = () => {
                     </div>
                 </div>
                 {/* Close button */}
+
                 {selectedUser.role !== 'doctor' && (
                     <button className='hover:bg-base-300 rounded-full p-1'
                         onClick={() => {

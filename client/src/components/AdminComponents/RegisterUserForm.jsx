@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { Camera, User, Mail, Lock, EyeOff, Eye, Loader2 } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { useAdminStore } from "../../store/useAdminStore.js";
+import { useUserStore } from "../../store/useUserStore.js";
 
 const SPECIALTIES = ["cardiology", "psychiatry", "general", "other"];
 
@@ -19,7 +20,7 @@ const RegisterUserForm = ({ onSuccess }) => {
   const [profilePic, setProfilePic] = useState(null);
   const [preview, setPreview] = useState(null);
 
-  const { adminRegister, isSigningUp } = useAdminStore();
+  const { registerUser, isSigningUp } = useUserStore();
 
   const handleChange = (e) =>
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -48,9 +49,9 @@ const RegisterUserForm = ({ onSuccess }) => {
     if (formData.role === "doctor" && !formData.specialty) {
       return toast.error("Specialty is required for doctors");
     }
-    if (formData.role === "patient" && !formData.primaryRequiredSpecialty) {
-      return toast.error("Required specialty is required for patients");
-    }
+    // if (formData.role === "patient" && !formData.primaryRequiredSpecialty) {
+    //   return toast.error("Required specialty is required for patients");
+    // }
 
     return true;
   };
@@ -68,13 +69,13 @@ const RegisterUserForm = ({ onSuccess }) => {
     if (formData.role === "doctor") {
       data.append("specialty", formData.specialty);
     }
-    if (formData.role === "patient") {
-      data.append("primaryRequiredSpecialty", formData.primaryRequiredSpecialty);
-    }
+    // if (formData.role === "patient") {
+    //   data.append("primaryRequiredSpecialty", formData.primaryRequiredSpecialty);
+    // }
 
     if (profilePic) data.append("profilePic", profilePic);
 
-    const result = await adminRegister(data);
+    const result = await registerUser(data);
     if (result) {
       setFormData({
         email: "",
@@ -192,7 +193,7 @@ const RegisterUserForm = ({ onSuccess }) => {
           </select>
         )}
 
-        {formData.role === "patient" && (
+        {/* {formData.role === "patient" && (
           <select
             name="primaryRequiredSpecialty"
             value={formData.primaryRequiredSpecialty}
@@ -206,7 +207,7 @@ const RegisterUserForm = ({ onSuccess }) => {
               </option>
             ))}
           </select>
-        )}
+        )} */}
 
         {/* Submit */}
         <button

@@ -1,9 +1,11 @@
 import React, { useState } from 'react'
-import { useAuthStore } from '../store/useAuthStore.js';
 import { Link } from 'react-router-dom';
 import { MessageSquare, User, Mail, Lock, EyeOff, Eye, Loader2 } from 'lucide-react';
-import AuthImagePattern from '../components/AuthImagePattern.jsx';
-import { Toaster, toast } from 'react-hot-toast';
+import { toast } from 'react-hot-toast';
+
+import { useAuthStore } from '../store/useAuthStore.js';
+import { useRelationshipsStore } from '../store/useRelationshipsStore.js';
+import { useAdminStore } from '../store/useAdminStore.js';
 
 const SignUpPage = () => {
     const [showPassword, setShowPassword] = useState(false);
@@ -14,9 +16,8 @@ const SignUpPage = () => {
         adminCode: '',
     })
 
-    const { signup, isSigningUp } = useAuthStore();
+    const { registerAdmin, isRegistering } = useAdminStore();
 
-    
     const validateForm = () => {
         if (!formData.fullName.trim()) return toast.error('Full name is required!');
         if (!formData.email.trim()) return toast.error('Email is required!');
@@ -33,7 +34,7 @@ const SignUpPage = () => {
 
         const success = validateForm();
 
-        if (success === true) await signup(formData);
+        if (success === true) await registerAdmin(formData);
     }
 
     return (
@@ -155,8 +156,8 @@ const SignUpPage = () => {
                         </div>
 
                         {/* signup button */}
-                        <button type="submit" className="btn btn-primary w-full" disabled={isSigningUp}>
-                            {isSigningUp ? (
+                        <button type="submit" className="btn btn-primary w-full" disabled={isRegistering}>
+                            {isRegistering ? (
                                 <>
                                     <Loader2 className="size-5 animate-spin" />
                                     Loading...
@@ -176,7 +177,7 @@ const SignUpPage = () => {
                     </div>
                 </div>
             </div>
-            
+
             {/* right side */}
             <div className="hidden lg:block">
                 <img

@@ -1,5 +1,5 @@
 import express from "express";
-import { signup, login, logout, updateProfile, checkAuth, createRoomToken, clearRoomToken, checkRoomAuth, checkRoomStatus} from "../controllers/auth.controller.js"
+import { login, logout, updateProfile, checkAuth, createRoomToken, clearRoomToken, checkRoomAuth, checkRoomStatus} from "../controllers/auth.controller.js"
 import { protectRoute, protectRoom } from "../middleware/auth.middleware.js";
 import multer from "multer";
 import { requireRole } from "../middleware/auth.middleware.js";
@@ -9,7 +9,6 @@ const router = express.Router();
 
 // router.post('/admin/register', upload.single("profilePic"), protectRoute, adminRegister)
 
-router.post('/signup', signup);
 
 router.post('/login', login)
 

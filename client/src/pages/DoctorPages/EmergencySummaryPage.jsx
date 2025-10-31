@@ -4,6 +4,7 @@ import toast from "react-hot-toast";
 
 import { useAuthStore } from "../../store/useAuthStore";
 import { useSummaryStore } from "../../store/useSummaryStore";
+import { useDoctorStore } from "../../store/useDoctorStore";
 
 import SidebarOption from "../../components/CommonComponents/SidebarOption.jsx";
 import SummariesContainer from '../../components/DoctorComponents/SummariesContainer.jsx'
@@ -11,10 +12,11 @@ import SummariesContainer from '../../components/DoctorComponents/SummariesConta
 export default function EmergencySummaryPage() {
   const navigate = useNavigate();
   const { authUser } = useAuthStore();
-  const { newSummaries, recentlyViewedSummaries, summariesHistory, fetchSummaries, markViewed } = useSummaryStore();
+  const { newSummaries, recentlyViewedSummaries, summariesHistory, fetchSummaries } = useSummaryStore();
+  const { markViewed } = useDoctorStore();
   const [viewType, setViewType] = useState('new');
   // const [summaryId, setSummaryId] = useState('');
-  const [clickedSummary, setClickedSummary] = useState({ summaryId: '', viewedBy: '' });
+  const [clickedSummary, setClickedSummary] = useState({ summaryId: '', viewedStatus: false });
 
 
   useEffect(() => {
@@ -29,14 +31,14 @@ export default function EmergencySummaryPage() {
 
     const handleSummaryIdClick = async () => {
       try {
-        await markViewed(clickedSummary.summaryId, clickedSummary.viewedBy);
+        await markViewed(clickedSummary.summaryId, clickedSummary.viewedStatus);
         await fetchSummaries('emergency'); // re-fetch to refresh lists (or your markViewed could update store and you could skip)
       } catch (err) {
         console.error(err);
-        setClickedSummary({ summaryId: '', viewedBy: authUser?._id || '' });
+        setClickedSummary({ summaryId: '', viewedStatus: false });
         toast.error("Failed to mark summary read");
       } finally {
-        if (!cancelled) setClickedSummary({ summaryId: '', viewedBy: authUser?._id || '' });
+        if (!cancelled) setClickedSummary({ summaryId: '', viewedStatus: false });
       }
     }
     handleSummaryIdClick();
@@ -45,8 +47,8 @@ export default function EmergencySummaryPage() {
   }, [clickedSummary, markViewed]);
 
   // pass a function down that sets both id + doctor id
-  const handleMarkViewedProp = (id) => {
-    setClickedSummary({ summaryId: id, viewedBy: authUser?._id || '' });
+  const handleMarkViewedProp = (summaryId, viewedStatus) => {
+    setClickedSummary({ summaryId: summaryId, viewedStatus: viewedStatus });
   };
 
   return (
@@ -103,7 +105,7 @@ export default function EmergencySummaryPage() {
             onMarkViewed={handleMarkViewedProp}
           />
         )}
-        
+
       </div>
     </div >
   );

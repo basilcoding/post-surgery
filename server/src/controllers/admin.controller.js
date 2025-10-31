@@ -8,6 +8,62 @@ import DoctorProfile from '../models/doctorProfile.model.js';
 import PatientProfile from '../models/patientProfile.model.js';
 
 
+export const registerAdmin = async (req, res) => {
+    const { fullName, email, password, adminCode } = req.body;
+    // console.log(req.body);
+    try {
+        // Only the person with the admin code can register which is written in the .env file
+
+        if (!fullName || !email || !password || !adminCode) {
+            return res.status(400).json({ message: "All fields are required!" })
+        }
+        if (password.length < 6) {
+            return res.status(400).json({ message: "Password must be at least 6 characters" })
+        }
+
+        const user = await User.findOne({ email }) // check if a user aldready exits with the same email
+        if (user) {
+            return res.status(400).json({ message: "Email aldready exits" })
+        }
+
+        const salt = await bcrypt.genSalt(10); // generate salt to be combined with password
+        const hashedPassword = await bcrypt.hash(password, salt); // hash the password with the salt
+        const isAdmin = await bcrypt.compare(adminCode, process.env.ADMIN_CODE);
+
+        if (!isAdmin) {
+            return res.status(400).json({ message: 'Sorry, You are not an Admin!' })
+        }
+
+        const newUser = new User({
+            fullName,
+            email,
+            password: hashedPassword,
+            role: 'admin',
+        })
+
+
+        if (newUser) {
+            // generate JWT token here
+            // generateToken(newUser._id, res); // generate token and set it in the cookie (function written in utils.js)
+            await newUser.save();
+
+            res.status(201).json({
+                _id: newUser._id,
+                fullName: newUser.fullName,
+                email: newUser.email,
+                profilePic: newUser.profilePic,
+            });
+
+        } else {// If user is not successfully created
+            res.status(400).json({ message: 'Invalid user data' })
+        }
+
+    } catch (error) {
+        console.log('Error in signup:', error.message);
+        res.status(500).json({ message: 'Internal Server Error' })
+    }
+}
+
 // export const adminRegister = async (req, res) => {
 //     try {
 //         const { fullName, email, password, role } = req.body;
@@ -65,93 +121,93 @@ import PatientProfile from '../models/patientProfile.model.js';
 //     }
 // };
 
-export const adminRegister = async (req, res) => {
-    try {
-        const { fullName, email, password, role, specialty, primaryRequiredSpecialty } = req.body;
+// export const adminRegister = async (req, res) => {
+//     try {
+//         const { fullName, email, password, role, specialty } = req.body;
 
-        if (!["doctor", "patient"].includes(role)) {
-            return res.status(400).json({ message: "Role must be doctor or patient" });
-        }
+//         if (!["doctor", "patient"].includes(role)) {
+//             return res.status(400).json({ message: "Role must be doctor or patient" });
+//         }
 
-        const existingUser = await User.findOne({ email });
-        if (existingUser) return res.status(400).json({ message: "Email already exists" });
+//         if (!fullname || !email || !password || !role) {
+//             return res.status(400).json({ message: "All the fields must be present!" });
+//         }
 
-        // Hash password
-        const hashedPassword = await bcrypt.hash(password, 10);
+//         const existingUser = await User.findOne({ email });
+//         if (existingUser) return res.status(400).json({ message: "Email already exists" });
 
-        // Create base User
-        const newUser = await User.create({
-            fullName,
-            email,
-            password: hashedPassword,
-            role,
-        });
+//         // Hash password
+//         const hashedPassword = await bcrypt.hash(password, 10);
 
-        // Create role-specific profile
-        if (role === "doctor") {
-            if (!specialty) return res.status(400).json({ message: "Doctor specialty required" });
-            await DoctorProfile.create({
-                user: newUser._id,
-                specialty,
-            });
-        } else if (role === "patient") {
-            if (!primaryRequiredSpecialty) {
-                return res.status(400).json({ message: "Patient required specialty is required" });
-            }
-            await PatientProfile.create({
-                user: newUser._id,
-                primaryRequiredSpecialty,
-            });
-        }
+//         // Create base User
+//         const newUser = await User.create({
+//             fullName,
+//             email,
+//             password: hashedPassword,
+//             role,
+//         });
 
-        return res.status(201).json({
-            message: `${role} registered successfully`,
-            user: newUser,
-        });
-    } catch (err) {
-        console.error("Error in adminRegister:", err);
-        res.status(500).json({ message: "Internal Server Error" });
-    }
-};
+//         // Create role-specific profile
+//         if (role === "doctor") {
+//             if (!specialty) return res.status(400).json({ message: "Doctor specialty required" });
+//             await DoctorProfile.create({
+//                 user: newUser._id,
+//                 specialty,
+//             });
+//         } else if (role === "patient") {
+//             await PatientProfile.create({
+//                 user: newUser._id,
+//             });
+//         }
 
-export const assignRelationship = async (req, res) => {
-    try {
-        const { doctorId, patientId, notes, surgeryName } = req.body;
+//         return res.status(201).json({
+//             message: `${role} registered successfully`,
+//             user: newUser,
+//         });
+//     } catch (err) {
+//         console.error("Error in adminRegister:", err);
+//         res.status(500).json({ message: "Internal Server Error" });
+//     }
+// };
 
-        // Validate doctor and patient
-        const doctor = await User.findById(doctorId);
-        const patient = await User.findById(patientId);
+// export const assignRelationship = async (req, res) => {
+//     try {
+//         const { doctorId, patientId, notes, surgeryName } = req.body;
 
-        if (!doctor || doctor.role !== "doctor") {
-            return res.status(400).json({ message: "Invalid doctor ID" });
-        }
-        if (!patient || patient.role !== "patient") {
-            return res.status(400).json({ message: "Invalid patient ID" });
-        }
+//         // Validate doctor and patient
+//         const doctor = await User.findById(doctorId);
+//         const patient = await User.findById(patientId);
 
-        // Prevent duplicate relationship
-        const existing = await Relationship.findOne({ doctor: doctorId, patient: patientId });
-        if (existing) {
-            return res.status(400).json({ message: "This doctor is already assigned to this patient" });
-        }
+//         if (!doctor || doctor.role !== "doctor") {
+//             return res.status(400).json({ message: "Invalid doctor ID" });
+//         }
+//         if (!patient || patient.role !== "patient") {
+//             return res.status(400).json({ message: "Invalid patient ID" });
+//         }
 
-        // Create relationship
-        const relationship = new Relationship({
-            doctor: doctorId,
-            patient: patientId,
-            notes,
-            surgeryName,
-            specialty: doctor.specialty
-        });
+//         // Prevent duplicate relationship
+//         const existing = await Relationship.findOne({ doctor: doctorId, patient: patientId });
+//         if (existing) {
+//             return res.status(400).json({ message: "This doctor is already assigned to this patient" });
+//         }
 
-        await relationship.save();
+//         // Create relationship
+//         const relationship = new Relationship({
+//             doctor: doctorId,
+//             patient: patientId,
+//             notes,
+//             surgeryName,
+//             specialty: doctor.specialty
+//         });
 
-        res.status(201).json({
-            message: "Doctor assigned to patient successfully",
-            relationship,
-        });
-    } catch (error) {
-        console.error("Error in assignRelationship:", error.message);
-        res.status(500).json({ message: "Internal Server Error" });
-    }
-};
+//         await relationship.save();
+
+//         res.status(201).json({
+//             message: "Doctor assigned to patient successfully",
+//             relationship,
+//         });
+//     } catch (error) {
+//         console.error("Error in assignRelationship:", error.message);
+//         res.status(500).json({ message: "Internal Server Error" });
+//     }
+// };

@@ -25,7 +25,7 @@ function getRecentHistory(history, n = 16) {
     return Array.isArray(history) ? history.slice(-n) : [];
 }
 
-export const chatbot = async function (userId, message, isEnd) {
+export const chatbot = async function (userId, message, isEnd, relationship) {
     try {
         console.log("\nchatAgent called successfully called");
         console.log(`userId: ${userId}, Message: "${message}", isEnd: ${isEnd}`);
@@ -150,7 +150,7 @@ export const chatbot = async function (userId, message, isEnd) {
                 chats.isEnd = true;
                 chats.isEndBot = false;
                 summary = JSON.parse(emergencySummaryBot.text);
-                emitSummary(userId, chats, summary);
+                emitSummary(userId, chats, summary, relationship);
                 console.log("successfully created emergency summary:", JSON.parse(emergencySummaryBot.text));
             } else if (!chats.isEnd && chats.isEndBot) {
                 // Run this code if conversation has NOT ended. Then flag it has ended. So since we flag it as ended, next time this code wont run because conversation HAS ended.
@@ -165,7 +165,7 @@ export const chatbot = async function (userId, message, isEnd) {
                     }
                 });
                 summary = JSON.parse(journalSummaryBot.text);
-                emitSummary(userId, chats, summary);
+                emitSummary(userId, chats, summary, relationship);
                 console.log("journal summary created successfully ", JSON.parse(journalSummaryBot.text));
                 chats.isEnd = true; // This will prevent any further user responses because even if isEnd = true, !chats.isEnd = false "always... after making the furst summary"
                 chats.isEndBot = false;

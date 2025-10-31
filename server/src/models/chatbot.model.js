@@ -57,5 +57,6 @@ const chatbotSchema = new mongoose.Schema({
 //         default: 'normal',
 //         enum: ['normal', 'emergency'],
 //     },
+
 const Chatbot = mongoose.model('ChatbotMessages', chatbotSchema);
 export default Chatbot;

@@ -37,10 +37,28 @@ const BotSummarySchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "User"
     },
+    revision: { type: Number, default: 0 }, // keep track of how many updates the patient did...
 }, { timestamps: true });
 
 BotSummarySchema.index({ patient: 1, createdAt: -1 });
-BotSummarySchema.index({ "deliveredTo.doctor": 1, createdAt: -1 });
+// Best for "new" and "recentlyViewed" buckets (uses doctor + viewed + type, then range on createdAt)
+BotSummarySchema.index(
+    { "deliveredTo.doctor": 1, "deliveredTo.viewed": 1, type: 1, createdAt: -1 }
+);
+// Best for "history" bucket (no viewed filter)
+BotSummarySchema.index(
+    { "deliveredTo.doctor": 1, type: 1, createdAt: -1 }
+);
+
+// BotSummarySchema.index({ "deliveredTo.doctor": 1, patient: 1, type: 1, createdAt: -1 });
+// BotSummarySchema.index({ "deliveredTo.doctor": 1, createdAt: -1 });
+
+BotSummarySchema.pre("save", function (next) {
+    if (this.isModified("content") || this.isModified("questionsAsked")) {
+        this.revision = (this.revision || 0) + 1;
+    }
+    next();
+});
 
 export default mongoose.model("BotSummary", BotSummarySchema);
 

@@ -34,41 +34,41 @@ export const useAuthStore = create((set, get) => ({
     },
 
     // This function will be called after the initial auth check
-    checkActiveRoom: async () => {
-        try {
-            const res = await axiosInstance.get('/auth/room-status');
-            console.log('active status is: ', res.data.activeRoom);
-            if (res.data.activeRoom) {
-                const { roomId, otherUser } = res.data;
-                console.log("Rejoining active session in room:", roomId);
+    // checkActiveRoom: async () => {
+    //     try {
+    //         const res = await axiosInstance.get('/auth/room-status');
+    //         console.log('active status is: ', res.data.activeRoom);
+    //         if (res.data.activeRoom) {
+    //             const { roomId, otherUser } = res.data;
+    //             console.log("Rejoining active session in room:", roomId);
 
-                // Use the data from the server to restore the chat state
-                useChatStore.getState().setSelectedUserAndCurrentRoomId(otherUser, roomId);
-            } else {
-                console.log("No active session to rejoin.");
-            }
-        } catch (error) {
-            console.error("Failed to check for active session:", error);
-            // If this fails, clear any potentially stale chat state
-            useChatStore.getState().clearChat();
-        }
-    },
+    //             // Use the data from the server to restore the chat state
+    //             useChatStore.getState().setSelectedUserAndCurrentRoomId(otherUser, roomId);
+    //         } else {
+    //             console.log("No active session to rejoin.");
+    //         }
+    //     } catch (error) {
+    //         console.error("Failed to check for active session:", error);
+    //         // If this fails, clear any potentially stale chat state
+    //         useChatStore.getState().clearChat();
+    //     }
+    // },
 
-    signup: async (data) => {
-        set({ isSigningUp: true });
-        try {
-            const res = await axiosInstance.post('/auth/signup', data);
-            set({ authUser: res.data }); // res.data contains user info
-            toast.success('Signup Successful!');
-            get().connectSocket();
+    // signup: async (data) => {
+    //     set({ isSigningUp: true });
+    //     try {
+    //         const res = await axiosInstance.post('/auth/signup', data);
+    //         set({ authUser: res.data }); // res.data contains user info
+    //         toast.success('Signup Successful!');
+    //         get().connectSocket();
 
-            // return true; // return true on success
-        } catch (error) {
-            toast.error(error.response.data.message);
-        } finally {
-            set({ isSigningUp: false });
-        }
-    },
+    //         // return true; // return true on success
+    //     } catch (error) {
+    //         toast.error(error.response.data.message);
+    //     } finally {
+    //         set({ isSigningUp: false });
+    //     }
+    // },
 
     login: async (data) => {
         set({ isLoggingIng: true });
@@ -116,7 +116,7 @@ export const useAuthStore = create((set, get) => ({
             set({ authUser: res.data });
             toast.success("Profile updated Successfully!");
         } catch (error) {
-            console.log("Error in updateProfile: ", error);
+            console.log("Error in updateProfile: ", error || error.response?.data?.message);
             toast.error(error.response?.data?.message || "Upload failed");
         } finally {
             set({ isUpdatingProfile: false });

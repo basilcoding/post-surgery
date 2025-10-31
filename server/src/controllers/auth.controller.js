@@ -9,62 +9,62 @@ import cloudinary from '../lib/cloudinary.js';
 import fs from 'fs';
 import jwt from 'jsonwebtoken';
 
+// This is used only for registering the admin
+// export const signup = async (req, res) => {
+//     const { fullName, email, password, adminCode } = req.body;
+//     // console.log(req.body);
+//     try {
+//         // Only the person with the admin code can register which is written in the .env file
 
-export const signup = async (req, res) => {
-    const { fullName, email, password, adminCode } = req.body;
-    // console.log(req.body);
-    try {
-        // Only the person with the admin code can register which is written in the .env file
+//         if (!fullName || !email || !password || !adminCode) {
+//             return res.status(400).json({ message: "All fields are required!" })
+//         }
+//         if (password.length < 6) {
+//             return res.status(400).json({ message: "Password must be at least 6 characters" })
+//         }
 
-        if (!fullName || !email || !password || !adminCode) {
-            return res.status(400).json({ message: "All fields are required!" })
-        }
-        if (password.length < 6) {
-            return res.status(400).json({ message: "Password must be at least 6 characters" })
-        }
+//         const user = await User.findOne({ email }) // check if a user aldready exits with the same email
+//         if (user) {
+//             return res.status(400).json({ message: "Email aldready exits" })
+//         }
 
-        const user = await User.findOne({ email }) // check if a user aldready exits with the same email
-        if (user) {
-            return res.status(400).json({ message: "Email aldready exits" })
-        }
+//         const salt = await bcrypt.genSalt(10); // generate salt to be combined with password
+//         const hashedPassword = await bcrypt.hash(password, salt); // hash the password with the salt
+//         const isAdmin = await bcrypt.compare(adminCode, process.env.ADMIN_CODE);
 
-        const salt = await bcrypt.genSalt(10); // generate salt to be combined with password
-        const hashedPassword = await bcrypt.hash(password, salt); // hash the password with the salt
-        const isAdmin = await bcrypt.compare(adminCode, process.env.ADMIN_CODE);
+//         if (!isAdmin) {
+//             return res.status(400).json({ message: 'Sorry, You are not an Admin!' })
+//         }
 
-        if (!isAdmin) {
-            return res.status(400).json({ message: 'Sorry, You are not an Admin!' })
-        }
-
-        const newUser = new User({
-            fullName,
-            email,
-            password: hashedPassword,
-            role: 'admin',
-        })
+//         const newUser = new User({
+//             fullName,
+//             email,
+//             password: hashedPassword,
+//             role: 'admin',
+//         })
 
 
-        if (newUser) {
-            // generate JWT token here
-            // generateToken(newUser._id, res); // generate token and set it in the cookie (function written in utils.js)
-            await newUser.save();
+//         if (newUser) {
+//             // generate JWT token here
+//             // generateToken(newUser._id, res); // generate token and set it in the cookie (function written in utils.js)
+//             await newUser.save();
 
-            res.status(201).json({
-                _id: newUser._id,
-                fullName: newUser.fullName,
-                email: newUser.email,
-                profilePic: newUser.profilePic,
-            });
+//             res.status(201).json({
+//                 _id: newUser._id,
+//                 fullName: newUser.fullName,
+//                 email: newUser.email,
+//                 profilePic: newUser.profilePic,
+//             });
 
-        } else {// If user is not successfully created
-            res.status(400).json({ message: 'Invalid user data' })
-        }
+//         } else {// If user is not successfully created
+//             res.status(400).json({ message: 'Invalid user data' })
+//         }
 
-    } catch (error) {
-        console.log('Error in signup:', error.message);
-        res.status(500).json({ message: 'Internal Server Error' })
-    }
-}
+//     } catch (error) {
+//         console.log('Error in signup:', error.message);
+//         res.status(500).json({ message: 'Internal Server Error' })
+//     }
+// }
 // export const adminRegister = async (req, res) => {
 //     try {
 //         const { fullName, email, password, role } = req.body;
@@ -141,7 +141,7 @@ export const login = async (req, res) => {
             email: user.email,
             role: user.role,
             profilePic: user.image?.[0]?.profilePic || "",
-            
+
         });
     } catch (error) {
         console.log("Error in login:", error.message);
@@ -153,7 +153,6 @@ export const login = async (req, res) => {
 export const logout = (req, res) => {
     try {
         res.cookie("jwt", "", { maxAge: 0 });
-        res.cookie("roomToken")
         const token = req.cookies.roomToken; // read from cookies
         if (token) {
             res.cookie('roomToken', "", { maxAge: 0 });
@@ -250,7 +249,7 @@ export const checkRoomStatus = async (req, res) => {
 
 export const createRoomToken = async (req, res) => {
     try {
-        const id = req.user._id; // userId from the url
+        const id = req.user._id.toString(); // userId from the url
         const { roomId } = req.params;
         const { selectedUser } = req.body; // frontend generates or gets roomId
         if (!roomId) {
@@ -262,9 +261,21 @@ export const createRoomToken = async (req, res) => {
         });
         // return token to client
 
+        if (req.user.role === 'doctor') {
+            await Promise.all([
+                DoctorProfile.findOneAndUpdate({ user: id }, { currentRoomId: roomId }),
+                PatientProfile.findOneAndUpdate({ user: selectedUser._id }, { currentRoomId: roomId })
+            ])
+        } else {
+            await Promise.all([
+                PatientProfile.findOneAndUpdate({ user: id }, { currentRoomId: roomId }),
+                DoctorProfile.findOneAndUpdate({ user: selectedUser._id }, { currentRoomId: roomId })
+            ])
+        }
+
         // set server-side canonical state
-        await User.findByIdAndUpdate(req.user._id, { currentRoomId: roomId });
-        await User.findByIdAndUpdate(selectedUser._id, { currentRoomId: roomId });
+        // await User.findByIdAndUpdate(req.user._id, { currentRoomId: roomId });
+        // await User.findByIdAndUpdate(selectedUser._id, { currentRoomId: roomId });
 
         res.cookie('roomToken', roomToken, {
             maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
@@ -294,11 +305,22 @@ export const clearRoomToken = async (req, res) => {
     try {
         const { roomId } = req.params;
         res.cookie("roomToken", "", { maxAge: 0 });
-        // clear DB canonical state for all participants
-        await User.updateMany(
-            { currentRoomId: roomId },
-            { $set: { currentRoomId: null } }
-        );
+        
+        await Promise.all([
+            DoctorProfile.updateMany(
+                { currentRoomId: roomId },
+                { $set: { currentRoomId: null } }
+            ),
+            PatientProfile.updateMany(
+                { currentRoomId: roomId },
+                { $set: { currentRoomId: null } }
+            ),
+        ])
+
+        // await User.updateMany(
+        //     { currentRoomId: roomId },
+        //     { $set: { currentRoomId: null } }
+        // );
         res.status(200).json({ message: "Conversation has Ended." });
     } catch (error) {
         console.log("Error in clearRoomToken:", error.message);

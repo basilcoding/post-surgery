@@ -2,7 +2,9 @@ import { create } from 'zustand';
 import { axiosInstance } from '../lib/axios';
 import { toast } from 'react-hot-toast';
 import { io } from 'socket.io-client';
+
 import { useAuthStore } from './useAuthStore';
+import { useUserStore } from './useUserStore';
 
 export const useChatbotStore = create((set, get) => ({
     // messages: [{ role: "bot", message: "Ready to start your questionare? Please give the responses in detail so I can give the best description about your well being to the doctor." }],
@@ -63,9 +65,11 @@ export const useChatbotStore = create((set, get) => ({
 
         set({ isLoading: true });
 
+        const { userProfile } = useUserStore.getState();
         try {
             const res = await axiosInstance.post("/chatbot/message", {
                 message: input.trim(),
+                activeDoctor: userProfile.activeDoctor,
             });
             // NOT pushing bot reply here, server will emit it via socket and the listener will add it.
 

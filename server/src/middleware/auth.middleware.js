@@ -146,3 +146,26 @@ export const requireSelfAndRole = (roles = []) => {
         }
     }
 }
+
+export const requireSelfOrRole = (roles = []) => {
+    return (req, res, next) => {
+        // console.log('requireSelfOrRole is being triggered!')
+        try {
+            const { id } = req.params;
+            const isSelf = req.user._id.toString() === id;
+            const hasRole = roles.includes(req.user.role);
+            console.log(req.params.id)
+            if (isSelf || hasRole) {
+                return next();
+            }
+
+            // they are allowed to continue if isSelf is there
+            // OR
+            // they are allowed to continue if hasRole is there
+            return res.status(403).json({ message: "Forbidden: Not your resource" });
+        } catch (error) {
+            console.error("Error in requireSelfOrRole middleware:", error.message);
+            res.status(500).json({ message: "Internal Server Error" });
+        }
+    }
+}

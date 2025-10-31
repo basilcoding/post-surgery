@@ -5,40 +5,57 @@ import { io } from 'socket.io-client';
 import { useChatStore } from './useChatStore';
 
 export const useAdminStore = create((set, get) => ({
-    isSigningUp: false,
-    isAssigning: false,
+    // isSigningUp: false,
+    // isAssigning: false,
+    isRegistering: false,
 
-    adminRegister: async (formData) => {
-        set({ isSigningUp: true });
+    registerAdmin: async (data) => {
+        set({ isRegistering: true });
         try {
-            const res = await axiosInstance.post("/admin/register", formData, {
-                headers: { "Content-Type": "multipart/form-data" },
-            });
+            const res = await axiosInstance.post('/admin/', data);
+            set({ authUser: res.data }); // res.data contains user info
+            toast.success('Signup Successful!');
+            get().connectSocket();
 
-            toast.success("✅ User registered successfully!");
-            return res.data;
+            // return true; // return true on success
         } catch (error) {
-            console.log("Error in adminRegister:", error);
-            toast.error(error.response?.data?.message || "Registration failed");
+            toast.error(error.response.data.message);
         } finally {
-            set({ isSigningUp: false });
+            set({ isRegistering: false });
         }
     },
 
-    assignRelationship: async (data) => {
-        try {
-            set({ isAssigning: true });
+    // adminRegister: async (formData) => {
+    //     set({ isSigningUp: true });
+    //     try {
+    //         const res = await axiosInstance.post("/admin/register", formData, {
+    //             headers: { "Content-Type": "multipart/form-data" },
+    //         });
 
-            const res = await axiosInstance.post("/admin/assign-relationship", data);
-            toast.success("Doctor assigned successfully!");
+    //         toast.success("User registered successfully!");
+    //         return res.data;
+    //     } catch (error) {
+    //         console.log("Error in adminRegister:", error);
+    //         toast.error(error.response?.data?.message || "Registration failed");
+    //     } finally {
+    //         set({ isSigningUp: false });
+    //     }
+    // },
 
-            return res.data;
-        } catch (err) {
-            toast.error(err.response?.data?.message || "Error assigning doctor");
-            return null;
-        } finally {
-            set({ isAssigning: false });
-        }
-    },
+    // assignRelationship: async (data) => {
+    //     try {
+    //         set({ isAssigning: true });
+
+    //         const res = await axiosInstance.post("/admin/assign-relationship", data);
+    //         toast.success("Doctor assigned successfully!");
+
+    //         return res.data;
+    //     } catch (err) {
+    //         toast.error(err.response?.data?.message || "Error assigning doctor");
+    //         return null;
+    //     } finally {
+    //         set({ isAssigning: false });
+    //     }
+    // },
 
 }));

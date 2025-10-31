@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from './store/useAuthStore.js';
 import { useThemeStore } from './store/useThemeStore.js';
 import { useUIStore } from './store/useUIStore.js';
+import { useUserStore } from './store/useUserStore.js';
 
 import { Loader } from 'lucide-react';
 import { Toaster } from 'react-hot-toast';
@@ -17,6 +18,7 @@ const App = () => {
 
   const { authUser, checkAuth, checkActiveRoom, isCheckingAuth } = useAuthStore();
   const { theme } = useThemeStore();
+  const { getUserProfile } = useUserStore();
 
   // only run once on mount (avoid infinite loop)
   useEffect(() => {
@@ -25,16 +27,16 @@ const App = () => {
 
   useEffect(() => {
     if (authUser) {
-      checkActiveRoom();
+      getUserProfile();
     }
-  }, [authUser, checkActiveRoom]);
+  }, [authUser, getUserProfile]);
 
   // Apply theme to <html>
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
   }, []);
 
-  console.log({ authUser })
+  // console.log({ authUser })
 
   if (isCheckingAuth && !authUser) {
     return (

@@ -18,6 +18,15 @@ const patientProfileSchema = new mongoose.Schema({
             date: Date
         }
     ],
+    activeDoctor: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+    },
+    currentRoomId: {
+        type: String,
+        default: null,
+        index: true
+    }
 });
 
 export default mongoose.model("PatientProfile", patientProfileSchema);

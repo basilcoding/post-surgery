@@ -1,5 +1,9 @@
 import { Server } from 'socket.io';
+
 import User from '../models/user.model.js';
+import DoctorProfile from "../models/doctorProfile.model.js";
+import PatientProfile from "../models/patientProfile.model.js";
+
 import jwt from 'jsonwebtoken';
 import cookie from 'cookie';
 
@@ -15,7 +19,7 @@ export function initSocket(server) {
         }
     });
 
-    io.use((socket, next) => {
+    io.use(async (socket, next) => {
         try {
             // Parse cookies from socket headers
             const cookies = socket.handshake.headers.cookie
@@ -28,7 +32,13 @@ export function initSocket(server) {
             const decoded = jwt.verify(token, process.env.JWT_SECRET);
             socket.userId = decoded.userId;
             socket.role = decoded.role;
-            socket.roomId = decoded.currentRoomId
+            if (socket.role === "doctor") {
+                const docProfile = await DoctorProfile.findOne({ user: socket.userId }).select("currentRoomId");
+                socket.currentRoomId = docProfile?.currentRoomId || null;
+            } else { // patient (or fallback)
+                const patientProfile = await PatientProfile.findOne({ user: socket.userId }).select("currentRoomId");
+                socket.currentRoomId = patientProfile?.currentRoomId || null;
+            }
 
             next();
         } catch (err) {
@@ -51,8 +61,10 @@ export function initSocket(server) {
             const roomId = `room_${Date.now()}`;
 
             // set server-side canonical state for authorization/chatroomAuthChecking
-            await User.findByIdAndUpdate(creator._id, { currentRoomId: roomId });
-            await User.findByIdAndUpdate(invitee._id, { currentRoomId: roomId });
+            await Promise.all([
+                DoctorProfile.findOneAndUpdate({ user: creator._id }, { currentRoomId: roomId }),
+                PatientProfile.findOneAndUpdate({ user: invitee._id }, { currentRoomId: roomId })
+            ])
 
             io.to(invitee._id.toString()).socketsJoin(roomId); // Add *all sockets* in the invitee's personal room to the chat room
             io.to(creator._id.toString()).socketsJoin(roomId); // Add *all sockets* in the creator's personal room to the chat room
@@ -83,7 +95,7 @@ export function initSocket(server) {
             io.to(invitee._id.toString()).emit("roomEnded", { roomId });
 
             // when the doctor socket emits endRoom the below code will everyone's room id with doctors currentRoomId so when the protectRoom middleware runs, it will fail the check of -->is currentRoomId there in the db?<-- for both doctor and patient, so patient cant enter again once doctor has cancelled the room.
-            await User.updateMany({ currentRoomId: roomId }, { $set: { currentRoomId: null } });
+
             io.socketsLeave(roomId);
         });
 
@@ -91,11 +103,14 @@ export function initSocket(server) {
             if (!roomId) return;
 
             try {
-                const user = await User.findById(socket.userId).select("currentRoomId");
 
-                // VALIDATION: Check if the user is authorized for the room they want to join.
-                // This prevents a user from joining a room they are not supposed to be in.
-                if (user && user.currentRoomId === roomId) {
+                let profile;
+                if (socket.role === "doctor") {
+                    profile = await DoctorProfile.findOne({ user: socket.userId }).select("currentRoomId");
+                } else {
+                    profile = await PatientProfile.findOne({ user: socket.userId }).select("currentRoomId");
+                }
+                if (profile && profile.currentRoomId === roomId) {
                     socket.join(roomId);
                     console.log(`Socket ${socket.id} successfully joined authorized room ${roomId}`);
                 } else {
@@ -115,6 +130,7 @@ export function initSocket(server) {
 
         socket.on("disconnect", () => {
             console.log("User disconnected:", socket.id);
+            broadcastOnlineUsers();
         });
 
         // socket.on('disconnect', () => {
