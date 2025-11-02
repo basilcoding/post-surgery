@@ -32,8 +32,24 @@ export const useSummaryStore = create((set, get) => ({
             set((prev) => ({
                 newSummaries: [summary, ...prev.newSummaries]
             }));
-            toast.error("New Emergency summary received!", { duration: 1000 });
+            toast.error("New Emergency summary received!", { duration: 5000 });
         });
+
+        socket.on("emergencySummaryUpdated", ({ summary }) => {
+            set((prev) => {
+                // remove any existing copy of this summary from newSummaries
+                const filtered = prev.newSummaries.filter((s) => {
+                    const id = s?._id?.toString?.();
+                    return id !== summary._id;
+                });
+
+                // add incoming summary to the front
+                return {
+                    newSummaries: [summary, ...filtered],
+                };
+            });
+            toast.error("An Updated Emergency summary has arrived!", { duration: 5000 });
+        })
 
         socket.on("noDoctorAvailable", (data) => {
             toast.error(data.message, { duration: 10000 });

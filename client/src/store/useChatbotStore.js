@@ -13,14 +13,13 @@ export const useChatbotStore = create((set, get) => ({
 
     connectChatbotSocketListeners: (socket) => {
         if (!socket) return;
-        console.log('socket id for watson is:', socket)
         // remove any previous listeners to avoid duplicates
         socket.off('botReply');
         socket.off('botError');
 
         socket.on("botReply", (data) => {
             // console.log("[socket] botReply received:", data);
-            // console.log("[socket] prev messages:", get().messages);
+            console.log("[socket] prev messages:", get().messages);
             set((prev) => ({
                 messages: [...(prev.messages || []), data] // safely append, even if messages was cleared or undefined
             }));

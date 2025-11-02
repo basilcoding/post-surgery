@@ -5,6 +5,8 @@ import toast from "react-hot-toast";
 import Chatbot from "../../components/ChatbotComponents/Chatbot";
 // import { useAuthStore } from "../../store/useAuthStore";
 import { useChatStore } from "../../store/useChatStore";
+import { useAuthStore } from "../../store/useAuthStore";
+import { useChatbotStore } from "../../store/useChatbotStore";
 // import { useUIStore } from "../../store/useUIStore";
 
 export default function PatientHomePage() {
@@ -12,12 +14,27 @@ export default function PatientHomePage() {
     const navigate = useNavigate();
     // const { socket, checkRoomAuth } = useAuthStore();
     const { currentRoomId } = useChatStore();
+    const { connectChatbotSocketListeners } = useChatbotStore();
+    const { authUser, socket, subscribeToSelfRoom } = useAuthStore();
 
     useEffect(() => {
         if (currentRoomId) {
             setRoomId(currentRoomId);
         }
     }, [currentRoomId]);
+
+    useEffect(() => {
+        subscribeToSelfRoom();
+        if (socket)
+            // VERY VERY DANGEROUS, DONT TOUCH!
+            connectChatbotSocketListeners(socket); // took a lot of time to figure it out, the chatbot message that was send back was not properly received by the user because the users socket listerners weren't connected properly
+    }, [subscribeToSelfRoom, socket]);
+
+    // useEffect(() => {
+    //     if (authUser)
+    //         subscribeToSelfRoom(authUser?._id);
+
+    // }, [socket, subscribeToSelfRoom, authUser]);
 
     // useEffect(() => {
 

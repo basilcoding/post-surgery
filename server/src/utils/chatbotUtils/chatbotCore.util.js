@@ -10,7 +10,7 @@ import {
     chatbotPrompt,
     emergencySummaryBotPrompt,
     journalSummaryBotPrompt,
-    
+
 } from './chatbotPrompts.util.js';
 
 import {
@@ -126,7 +126,10 @@ export const chatbot = async function (userId, message, isEnd, relationship) {
             role: 'bot',
             message: botResponseText
         }
-        // console.log("Emitting botReply to", userId, "payload:", botResponseText);
+        // ioInstance().in(userId.toString()).allSockets().then(sockets => {
+        // console.log(`Room ${userId} currently has sockets:`, Array.from(sockets));
+        // });
+        // console.log("Emitting botReply to", userId.toString(), "payload:", botResponseText);
         ioInstance().to(userId.toString()).emit("botReply", data);
 
         if (parsedResponse.isEnd) {

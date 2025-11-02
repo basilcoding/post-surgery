@@ -16,7 +16,7 @@ import Navbar from './components/Navbar';
 const App = () => {
   const navigate = useNavigate();
 
-  const { authUser, checkAuth, checkActiveRoom, isCheckingAuth } = useAuthStore();
+  const { authUser, checkAuth, checkActiveRoom, subscribeToSelfRoom, isCheckingAuth, socket } = useAuthStore();
   const { theme } = useThemeStore();
   const { getUserProfile } = useUserStore();
 
@@ -24,6 +24,8 @@ const App = () => {
   useEffect(() => {
     checkAuth();
   }, [checkAuth]);
+
+
 
   useEffect(() => {
     if (authUser) {

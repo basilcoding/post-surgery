@@ -50,7 +50,7 @@ export function initSocket(server) {
         console.log("User connected:", socket.id);
         const userId = socket.userId; // from the middleware above
         if (userId) {
-            socket.join(String(userId)); // make the user join the room with their own userId (ALERT! MAKE USERID AS STRING, THIS SMALL ISSUE WAS A BIG PROBLEM BECAUSE THE CHATBOTCOREUTIL FILE WILL BE EMITING TO room string formatted USERID).
+            socket.join(userId.toString()); // make the user join the room with their own userId (ALERT! MAKE USERID AS STRING, THIS SMALL ISSUE WAS A BIG PROBLEM BECAUSE THE CHATBOTCOREUTIL FILE WILL BE EMITING TO room string formatted USERID).
         };
 
         socket.on("createRoom", async ({ inviteeEmail }) => {
@@ -99,11 +99,22 @@ export function initSocket(server) {
             io.socketsLeave(roomId);
         });
 
+        socket.on("joinSelfRoom", async ({ roomId }) => {
+            // console.log('subscribetoselfRoom called successfully!')
+            if (!roomId) return;
+            try {
+                socket.join(roomId.toString());
+                // console.log(`Socket ${socket.id} successfully joined authorized room ${roomId}`);
+            } catch (error) {
+                console.log(error);
+            }
+        })
+
         socket.on("joinRoom", async ({ roomId }) => {
             if (!roomId) return;
 
             try {
-
+                // console.log('join room connection called succesfully')
                 let profile;
                 if (socket.role === "doctor") {
                     profile = await DoctorProfile.findOne({ user: socket.userId }).select("currentRoomId");
@@ -116,7 +127,7 @@ export function initSocket(server) {
                 } else {
                     // This is a security/consistency check. The user is trying to join a room
                     // that the server does not believe they belong to.
-                    console.warn(`Socket ${socket.id} DENIED join for room ${roomId}. User's authorized room is ${user?.currentRoomId}`);
+                    console.warn(`Socket ${socket.id} DENIED join for room ${roomId}.`);
                 }
             } catch (error) {
                 console.error(`Error in joinRoom for socket ${socket.id}:`, error.message);

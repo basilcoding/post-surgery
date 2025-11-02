@@ -5,13 +5,13 @@ import { useAuthStore } from "../../store/useAuthStore";
 import { useChatbotStore } from "../../store/useChatbotStore";
 
 export default function Chatbot() {
-    const { authUser, socket } = useAuthStore();
+    const { authUser, socket, subscribeToSelfRoom } = useAuthStore();
     const [userId] = useState(authUser?._id);
     const [input, setInput] = useState("");
     const messagesEndRef = useRef(null);
     const [bubbleClicked, setBubbleClicked] = useState(false);
 
-    const { messages, getChatbotMessages, sendMessage, isLoading, disconnectChatbotSocketListeners } = useChatbotStore();
+    const { messages, getChatbotMessages, sendMessage, isLoading, connectChatbotSocketListeners, disconnectChatbotSocketListeners } = useChatbotStore();
     // scroll when messages change OR when the chat is opened/closed
     useEffect(() => {
         // scroll after a tiny delay so DOM/animations can finish
@@ -28,6 +28,13 @@ export default function Chatbot() {
         if (!socket) return;
         return () => disconnectChatbotSocketListeners(socket);
     }, [])
+
+    useEffect(() => {
+        subscribeToSelfRoom();
+        if (socket)
+            // VERY VERY DANGEROUS, DONT TOUCH!
+            connectChatbotSocketListeners(socket); // took a lot of time to figure it out, the chatbot message that was send back was not properly received by the user (only just after login, it was working normally after reloading the page) because the users socket listerners weren't connected properly
+    }, [subscribeToSelfRoom, socket]);
 
     const handleSendMessage = async (message) => {
         await sendMessage(message);

@@ -55,7 +55,7 @@ export default function ProfilePicker() {
                                     <img src={r.doctor?.image?.[0]?.profilePic || "/avatar.png"} alt="" className="w-14 h-14 rounded-full object-cover" />
                                     <div>
                                         <div className="font-semibold">{r.doctor.fullName}</div>
-                                        <div className="text-sm text-gray-500">{r.specialty || "general"}</div>
+                                        <div className="text-sm text-gray-500">{r.careType || "general"}</div>
                                         <div className="text-xs text-gray-400">{r.notes || ""}</div>
                                     </div>
                                 </div>

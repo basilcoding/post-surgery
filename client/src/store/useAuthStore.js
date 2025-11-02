@@ -33,6 +33,18 @@ export const useAuthStore = create((set, get) => ({
         }
     },
 
+    subscribeToSelfRoom: () => {
+        try {
+            const { socket, authUser } = get();
+            // console.log('subscribetoselfRoom called successfully!')
+            if (socket) {
+                socket.emit("joinSelfRoom", { roomId: authUser?._id });
+            }
+        } catch (error) {
+            console.log(error.response.data.message || error)
+        }
+    },
+
     // This function will be called after the initial auth check
     // checkActiveRoom: async () => {
     //     try {
@@ -76,7 +88,8 @@ export const useAuthStore = create((set, get) => ({
             const res = await axiosInstance.post('/auth/login', data);
             set({ authUser: res.data });
             toast.success('Logged in Successfully!');
-            await get().connectSocket();
+            // await get().connectSocket();
+            await get().checkAuth(); // <-- use checkAuth to verify then connect
 
         } catch (error) {
             toast.error(error.response.data.message);
@@ -144,9 +157,18 @@ export const useAuthStore = create((set, get) => ({
 
         set({ socket: newSocket });
 
+        // 1) Register all store listeners IMMEDIATELY (so they exist before any events arrive)
+        // useChatStore.getState().connectChatSocketListeners(newSocket);
+        // useSummaryStore.getState().connectSummarySocketListeners(newSocket);
+        // useChatbotStore.getState().connectChatbotSocketListeners(newSocket);
+
         // Always reset listeners for the new socket
         newSocket.on("connect", () => {
             console.log("Socket connected:", newSocket.id);
+            const userId = get().authUser?._id;
+            if (userId) {
+                newSocket.emit("joinSelfRoom", { roomId: userId });
+            }
         });
 
         newSocket.on("disconnect", () => {

@@ -8,7 +8,7 @@ import NoChatSelected from '../components/ChatRoomComponents/NoChatSelected'
 
 const ChatRoom = () => {
     const { roomId } = useParams(); // get roomId directly from URL
-    const { selectedUser, currentRoomId, subscribeToRoom } = useChatStore();
+    const { selectedUser, currentRoomId, subscribeToChatRoom } = useChatStore();
     const { checkRoomAuth, authUser, isCheckingAuth, isRoomChecking } = useAuthStore();
 
     const navigate = useNavigate();
@@ -31,9 +31,9 @@ const ChatRoom = () => {
     useEffect(() => {
         // This effect will run ONLY when `currentRoomId` receives a valid value.
         if (currentRoomId) {
-            subscribeToRoom(currentRoomId);
+            subscribeToChatRoom(currentRoomId);
         }
-    }, [currentRoomId, subscribeToRoom]); // This is the correct dependency array
+    }, [currentRoomId, subscribeToChatRoom]); // This is the correct dependency array
 
     return (
         <div className="h-full bg-base-200">
