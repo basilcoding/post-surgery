@@ -47,6 +47,7 @@ export const getMessages = async (req, res) => {
             return {
                 role: message.role,
                 message: message.parts[0].text,
+                suggestedReplies: message.suggestedReplies,
             };
         });
 

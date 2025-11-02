@@ -1,9 +1,9 @@
 import mongoose from 'mongoose';
 
 const chatPartSchema = new mongoose.Schema({ // Gemini always has { text } in parts
-    text: { 
-        type: String, 
-        required: true 
+    text: {
+        type: String,
+        required: true
     },
 }, { _id: false });
 
@@ -16,6 +16,11 @@ const chatMessageSchema = new mongoose.Schema({
     parts: {
         type: [chatPartSchema],
         required: true,
+    },
+    suggestedReplies: {
+        type: [String],
+        required: false,
+        default: undefined // So it doesn't default to an empty array
     },
     timestamp: {
         type: Date,

@@ -106,7 +106,7 @@ export const chatbot = async function (userId, message, isEnd, relationship) {
         if (allowAppendToHistory) {
             // push user message then model response
             chats.history.push({ role: 'user', parts: [{ text: message }] });
-            chats.history.push({ role: 'model', parts: [{ text: botResponseText }] });
+            chats.history.push({ role: 'model', parts: [{ text: botResponseText }], suggestedReplies: parsedResponse.suggestedReplies });
         }
 
         // if (chats.isEmergency && chats.isEnd) { // New emergency
@@ -123,7 +123,8 @@ export const chatbot = async function (userId, message, isEnd, relationship) {
 
         const data = {
             role: 'bot',
-            message: botResponseText
+            message: botResponseText,
+            suggestedReplies: parsedResponse.suggestedReplies
         }
         // ioInstance().in(userId.toString()).allSockets().then(sockets => {
         // console.log(`Room ${userId} currently has sockets:`, Array.from(sockets));
