@@ -63,7 +63,7 @@ export default function Chatbot() {
                 {(messages || []).slice().reverse().map((msg, index) => (
                     <div key={index} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                         <div
-                            className={`px-4 py-3 rounded-3xl max-w-[85%] text-left ${msg.role === 'user' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-800'}`}
+                            className={`px-4 py-3 rounded-3xl max-w-[65%] text-left ${msg.role === 'user' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-800'}`}
                         >
                             <div>{msg.message}</div>
 
@@ -74,9 +74,24 @@ export default function Chatbot() {
                                         <button
                                             key={i}
                                             onClick={() => handleSendMessage(opt)}
-                                            className="text-left px-3 py-2 rounded-lg border border-black-800 bg-white/80 hover:bg-white/100 shadow-sm"
+                                            className="text-left px-3 py-2 rounded-lg border border-black-800 bg-white/80 hover:bg-gray-200 shadow-sm hover:cursor-pointer"
                                         >
-                                            {opt}
+                                            <span>--{">"}    </span>{opt}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                            {/* Numerical input row (0–10 boxes) */}
+                            {msg.requiresNumericalInput && (
+                                <div className="mt-3 w-fit flex bg-white/80 border border-black-100 rounded-md">
+                                    {Array.from({ length: 11 }, (_, num) => (
+                                        <button
+                                            key={num}
+                                            onClick={() => handleSendMessage(num)}
+                                            className="w-[30px] h-[30px] bg-white/80 hover:bg-gray-200 text-black text-sm font-semibold flex items-center justify-center hover:cursor-pointer rounded-md"
+                                            style={{ margin: 0, padding: 0 }}
+                                        >
+                                            {num}
                                         </button>
                                     ))}
                                 </div>

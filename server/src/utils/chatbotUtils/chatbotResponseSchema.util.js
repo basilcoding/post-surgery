@@ -8,10 +8,11 @@ export const chatbotResponseSchema = {
         suggestedReplies: {
             type: Type.ARRAY,
             items: { type: Type.STRING }
-        }
+        },
+        requiresNumericalInput: { type: Type.BOOLEAN },
     },
     required: ["isEnd", "botResponse"],
-    propertyOrdering: ["isEnd", "botResponse", "suggestedReplies"]
+    propertyOrdering: ["isEnd", "botResponse", "suggestedReplies", "requiresNumericalInput"]
 };
 
 // export const chatbotResponseSchema = {

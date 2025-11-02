@@ -124,7 +124,8 @@ export const chatbot = async function (userId, message, isEnd, relationship) {
         const data = {
             role: 'bot',
             message: botResponseText,
-            suggestedReplies: parsedResponse.suggestedReplies
+            suggestedReplies: parsedResponse.suggestedReplies,
+            requiresNumericalInput: parsedResponse.requiresNumericalInput,
         }
         // ioInstance().in(userId.toString()).allSockets().then(sockets => {
         // console.log(`Room ${userId} currently has sockets:`, Array.from(sockets));
