@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
+
 import toast from "react-hot-toast";
 
 import Chatbot from "../../components/ChatbotComponents/Chatbot";
+
 // import { useAuthStore } from "../../store/useAuthStore";
 import { useChatStore } from "../../store/useChatStore";
 import { useAuthStore } from "../../store/useAuthStore";
@@ -92,6 +95,14 @@ export default function PatientHomePage() {
                         </div>
                     </div>
                 </div>
+                {/* Journal Summaries Link */}
+                <Link to="/patient/survey" className="hover:opacity-70 transition-all">
+                    <div className="card bg-base-200 shadow-md h-full">
+                        <div className="card-body">
+                            <h2 className="card-title">Take Survey</h2>
+                        </div>
+                    </div>
+                </Link>
             </div>
         </div>
     );
