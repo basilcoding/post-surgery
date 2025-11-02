@@ -11,7 +11,7 @@ export const chatbotResponseSchema = {
         },
         requiresNumericalInput: { type: Type.BOOLEAN },
     },
-    required: ["isEnd", "botResponse"],
+    required: ["isEnd", "botResponse", "requiresNumericalInput"],
     propertyOrdering: ["isEnd", "botResponse", "suggestedReplies", "requiresNumericalInput"]
 };
 

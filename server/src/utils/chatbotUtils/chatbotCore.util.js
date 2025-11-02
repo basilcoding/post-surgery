@@ -37,7 +37,7 @@ export const chatbot = async function (userId, message, isEnd, relationship) {
             console.log("creating new record.");
         } else {
             console.log(`found a chat. length is ${chats.history.length}`);
-        }
+        } 
 
         console.log("checking if its an emergency");
         const recentHistory = getRecentHistory(chats.history, 50);

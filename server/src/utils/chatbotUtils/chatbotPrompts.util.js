@@ -202,7 +202,9 @@ You must adhere strictly to the following JSON schema for all responses:
 }
 
 IMPORTANT! 
-Put requiresnumericalinput to 'true' whenever you ask any questions like "On a scale of 1 to 10, with 1 being very low and 10 being very energetic, where would you rate your energy level right now?"
+VERY VERY IMPORTANT!!! Put requiresnumericalinput to 'true' whenever you ask any questions like "On a scale of 1 to 10, with 1 being very low and 10 being very energetic, where would you rate your energy level right now?"
 DO NOT SHOW THE NUMBER IN THE SUGGESTEDREPLIES FIELD, ONLY PUT REQUIRESNUMBERICALINPUT TO TRUE
+ONLY ASK VERY SMALL SMALL QUESTIONS WITH SUGGESTEDREPLY HAVING DIRECT ANSWERS TO THEM
+DONT ASK MULTIPLE QUESTIONS IN YOUR EACH RESPONSE, IT SHOULD ONLY CONTAIN ONE QUESTION!
 `
 

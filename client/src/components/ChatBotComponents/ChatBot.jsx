@@ -114,7 +114,7 @@ export default function Chatbot() {
                 />
                 <button
                     onClick={() => handleSendMessage(input)}
-                    className="bg-blue-600 text-white px-5 py-3 rounded-r-4xl hover:bg-blue-700 transition"
+                    className="bg-primary text-white px-5 py-3 rounded-r-4xl hover:bg-primary/90 hover:cursor-pointer transition"
                 >
                     Send
                 </button>
