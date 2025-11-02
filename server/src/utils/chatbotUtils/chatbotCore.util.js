@@ -15,8 +15,7 @@ import {
 
 import {
     chatbotResponseSchema,
-    emergencySummaryBotSchema,
-    journalSummaryBotSchema
+    summaryBotSchema
 } from './chatbotResponseSchema.util.js';
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });

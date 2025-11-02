@@ -3,13 +3,12 @@ import { GoogleGenAI, Type } from "@google/genai";
 export const chatbotResponseSchema = {
     type: Type.OBJECT,
     properties: {
-        isEmergency: { type: Type.BOOLEAN },
         isEnd: { type: Type.BOOLEAN },
         botResponse: { type: Type.STRING },
-        
+
     },
-    required: ["isEmergency", "isEnd", "botResponse"],
-    propertyOrdering: ["isEmergency", "isEnd", "botResponse"]
+    required: ["isEnd", "botResponse"],
+    propertyOrdering: ["isEnd", "botResponse"]
 };
 // export const chatbotResponseSchema = {
 //     type: Type.OBJECT,
@@ -28,9 +27,10 @@ export const chatbotResponseSchema = {
 // };
 
 
-export const emergencySummaryBotSchema = {
+export const summaryBotSchema = {
     type: Type.OBJECT,
     properties: {
+        isEmergency: { type: Type.BOOLEAN },
         followUpQuestions: {
             type: Type.ARRAY,
             items: { type: Type.STRING }
@@ -40,26 +40,26 @@ export const emergencySummaryBotSchema = {
             items: { type: Type.STRING }
         }
     },
-    required: ["followUpQuestions", "notes"],
-    propertyOrdering: ["followUpQuestions", "notes"]
+    required: ["isEmergency", "followUpQuestions", "notes"],
+    propertyOrdering: ["isEmergency", "followUpQuestions", "notes"]
 }
 
-export const journalSummaryBotSchema = {
-    type: Type.OBJECT,
-    properties: {
-        followUpQuestions: {
-            type: Type.ARRAY,
-            items: { type: Type.STRING } // each note is a detailed clinical summary line
-        },
-        notes: {
-            type: Type.ARRAY,
-            items: {
-                type: Type.STRING // each note is a detailed clinical summary line
-            }
-        }
-    },
-    required: ["followUpQuestions", "notes"],
-    propertyOrdering: ["followUpQuestions", "notes"]
-};
+// export const journalSummaryBotSchema = {
+//     type: Type.OBJECT,
+//     properties: {
+//         followUpQuestions: {
+//             type: Type.ARRAY,
+//             items: { type: Type.STRING } // each note is a detailed clinical summary line
+//         },
+//         notes: {
+//             type: Type.ARRAY,
+//             items: {
+//                 type: Type.STRING // each note is a detailed clinical summary line
+//             }
+//         }
+//     },
+//     required: ["followUpQuestions", "notes"],
+//     propertyOrdering: ["followUpQuestions", "notes"]
+// };
 
 
