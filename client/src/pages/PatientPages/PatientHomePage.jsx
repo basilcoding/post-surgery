@@ -90,11 +90,6 @@ export default function PatientHomePage() {
                                 Tip: If you were expecting an invite and don't see it, check with your provider or refresh.
                             </p>
                         </div>
-
-                        {/* Chatbot */}
-                        <div className="mt-1">
-                            <Chatbot />
-                        </div>
                     </div>
                 </div>
             </div>

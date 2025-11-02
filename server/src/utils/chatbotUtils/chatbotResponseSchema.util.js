@@ -5,11 +5,15 @@ export const chatbotResponseSchema = {
     properties: {
         isEnd: { type: Type.BOOLEAN },
         botResponse: { type: Type.STRING },
-
+        suggestedReplies: {
+            type: Type.ARRAY,
+            items: { type: Type.STRING }
+        }
     },
     required: ["isEnd", "botResponse"],
-    propertyOrdering: ["isEnd", "botResponse"]
+    propertyOrdering: ["isEnd", "botResponse", "suggestedReplies"]
 };
+
 // export const chatbotResponseSchema = {
 //     type: Type.OBJECT,
 //     properties: {
