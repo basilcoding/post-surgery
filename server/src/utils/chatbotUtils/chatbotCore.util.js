@@ -20,6 +20,10 @@ import {
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
+// Helper functions given below
+// 1)
+const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+// 2)
 function getRecentHistory(history, n = 16) {
     return Array.isArray(history) ? history.slice(-n) : [];
 }
@@ -53,15 +57,46 @@ export const chatbot = async function (userId, message, isEnd, relationship, cha
         ];
         console.log('chatbot context is: ', chatbotContext)
 
-        const chatbotResponse = await ai.models.generateContent({
-            model: "gemini-2.0-flash",
-            contents: chatbotContext,
-            config: {
-                systemInstruction: chatbotPrompt,
-                responseMimeType: "application/json",
-                responseSchema: chatbotResponseSchema
+        let chatbotResponse;
+        const maxRetries = 5;
+        const retryDelayMs = 3000; // 3 seconds
+        let lastError = null;
+
+        for (let attempt = 1; attempt <= maxRetries; attempt++) {
+            try {
+                console.log(`Chatbot API attempt ${attempt}/${maxRetries}...`);
+                chatbotResponse = await ai.models.generateContent({
+                    model: "gemini-2.0-flash",
+                    contents: chatbotContext,
+                    config: {
+                        systemInstruction: chatbotPrompt,
+                        responseMimeType: "application/json",
+                        responseSchema: chatbotResponseSchema
+                    }
+                });
+                // If successful, break the loop
+                break;
+            } catch (error) {
+                console.error(`Chatbot API attempt ${attempt} failed:`, error.message);
+                lastError = error;
+                if (attempt === maxRetries) {
+                    console.error("All retry attempts failed for chatbot.");
+                    throw lastError; // Throw the last error to be caught by outer try...catch
+                }
+                // Wait for the delay before retrying
+                await delay(retryDelayMs);
             }
-        });
+        }
+
+        // const chatbotResponse = await ai.models.generateContent({
+        //     model: "gemini-2.0-flash",
+        //     contents: chatbotContext,
+        //     config: {
+        //         systemInstruction: chatbotPrompt,
+        //         responseMimeType: "application/json",
+        //         responseSchema: chatbotResponseSchema
+        //     }
+        // });
 
         const parsedResponse = JSON.parse(chatbotResponse.text);
         console.log("emergency checking bots result: ", parsedResponse);
