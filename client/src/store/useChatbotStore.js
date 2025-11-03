@@ -55,7 +55,7 @@ export const useChatbotStore = create((set, get) => ({
         }
     },
 
-    sendMessage: async (input) => {
+    sendMessage: async (input, chatbotType) => {
         if (!input.trim()) return;
         const userMessage = { role: "user", message: input.trim() };
         set((prev) => ({
@@ -66,12 +66,15 @@ export const useChatbotStore = create((set, get) => ({
 
         const { userProfile } = useUserStore.getState();
         try {
-            const res = await axiosInstance.post("/chatbot/message", {
-                message: input.trim(),
-                activeDoctor: userProfile.activeDoctor,
-            });
+            const res = await axiosInstance.post("/chatbot/message",
+                {
+                    message: input.trim(),
+                    activeDoctor: userProfile.activeDoctor,
+                },
+                {
+                    params: { chatbotType: chatbotType },
+                });
             // NOT pushing bot reply here, server will emit it via socket and the listener will add it.
-
         } catch {
             set((prev) => ({
                 messages: [...(prev.messages || []), { role: 'bot', message: 'Oops! Something went wrong.' }],

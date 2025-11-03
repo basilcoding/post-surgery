@@ -6,6 +6,9 @@ import RequireRole from "./guards/RequireRole.jsx";
 
 import PatientHomePage from "../pages/PatientPages/PatientHomePage.jsx";
 import ProfilePicker from "../pages/ProfilePicker.jsx";
+import JournalbotPage from "../pages/ChatbotPages/JournalbotPage.jsx";
+
+
 import Chatbot from "../components/ChatbotComponents/Chatbot.jsx";
 
 export default function PatientRoutes() {
@@ -20,7 +23,7 @@ export default function PatientRoutes() {
             <Route index element={<Navigate to='profiles' />} />
             <Route path="profiles" element={<ProfilePicker />} />
             <Route path="dashboard" element={<PatientHomePage />} />
-            <Route path="survey" element={<Chatbot />} />
+            <Route path="journal" element={<JournalbotPage />} />
         </Route>
     )
 }

@@ -96,7 +96,7 @@ export default function PatientHomePage() {
                     </div>
                 </div>
                 {/* Journal Summaries Link */}
-                <Link to="/patient/survey" className="hover:opacity-70 transition-all">
+                <Link to="/patient/journal" className="hover:opacity-70 transition-all">
                     <div className="card bg-base-200 shadow-md h-full">
                         <div className="card-body">
                             <h2 className="card-title">Take Survey</h2>
