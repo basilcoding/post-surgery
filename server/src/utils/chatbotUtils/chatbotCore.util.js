@@ -1,6 +1,7 @@
 import { GoogleGenAI } from "@google/genai";
 
 import Chatbot from '../../models/chatbot.model.js';
+import PatientProfile from '../../models/patientProfile.model.js'
 
 import { emitSummary } from "./emitSummary.util.js";
 
@@ -8,15 +9,17 @@ import { ioInstance } from "../../lib/socket.js";
 
 import {
     chatbotPrompt,
-    emergencySummaryBotPrompt,
-    journalSummaryBotPrompt,
+    emergencySummarybotPrompt,
+    journalSummarybotPrompt,
 
 } from './chatbotPrompts.util.js';
 
 import {
     chatbotResponseSchema,
-    summaryBotSchema
+    summarybotSchema
 } from './chatbotResponseSchema.util.js';
+
+import { formatMedicalHistory } from "./formatMedicalHistory.js";
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
@@ -35,6 +38,7 @@ export const chatbot = async function (userId, message, isEnd, relationship, cha
 
         // Load chat from DB or create a new one
         let chats = await Chatbot.findOne({ userId, chatbotType: chatbotType });
+        const patientProfile = await PatientProfile.findOne({ user: userId });
 
         if (!chats) {
             chats = new Chatbot({ userId, chatbotType: chatbotType });
@@ -61,6 +65,11 @@ export const chatbot = async function (userId, message, isEnd, relationship, cha
         const maxRetries = 5;
         const retryDelayMs = 3000; // 3 seconds
         let lastError = null;
+        const patientMedicalHistory = formatMedicalHistory(patientProfile);
+
+        // MAKE LOCAL VARIABLE, IMPORTANT: Dont do chatbotPrompt += patientMedicalHistory !!! Users data will get mixed up!! It will keep growing indefinitely by appending to the same variable during every request!! Never modify an imported variable!!
+        const fullSystemPrompt = chatbotPrompt + patientMedicalHistory;
+        console.log('Chatbot prompt is: ', fullSystemPrompt); 
 
         for (let attempt = 1; attempt <= maxRetries; attempt++) {
             try {
@@ -69,7 +78,7 @@ export const chatbot = async function (userId, message, isEnd, relationship, cha
                     model: "gemini-2.0-flash",
                     contents: chatbotContext,
                     config: {
-                        systemInstruction: chatbotPrompt,
+                        systemInstruction: fullSystemPrompt,
                         responseMimeType: "application/json",
                         responseSchema: chatbotResponseSchema
                     }
@@ -87,16 +96,6 @@ export const chatbot = async function (userId, message, isEnd, relationship, cha
                 await delay(retryDelayMs);
             }
         }
-
-        // const chatbotResponse = await ai.models.generateContent({
-        //     model: "gemini-2.0-flash",
-        //     contents: chatbotContext,
-        //     config: {
-        //         systemInstruction: chatbotPrompt,
-        //         responseMimeType: "application/json",
-        //         responseSchema: chatbotResponseSchema
-        //     }
-        // });
 
         const parsedResponse = JSON.parse(chatbotResponse.text);
         console.log("emergency checking bots result: ", parsedResponse);
@@ -147,21 +146,40 @@ export const chatbot = async function (userId, message, isEnd, relationship, cha
         // Handle summaries if conversation ends
         if (chats.isEndBot) { // This isEnd needs to be true, then only the chats.isEnd will be checked. eg: even if isEnd is true, chats.End condition will not allow the user to make any more responses. (chats.isEnd is specified inside the else if condition )
             let summary = null;
-            console.log("Conversation has ended, so creating emergency summary");
-            const summaryBot = await ai.models.generateContent({
-                model: "gemini-2.0-flash",
-                contents: JSON.parse(JSON.stringify(chats.history)),
-                config: {
-                    systemInstruction: emergencySummaryBotPrompt,
-                    responseMimeType: "application/json",
-                    responseSchema: summaryBotSchema
-                }
-            });
-            chats.isEnd = true;
-            chats.isEndBot = false;
-            summary = JSON.parse(summaryBot.text);
-            emitSummary(userId, chats, summary, relationship);
-            console.log("successfully created emergency summary:", JSON.parse(summaryBot.text));
+            if (chats.chatType === 'emergency') {
+                console.log("Conversation has ended, so creating emergency summary");
+                const summarybot = await ai.models.generateContent({
+                    model: "gemini-2.0-flash",
+                    contents: JSON.parse(JSON.stringify(chats.history)),
+                    config: {
+                        systemInstruction: emergencySummarybotPrompt,
+                        responseMimeType: "application/json",
+                        responseSchema: summarybotSchema
+                    }
+                });
+                chats.isEnd = true;
+                chats.isEndBot = false;
+                summary = JSON.parse(summarybot.text);
+                emitSummary(userId, chats, summary, relationship);
+                console.log("successfully created emergency summary:", JSON.parse(summarybot.text));
+            } else if (!chats.isEnd && chats.isEndBot) {
+                // Run this code if conversation has NOT ended. Then flag it has ended. So since we flag it as ended, next time this code wont run because conversation HAS ended.
+                console.log("jounaling conversation has ended, so creating normal summary");
+                const journalSummarybot = await ai.models.generateContent({
+                    model: "gemini-2.0-flash",
+                    contents: JSON.parse(JSON.stringify(chats.history)),
+                    config: {
+                        systemInstruction: journalSummarybotPrompt,
+                        responseMimeType: "application/json",
+                        responseSchema: summarybotSchema
+                    }
+                });
+                summary = JSON.parse(journalSummarybot.text);
+                emitSummary(userId, chats, summary, relationship);
+                console.log("journal summary created successfully ", JSON.parse(journalSummarybot.text));
+                chats.isEnd = true; // This will prevent any further user responses because even if isEnd = true, !chats.isEnd = false "always... after making the furst summary"
+                chats.isEndBot = false;
+            }
         }
 
         // Save updated chat (this will now save the sticky isEmergency flag)

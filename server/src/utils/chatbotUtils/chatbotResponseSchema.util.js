@@ -32,7 +32,7 @@ export const chatbotResponseSchema = {
 // };
 
 
-export const summaryBotSchema = {
+export const summarybotSchema = {
     type: Type.OBJECT,
     properties: {
         isEmergency: { type: Type.BOOLEAN },
