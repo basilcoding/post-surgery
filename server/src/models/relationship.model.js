@@ -14,6 +14,9 @@ const relationshipSchema = new mongoose.Schema({
     surgeryName: {
         type: String,
     },
+    surgeryIdentifier: {
+        type: String,
+    },
     careType: { // Type of care or clinical context for this doctor-patient relationship
         type: String,
         enum: ['cardiology', 'general', 'psychiatry'],

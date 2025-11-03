@@ -32,39 +32,57 @@ export const chatbotResponseSchema = {
 // };
 
 
-export const summarybotSchema = {
-    type: Type.OBJECT,
-    properties: {
-        isEmergency: { type: Type.BOOLEAN },
-        followUpQuestions: {
-            type: Type.ARRAY,
-            items: { type: Type.STRING }
-        },
-        notes: {
-            type: Type.ARRAY,
-            items: { type: Type.STRING }
-        }
-    },
-    required: ["isEmergency", "followUpQuestions", "notes"],
-    propertyOrdering: ["isEmergency", "followUpQuestions", "notes"]
-}
-
-// export const journalSummaryBotSchema = {
+// export const summarybotSchema = {
 //     type: Type.OBJECT,
 //     properties: {
+//         isEmergency: { type: Type.BOOLEAN },
 //         followUpQuestions: {
 //             type: Type.ARRAY,
-//             items: { type: Type.STRING } // each note is a detailed clinical summary line
+//             items: { type: Type.STRING }
 //         },
-//         notes: {
+//         content: {
 //             type: Type.ARRAY,
-//             items: {
-//                 type: Type.STRING // each note is a detailed clinical summary line
-//             }
+//             items: { type: Type.STRING }
 //         }
 //     },
-//     required: ["followUpQuestions", "notes"],
-//     propertyOrdering: ["followUpQuestions", "notes"]
-// };
+//     required: ["isEmergency", "followUpQuestions", "content"],
+//     propertyOrdering: ["isEmergency", "followUpQuestions", "content"]
+// }
+
+export const journalSummarybotSchema = {
+    type: Type.OBJECT,
+    properties: {
+        followUpQuestions: {
+            type: Type.ARRAY,
+            items: { type: Type.STRING } // each note is a detailed clinical summary line
+        },
+        content: {
+            type: Type.ARRAY,
+            items: {
+                type: Type.STRING // each note is a detailed clinical summary line
+            }
+        }
+    },
+    required: ["followUpQuestions", "content"],
+    propertyOrdering: ["followUpQuestions", "content"]
+};
+
+export const emergencySummarybotSchema = {
+    type: Type.OBJECT,
+    properties: {
+        followUpQuestions: {
+            type: Type.ARRAY,
+            items: { type: Type.STRING } // each note is a detailed clinical summary line
+        },
+        content: {
+            type: Type.ARRAY,
+            items: {
+                type: Type.STRING // each note is a detailed clinical summary line
+            }
+        }
+    },
+    required: ["followUpQuestions", "content"],
+    propertyOrdering: ["followUpQuestions", "content"]
+};
 
 

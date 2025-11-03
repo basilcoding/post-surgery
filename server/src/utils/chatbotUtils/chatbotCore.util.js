@@ -2,6 +2,7 @@ import { GoogleGenAI } from "@google/genai";
 
 import Chatbot from '../../models/chatbot.model.js';
 import PatientProfile from '../../models/patientProfile.model.js'
+import CareCheckList from '../../models/careCheckList.model.js'
 
 import { emitSummary } from "./emitSummary.util.js";
 
@@ -17,16 +18,22 @@ import {
 
 import {
     chatbotResponseSchema,
-    summarybotSchema
+    emergencySummarybotSchema,
+    journalSummarybotSchema,
 } from './chatbotResponseSchema.util.js';
 
 import { formatMedicalHistory } from "./formatMedicalHistory.js";
+import { formatSurgeryChecklist } from "./formatSurgeryChecklist.js";
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 // Helper functions given below
 // 1)
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+const maxRetries = 5;
+const retryDelayMs = 3000; // 3 seconds
+let lastError = null;
+
 // 2)
 function getRecentHistory(history, n = 16) {
     return Array.isArray(history) ? history.slice(-n) : [];
@@ -37,9 +44,13 @@ export const chatbot = async function (userId, message, isEnd, relationship, cha
         console.log("\nchatAgent called successfully called");
         console.log(`userId: ${userId}, Message: "${message}", isEnd: ${isEnd}`);
 
+        const surgeryIdentifier = relationship.surgeryIdentifier; // e.g., "total-knee-replacement-v1"
+
         // Load chat from DB or create a new one
         let chats = await Chatbot.findOne({ userId, chatbotType: chatbotType });
         const patientProfile = await PatientProfile.findOne({ user: userId });
+        const protocol = await CareCheckList.findOne({ identifier: surgeryIdentifier });
+
 
         if (!chats) {
             chats = new Chatbot({ userId, chatbotType: chatbotType });
@@ -48,7 +59,7 @@ export const chatbot = async function (userId, message, isEnd, relationship, cha
             console.log(`found a chat. length is ${chats.history.length}`);
         }
 
-        console.log("checking if its an emergency");
+        // console.log("checking if its an emergency");
         const recentHistory = getRecentHistory(chats.history, 50);
         // Create a new array containing ONLY the fields the AI needs.
         // This strips off 'suggestedReplies', 'timestamp', and any Mongoose IDs.
@@ -62,22 +73,21 @@ export const chatbot = async function (userId, message, isEnd, relationship, cha
         ];
         console.log('chatbot context is: ', chatbotContext)
 
-        let chatbotResponse;
-        const maxRetries = 5;
-        const retryDelayMs = 3000; // 3 seconds
-        let lastError = null;
+
         const patientMedicalHistory = formatMedicalHistory(patientProfile);
+        const surgeryChecklist = formatSurgeryChecklist(protocol);
 
         // MAKE LOCAL VARIABLE, IMPORTANT: Dont do chatbotPrompt += patientMedicalHistory !!! Users data will get mixed up!! It will keep growing indefinitely by appending to the same variable during every request!! Never modify an imported variable!!
         let fullSystemPrompt;
         if (chats.chatbotType === 'journal') {
-            fullSystemPrompt = journalChatbotPrompt + patientMedicalHistory;
-            // console.log('Chatbot prompt is: ', fullSystemPrompt); 
-        } else if (chats.chatbotType === 'journal') {
-            fullSystemPrompt = emergencyChatbotPrompt + patientMedicalHistory;
-            // console.log('Chatbot prompt is: ', fullSystemPrompt); 
+            fullSystemPrompt = journalChatbotPrompt + patientMedicalHistory + surgeryChecklist;
+            console.log('Chatbot prompt is: ', fullSystemPrompt); 
+        } else if (chats.chatbotType === 'emergency') {
+            fullSystemPrompt = emergencyChatbotPrompt + patientMedicalHistory + surgeryChecklist;
+            console.log('Chatbot prompt is: ', fullSystemPrompt);
         }
 
+        let chatbotResponse;
         for (let attempt = 1; attempt <= maxRetries; attempt++) {
             try {
                 console.log(`Chatbot API attempt ${attempt}/${maxRetries}...`);
@@ -105,7 +115,7 @@ export const chatbot = async function (userId, message, isEnd, relationship, cha
         }
 
         const parsedResponse = JSON.parse(chatbotResponse.text);
-        console.log("emergency checking bots result: ", parsedResponse);
+        console.log("checking bots result: ", parsedResponse);
 
         const botResponseText = parsedResponse.botResponse;
         // console.log("bot response is: ", botResponseText);
@@ -153,34 +163,71 @@ export const chatbot = async function (userId, message, isEnd, relationship, cha
         // Handle summaries if conversation ends
         if (chats.isEndBot) { // This isEnd needs to be true, then only the chats.isEnd will be checked. eg: even if isEnd is true, chats.End condition will not allow the user to make any more responses. (chats.isEnd is specified inside the else if condition )
             let summary = null;
-            if (chats.chatType === 'emergency') {
+            if (chats.chatbotType === 'emergency') {
                 console.log("Conversation has ended, so creating emergency summary");
-                const summarybot = await ai.models.generateContent({
-                    model: "gemini-2.0-flash",
-                    contents: JSON.parse(JSON.stringify(chats.history)),
-                    config: {
-                        systemInstruction: emergencySummarybotPrompt,
-                        responseMimeType: "application/json",
-                        responseSchema: summarybotSchema
+                let emergencySummarybot;
+                for (let attempt = 1; attempt <= maxRetries; attempt++) {
+                    try {
+                        console.log(`Chatbot API attempt ${attempt}/${maxRetries}...`);
+                        emergencySummarybot = await ai.models.generateContent({
+                            model: "gemini-2.0-flash",
+                            contents: JSON.parse(JSON.stringify(chats.history)),
+                            config: {
+                                systemInstruction: emergencySummarybotPrompt,
+                                responseMimeType: "application/json",
+                                responseSchema: emergencySummarybotSchema
+                            }
+                        });
+                        // If successful, break the loop
+                        break;
+                    } catch (error) {
+                        console.error(`Chatbot API attempt ${attempt} failed:`, error.message);
+                        lastError = error;
+                        if (attempt === maxRetries) {
+                            console.error("All retry attempts failed for chatbot.");
+                            throw lastError; // Throw the last error to be caught by outer try...catch
+                        }
+                        // Wait for the delay before retrying
+                        await delay(retryDelayMs);
                     }
-                });
+                }
+
                 chats.isEnd = true;
                 chats.isEndBot = false;
-                summary = JSON.parse(summarybot.text);
+                summary = JSON.parse(emergencySummarybot.text);
                 emitSummary(userId, chats, summary, relationship);
-                console.log("successfully created emergency summary:", JSON.parse(summarybot.text));
+                console.log("successfully created emergency summary:", JSON.parse(emergencySummarybot.text));
             } else if (!chats.isEnd && chats.isEndBot) {
                 // Run this code if conversation has NOT ended. Then flag it has ended. So since we flag it as ended, next time this code wont run because conversation HAS ended.
                 console.log("jounaling conversation has ended, so creating normal summary");
-                const journalSummarybot = await ai.models.generateContent({
-                    model: "gemini-2.0-flash",
-                    contents: JSON.parse(JSON.stringify(chats.history)),
-                    config: {
-                        systemInstruction: journalSummarybotPrompt,
-                        responseMimeType: "application/json",
-                        responseSchema: summarybotSchema
+                let journalSummarybot;
+
+                for (let attempt = 1; attempt <= maxRetries; attempt++) {
+                    try {
+                        console.log(`Chatbot API attempt ${attempt}/${maxRetries}...`);
+                        journalSummarybot = await ai.models.generateContent({
+                            model: "gemini-2.0-flash",
+                            contents: JSON.parse(JSON.stringify(chats.history)),
+                            config: {
+                                systemInstruction: journalSummarybotPrompt,
+                                responseMimeType: "application/json",
+                                responseSchema: journalSummarybotSchema
+                            }
+                        });
+                        // If successful, break the loop
+                        break;
+                    } catch (error) {
+                        console.error(`Chatbot API attempt ${attempt} failed:`, error.message);
+                        lastError = error;
+                        if (attempt === maxRetries) {
+                            console.error("All retry attempts failed for chatbot.");
+                            throw lastError; // Throw the last error to be caught by outer try...catch
+                        }
+                        // Wait for the delay before retrying
+                        await delay(retryDelayMs);
                     }
-                });
+                }
+
                 summary = JSON.parse(journalSummarybot.text);
                 emitSummary(userId, chats, summary, relationship);
                 console.log("journal summary created successfully ", JSON.parse(journalSummarybot.text));

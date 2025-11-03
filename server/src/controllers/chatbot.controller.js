@@ -15,7 +15,7 @@ export const sendMessage = async (req, res) => {
         const { chatbotType } = req.query;
         const userId = req.user._id.toString(); // from the verified token
         const { message, activeDoctor } = req.body; // from the client request body
-        
+
         // Find the relationship document with current activeDoctor ONLY!
         console.log(userId, activeDoctor, chatbotType)
         const relationship = await Relationship.findOne({ patient: userId, doctor: activeDoctor, status: true }).populate(["patient", "doctor"]);

@@ -52,7 +52,7 @@ export const emitSummary = async function (userId, chats, summaryObj, relationsh
 
                 console.log('[emitSummary] existing deliveredTo length:', deliveredToList.length);
 
-                oldSummary.content = summaryObj.notes;
+                oldSummary.content = summaryObj.content;
                 oldSummary.questionsAsked = summaryObj.followUpQuestions;
 
                 let deliveredToAtLeastOne = false;
@@ -141,7 +141,7 @@ export const emitSummary = async function (userId, chats, summaryObj, relationsh
                 summary = await BotSummary({
                     patient: userId,
                     type: "emergency",
-                    content: summaryObj.notes,
+                    content: summaryObj.content,
                     questionsAsked: summaryObj.followUpQuestions,
                     assignedDoctor: relationship.doctor._id,
                     deliveredTo: [
@@ -227,7 +227,7 @@ export const emitSummary = async function (userId, chats, summaryObj, relationsh
                 summary = await BotSummary({
                     patient: userId,
                     type: "journal",
-                    content: summaryObj.notes,
+                    content: summaryObj.content,
                     questionsAsked: summaryObj.followUpQuestions,
                     assignedDoctor: relationship.doctor._id,
                     deliveredTo: [
