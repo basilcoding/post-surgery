@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { useAuthStore } from "../../store/useAuthStore";
 import { useChatbotStore } from "../../store/useChatbotStore";
 
-export default function JournalbotPage() {
+export default function SymptomConcernbotPage() {
     const { authUser, socket, subscribeToSelfRoom } = useAuthStore();
     const [userId] = useState(authUser?._id);
     const [input, setInput] = useState("");
@@ -11,7 +11,7 @@ export default function JournalbotPage() {
     const { messages, getChatbotMessages, sendMessage, isLoading, connectChatbotSocketListeners, disconnectChatbotSocketListeners } = useChatbotStore();
 
     useEffect(() => {
-        getChatbotMessages('journal');
+        getChatbotMessages('emergency');
         if (!socket) return;
         return () => disconnectChatbotSocketListeners(socket);
     }, []);
@@ -27,12 +27,12 @@ export default function JournalbotPage() {
 
     const handleSendMessage = async (message) => {
         if (!message || !message.toString().trim()) return;
-        await sendMessage(message.toString(), 'journal');
+        await sendMessage(message.toString(), 'emergency');
         setInput("");
     };
 
     const handleKeyPress = (e) => {
-        if (e.key === "Enter") handleSendMessage(input, 'journal');
+        if (e.key === "Enter") handleSendMessage(input, 'emergency');
     };
 
     return (

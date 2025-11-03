@@ -99,7 +99,14 @@ export default function PatientHomePage() {
                 <Link to="/patient/journal" className="hover:opacity-70 transition-all">
                     <div className="card bg-base-200 shadow-md h-full">
                         <div className="card-body">
-                            <h2 className="card-title">Take Survey</h2>
+                            <h2 className="card-title">Take Your Daily Survery</h2>
+                        </div>
+                    </div>
+                </Link>
+                <Link to="/patient/symptom-concern" className="hover:opacity-70 transition-all">
+                    <div className="card bg-base-200 shadow-md h-full">
+                        <div className="card-body">
+                            <h2 className="card-title">Worried About A Symptom?</h2>
                         </div>
                     </div>
                 </Link>

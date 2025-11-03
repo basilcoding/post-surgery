@@ -46,9 +46,17 @@ export const sendMessage = async (req, res) => {
 export const getMessages = async (req, res) => {
     try {
         const userId = req.user._id;
-        const chatbotDoc = await Chatbot.findOne({ userId })
+        const { chatbotType } = req.query;
+
+        const chatbotDoc = await Chatbot.findOne({ userId, chatbotType: chatbotType })
         if (!chatbotDoc) {
-            res.json("No chat found for this user!");
+            console.log("Chatbot Doc not present in getMessages!")
+            res.json("Internal Server Error!");
+            return;
+        }
+        if (!userId || !chatbotType) {
+            console.log("User's id and chatbotType is required!")
+            res.status(400).json("Internal Server Error!");
             return;
         }
 
@@ -58,6 +66,7 @@ export const getMessages = async (req, res) => {
                 role: message.role,
                 message: message.parts[0].text,
                 suggestedReplies: message.suggestedReplies,
+                requiresNumericalInput: message.requiresNumericalInput
             };
         });
 

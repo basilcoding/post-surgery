@@ -109,7 +109,12 @@ export const chatbot = async function (userId, message, isEnd, relationship, cha
         // Append to history only if allowed (this implements your requirement)
         // push user message then model response
         chats.history.push({ role: 'user', parts: [{ text: message }] });
-        chats.history.push({ role: 'model', parts: [{ text: botResponseText }], suggestedReplies: parsedResponse.suggestedReplies });
+        chats.history.push({
+            role: 'model',
+            parts: [{ text: botResponseText }],
+            suggestedReplies: parsedResponse.suggestedReplies,
+            requiresNumericalInput: parsedResponse.requiresNumericalInput,
+        });
 
         // if (chats.isEmergency && chats.isEnd) { // New emergency
         //     canPatientEndSession = false; // Override end signal

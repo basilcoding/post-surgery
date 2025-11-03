@@ -42,10 +42,14 @@ export const useChatbotStore = create((set, get) => ({
         socket.off('botError');
     },
 
-    getChatbotMessages: async () => {
+    getChatbotMessages: async (chatbotType) => {
         const { authUser } = useAuthStore.getState();
         try {
-            const res = await axiosInstance.get(`/chatbot/message/${authUser._id}`)
+            const res = await axiosInstance.get(`/chatbot/message/${authUser._id}`,
+                {
+                    params: { chatbotType: chatbotType },
+                },
+            )
             const msgs = Array.isArray(res?.data?.messages) ? res.data.messages : [];
             set({ messages: [{ role: "bot", message: "Ready to start your questionare? Please give the responses in detail so I can give the best description about your well being to the doctor." }, ...msgs], });
         } catch {

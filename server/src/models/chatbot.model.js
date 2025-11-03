@@ -22,6 +22,11 @@ const chatMessageSchema = new mongoose.Schema({
         required: false,
         default: undefined // So it doesn't default to an empty array
     },
+    requiresNumericalInput: {
+        type: Boolean,
+        required: true,
+        default: false,
+    },
     timestamp: {
         type: Date,
         default: Date.now, // optional, for ordering/history
