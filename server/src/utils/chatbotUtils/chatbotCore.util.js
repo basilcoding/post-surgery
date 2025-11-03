@@ -8,7 +8,8 @@ import { emitSummary } from "./emitSummary.util.js";
 import { ioInstance } from "../../lib/socket.js";
 
 import {
-    chatbotPrompt,
+    journalChatbotPrompt,
+    emergencyChatbotPrompt,
     emergencySummarybotPrompt,
     journalSummarybotPrompt,
 
@@ -68,8 +69,14 @@ export const chatbot = async function (userId, message, isEnd, relationship, cha
         const patientMedicalHistory = formatMedicalHistory(patientProfile);
 
         // MAKE LOCAL VARIABLE, IMPORTANT: Dont do chatbotPrompt += patientMedicalHistory !!! Users data will get mixed up!! It will keep growing indefinitely by appending to the same variable during every request!! Never modify an imported variable!!
-        const fullSystemPrompt = chatbotPrompt + patientMedicalHistory;
-        console.log('Chatbot prompt is: ', fullSystemPrompt); 
+        let fullSystemPrompt;
+        if (chats.chatbotType === 'journal') {
+            fullSystemPrompt = journalChatbotPrompt + patientMedicalHistory;
+            // console.log('Chatbot prompt is: ', fullSystemPrompt); 
+        } else if (chats.chatbotType === 'journal') {
+            fullSystemPrompt = emergencyChatbotPrompt + patientMedicalHistory;
+            // console.log('Chatbot prompt is: ', fullSystemPrompt); 
+        }
 
         for (let attempt = 1; attempt <= maxRetries; attempt++) {
             try {
