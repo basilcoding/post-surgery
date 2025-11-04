@@ -45,7 +45,7 @@ const chatbotSchema = new mongoose.Schema({
     },
     chatbotType: {
         type: String,
-        enum: ['journal', 'emergency'],
+        enum: ['journal', 'emergency', 'general'],
         required: true,
     },
     isEnd: {

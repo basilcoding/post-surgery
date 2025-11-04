@@ -17,7 +17,7 @@ export const sendMessage = async (req, res) => {
         const { message, activeDoctor } = req.body; // from the client request body
 
         // Find the relationship document with current activeDoctor ONLY!
-        console.log(userId, activeDoctor, chatbotType)
+        // console.log(userId, activeDoctor, chatbotType)
         const relationship = await Relationship.findOne({ patient: userId, doctor: activeDoctor, status: true }).populate(["patient", "doctor"]);
 
         const isEnd = /^(?:quit|quite|quitt|quti|qit|qut|quyt|kwit|qiut|qiot|qujt|cuit|q|quuit|kuit|qwit|qu\s?it|qutit|qwiut|\/quit|syut|quik|qutting|kuite|qauit|:q|:wq|wuit|qq|done|send|sent|sen|sends)$/i.test(message.trim());

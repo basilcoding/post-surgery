@@ -13,6 +13,7 @@ import {
     emergencyChatbotPrompt,
     emergencySummarybotPrompt,
     journalSummarybotPrompt,
+    generalChatbotPrompt,
 
 } from './chatbotPrompts.util.js';
 
@@ -85,6 +86,8 @@ export const chatbot = async function (userId, message, isEnd, relationship, cha
         } else if (chats.chatbotType === 'emergency') {
             fullSystemPrompt = emergencyChatbotPrompt + patientMedicalHistory + surgeryChecklist;
             // console.log('Chatbot prompt is: ', fullSystemPrompt);
+        } else {
+            fullSystemPrompt = generalChatbotPrompt + patientMedicalHistory + surgeryChecklist;
         }
 
         let chatbotResponse;
@@ -161,7 +164,7 @@ export const chatbot = async function (userId, message, isEnd, relationship, cha
         }
 
         // Handle summaries if conversation ends
-        if (chats.isEndBot) { // This isEnd needs to be true, then only the chats.isEnd will be checked. eg: even if isEnd is true, chats.End condition will not allow the user to make any more responses. (chats.isEnd is specified inside the else if condition )
+        if (chats.isEndBot && (chats.chatbotType === 'emergency' || 'journal')) { // This isEnd needs to be true, then only the chats.isEnd will be checked. eg: even if isEnd is true, chats.End condition will not allow the user to make any more responses. (chats.isEnd is specified inside the else if condition )
             let summary = null;
             if (!chats.isEnd && chats.chatbotType === 'emergency') {
                 console.log("Conversation has ended, so creating emergency summary");
