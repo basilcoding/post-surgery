@@ -52,7 +52,7 @@ export const emitSummary = async function (userId, summaryObj, relationship) {
 
                 console.log('[emitSummary] existing deliveredTo length:', deliveredToList.length);
 
-                oldSummary.content = summaryObj.content;
+                oldSummary.content.push(summaryObj.content);
                 oldSummary.questionsAsked = summaryObj.followUpQuestions;
 
                 let deliveredToAtLeastOne = false;

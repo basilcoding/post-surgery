@@ -10,6 +10,7 @@ import JournalbotPage from "../pages/ChatbotPages/JournalbotPage.jsx";
 import SymptomConcernbotPage from "../pages/ChatbotPages/SymptomConcernbotPage.jsx";
 
 import Chatbot from "../components/ChatbotComponents/Chatbot.jsx";
+import PatientJournalsPage from "../pages/PatientPages/PatientJournalsPage.jsx";
 
 export default function PatientRoutes() {
 
@@ -25,6 +26,7 @@ export default function PatientRoutes() {
             <Route path="dashboard" element={<PatientHomePage />} />
             <Route path="journal" element={<JournalbotPage />} />
             <Route path="symptom-concern" element={<SymptomConcernbotPage />} />
+            <Route path="patient-journals" element={<PatientJournalsPage />} />
         </Route>
     )
 }

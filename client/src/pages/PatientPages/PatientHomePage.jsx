@@ -45,7 +45,7 @@ export default function PatientHomePage() {
         {/* Header */}
         <div className="flex items-center justify-between gap-4 mb-6">
           <div>
-            <h2 className="text-3xl font-extrabold tracking-tight">Welcome back{authUser?.firstName ? `, ${authUser.firstName}` : ""} 👋</h2>
+            <h2 className="text-3xl font-extrabold tracking-tight">Welcome back{authUser?.fullName ? `, ${authUser.fullName}` : ""}</h2>
             <p className="text-sm text-gray-500 mt-1">Your care hub — messages, appointments and journal summaries in one place.</p>
           </div>
 
@@ -56,7 +56,7 @@ export default function PatientHomePage() {
             </div>
 
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold">{authUser?.firstName ? initials(authUser.firstName + (authUser.lastName ? " " + authUser.lastName : "")) : "U"}</div>
+              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold">{authUser?.profilePic ? initials(authUser.firstName + (authUser.lastName ? " " + authUser.lastName : "")) : "U"}</div>
             </div>
           </div>
         </div>
@@ -91,8 +91,6 @@ export default function PatientHomePage() {
 
                 <div className="flex gap-3">
                   <button onClick={handleEnterRoom} disabled={!roomId} className={`btn btn-block ${roomId ? "btn-primary" : "btn-disabled"}`}> {roomId ? "Enter Chat Room" : "Waiting for provider"}</button>
-
-                  <Link to="/support" className="btn btn-outline">Contact Support</Link>
                 </div>
 
                 <p className="text-xs text-gray-400 mt-2">Tip: If you expected an invite, check with your provider or refresh. Notifications will appear here when your room is ready.</p>
@@ -108,7 +106,7 @@ export default function PatientHomePage() {
             >
               <div className="flex items-start justify-between">
                 <div>
-                  <h3 className="text-lg font-semibold">Journal Summaries</h3>
+                  <h3 className="text-lg font-semibold">Journal</h3>
                   <p className="text-sm text-gray-500 mt-1">Concise summaries of your recent journal entries and trends.</p>
                 </div>
 
@@ -126,7 +124,7 @@ export default function PatientHomePage() {
                 </div>
 
                 <div className="mt-3 flex gap-2">
-                  <Link to="/journal" className="btn btn-ghost btn-sm">View All Summaries</Link>
+                  <Link to="/patient/patient-journals" className="btn btn-ghost btn-sm">View All Summaries</Link>
                   <Link to="/journal/settings" className="btn btn-outline btn-sm">Summary Settings</Link>
                 </div>
               </div>
@@ -184,22 +182,6 @@ export default function PatientHomePage() {
 
               <div className="mt-4">
                 <Link to="/vitals" className="text-xs btn btn-ghost btn-sm">View Vitals</Link>
-              </div>
-            </motion.div>
-
-            <motion.div initial={{ x: 8, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ duration: 0.4 }} className="card bg-gradient-to-tr from-white to-slate-50 shadow p-4 rounded-2xl">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h4 className="font-semibold">Chatbot</h4>
-                  <p className="text-xs text-gray-400">Quick help and triage — powered by AI.</p>
-                </div>
-
-                <Link to="/chatbot" className="btn btn-sm btn-outline">Open</Link>
-              </div>
-
-              <div className="mt-3">
-                {/* small preview area */}
-                <div className="h-28 rounded-lg border border-slate-100 p-3 text-xs text-gray-500 overflow-hidden">The chatbot can help with medication reminders, appointment questions, and basic triage. Open it for a live session.</div>
               </div>
             </motion.div>
 

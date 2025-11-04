@@ -5,8 +5,8 @@ const DeliveredToSchema = new mongoose.Schema({
     doctor: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     delivered: { type: Boolean, default: false },
     deliveredAt: { type: Date },
-    viewed: { type: Boolean, default: false },
-    viewedAt: { type: Date },
+    // viewed: { type: Boolean, default: false },
+    // viewedAt: { type: Date },
 }, { _id: false });
 
 const BotSummarySchema = new mongoose.Schema({
@@ -37,13 +37,24 @@ const BotSummarySchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "User"
     },
+    status: {
+        type: String,
+        enum: ["New", "UnderReview", "Resolved"],
+        index: true,
+        default: "New"
+    },
+    resolvedBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User"
+    },
+    resolvedAt: { type: Date },
     revision: { type: Number, default: 0 }, // keep track of how many updates the patient did...
 }, { timestamps: true });
 
 BotSummarySchema.index({ patient: 1, createdAt: -1 });
 // Best for "new" and "recentlyViewed" buckets (uses doctor + viewed + type, then range on createdAt)
 BotSummarySchema.index(
-    { "deliveredTo.doctor": 1, "deliveredTo.viewed": 1, type: 1, createdAt: -1 }
+    { "deliveredTo.doctor": 1, status: 1, type: 1, createdAt: -1 }
 );
 // Best for "history" bucket (no viewed filter)
 BotSummarySchema.index(

@@ -4,7 +4,6 @@ import toast from "react-hot-toast";
 
 import { useAuthStore } from "../../store/useAuthStore";
 import { useSummaryStore } from "../../store/useSummaryStore";
-import { useDoctorStore } from "../../store/useDoctorStore";
 
 import SidebarOption from "../../components/CommonComponents/SidebarOption.jsx";
 import SummariesContainer from '../../components/DoctorComponents/SummariesContainer.jsx'
@@ -12,16 +11,15 @@ import SummariesContainer from '../../components/DoctorComponents/SummariesConta
 export default function EmergencySummaryPage() {
   const navigate = useNavigate();
   const { authUser } = useAuthStore();
-  const { newSummaries, recentlyViewedSummaries, summariesHistory, fetchSummaries } = useSummaryStore();
-  const { markViewed } = useDoctorStore();
-  const [viewType, setViewType] = useState('new');
+  const { newSummaries, underReviewSummaries, resolvedSummaries, fetchSummaries, changeStatus } = useSummaryStore();
+  const [viewType, setViewType] = useState('newSummaries');
   // const [summaryId, setSummaryId] = useState('');
-  const [clickedSummary, setClickedSummary] = useState({ summaryId: '', viewedStatus: false });
+  const [clickedSummary, setClickedSummary] = useState({ summaryId: '' , status: null});
 
 
   useEffect(() => {
     (async () => {
-      await fetchSummaries('emergency');
+      await fetchSummaries('journal');
     })();
   }, [fetchSummaries])
 
@@ -31,50 +29,58 @@ export default function EmergencySummaryPage() {
 
     const handleSummaryIdClick = async () => {
       try {
-        await markViewed(clickedSummary.summaryId, clickedSummary.viewedStatus);
-        await fetchSummaries('emergency'); // re-fetch to refresh lists (or your markViewed could update store and you could skip)
+        await changeStatus(clickedSummary.summaryId, clickedSummary.status);
+        await fetchSummaries('emergency'); // re-fetch to refresh lists (or your changeStatus could update store and you could skip)
       } catch (err) {
         console.error(err);
-        setClickedSummary({ summaryId: '', viewedStatus: false });
+        setClickedSummary({ summaryId: '', status: null });
         toast.error("Failed to mark summary read");
       } finally {
-        if (!cancelled) setClickedSummary({ summaryId: '', viewedStatus: false });
+        if (!cancelled) setClickedSummary({ summaryId: '', status: null });
       }
     }
     handleSummaryIdClick();
 
     return () => { cancelled = true; }
-  }, [clickedSummary, markViewed]);
+  }, [clickedSummary, changeStatus, fetchSummaries]);
+
+  useEffect(() => {
+    const redirectError = localStorage.getItem("redirectError");
+    if (redirectError) {
+      toast.error(redirectError);
+      localStorage.removeItem("redirectError");
+    }
+  }, []);
 
   // pass a function down that sets both id + doctor id
-  const handleMarkViewedProp = (summaryId, viewedStatus) => {
-    setClickedSummary({ summaryId: summaryId, viewedStatus: viewedStatus });
+  const handlechangeStatusProp = (summaryId, status) => {
+    setClickedSummary({ summaryId: summaryId, status: status });
   };
 
   return (
     <div className="p-6 h-screen overflow-y-auto">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 auto-rows-auto md:min-h-screen">
+      <div className="md:min-h-screen grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
 
         <div className="card bg-base-200 shadow-md h-full w-full">
           <div className="card-body">
 
             <SidebarOption
-              label='New Emergency Journals'
-              value='new'
+              label='New patient Journals'
+              value='newSummaries'
               activeView={viewType}
               selectedOption={(value) => setViewType(value)}
             />
 
             <SidebarOption
-              label='Recently Viewed Emergency Journals'
-              value='recentlyViewed'
+              label='Summaries Under Review'
+              value='underReviewSummaries'
               activeView={viewType}
               selectedOption={(value) => setViewType(value)}
             />
 
             <SidebarOption
-              label='Past Emergency Journals'
-              value='history'
+              label='Resolved Summaries'
+              value='resolvedSummaries'
               activeView={viewType}
               selectedOption={(value) => setViewType(value)}
             />
@@ -82,32 +88,30 @@ export default function EmergencySummaryPage() {
           </div>
         </div>
 
-        {viewType === 'new' && (
+        {viewType === 'newSummaries' && (
           <SummariesContainer
             summaries={newSummaries}
-            activeView="new"
-            onMarkViewed={handleMarkViewedProp}
+            activeView="newSummaries"
+            onChangeStatus={handlechangeStatusProp}
           />
         )}
 
-        {viewType === 'recentlyViewed' && (
+        {viewType === 'underReviewSummaries' && (
           <SummariesContainer
-            summaries={recentlyViewedSummaries}
-            activeView="recentlyViewed"
-            onMarkViewed={handleMarkViewedProp}
+            summaries={underReviewSummaries}
+            activeView="underReviewSummaries"
+            onChangeStatus={handlechangeStatusProp}
           />
         )}
 
-        {viewType === 'history' && (
+        {viewType === 'resolvedSummaries' && (
           <SummariesContainer
-            summaries={summariesHistory}
-            activeView="history"
-            onMarkViewed={handleMarkViewedProp}
+            summaries={resolvedSummaries}
+            activeView="resolvedSummaries"
+            onChangeStatus={handlechangeStatusProp}
           />
         )}
-
       </div>
     </div >
   );
 }
-
