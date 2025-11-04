@@ -37,11 +37,6 @@ const BotSummarySchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "User"
     },
-    status: {
-        type: String,
-        enum: ["New", "Under Review", "Resolved"],
-        index: true
-    },
     revision: { type: Number, default: 0 }, // keep track of how many updates the patient did...
 }, { timestamps: true });
 

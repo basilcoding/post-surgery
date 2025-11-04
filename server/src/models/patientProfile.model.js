@@ -66,6 +66,7 @@ const patientProfileSchema = new mongoose.Schema({
     patientId: {
         type: String,
     },
+    
     chronicConditions: [conditionSchema],
     pastSurgeries: [surgerySchema],
     allergies: [allergySchema],

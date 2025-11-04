@@ -57,7 +57,7 @@ export default function PatientHomePage() {
     return (
         <div className="min-h-screen p-6 overflow-y-auto">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 auto-rows-[300px] gap-6">
-                <div className="card bg-base-200 shadow-xl h-full overflow-hidden">
+                <div className="card bg-accent/20 shadow-xl bg- overflow-hidden">
                     <div className="card-body">
                         <h1 className="card-title text-2xl">Chat Room</h1>
                         <p className="text-sm text-gray-600 ">
@@ -96,20 +96,9 @@ export default function PatientHomePage() {
                     </div>
                 </div>
                 {/* Journal Summaries Link */}
-                <Link to="/patient/journal" className="hover:opacity-70 transition-all">
-                    <div className="card bg-base-200 shadow-md h-full">
-                        <div className="card-body">
-                            <h2 className="card-title">Take Your Daily Survery</h2>
-                        </div>
-                    </div>
-                </Link>
-                <Link to="/patient/symptom-concern" className="hover:opacity-70 transition-all">
-                    <div className="card bg-base-200 shadow-md h-full">
-                        <div className="card-body">
-                            <h2 className="card-title">Worried About A Symptom?</h2>
-                        </div>
-                    </div>
-                </Link>
+                
+                
+                
             </div>
         </div>
     );
