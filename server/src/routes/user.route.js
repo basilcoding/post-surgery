@@ -11,7 +11,7 @@ router.get("/", protectRoute, requireRole(["admin"]), getAllUsers);
 
 router.post('/', upload.single("profilePic"), protectRoute, requireRole(['admin']), registerUser);
 
-router.get("/:id", protectRoute, requireSelfAndRole(["patient", "doctor"]), getUserById);
+// router.get("/:id", protectRoute, requireSelfAndRole(["patient", "doctor"]), getUserById);
 
 // Patient -> fetch their own profile
 // router.get("/patients/:id", protectRoute, requireSelfAndRole(["patient"]), getPatientProfile);

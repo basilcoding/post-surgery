@@ -35,7 +35,7 @@ export const useUserStore = create((set, get) => ({
     getUserProfile: async () => {
         const { authUser } = useAuthStore.getState();
         try {
-            const res = await axiosInstance.get(`/users/${authUser._id}`);
+            const res = await axiosInstance.get(`/profiles/me`);
             // console.log('active status is: ', res.data.activeRoom);
 
             set({ userProfile: res.data.userProfile })
