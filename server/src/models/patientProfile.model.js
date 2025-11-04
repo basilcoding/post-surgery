@@ -66,10 +66,6 @@ const patientProfileSchema = new mongoose.Schema({
     patientId: {
         type: String,
     },
-    primaryRequiredSpecialty: {
-        type: String,
-        enum: ["cardiology", "psychiatry", "general", "other"]
-    },
     chronicConditions: [conditionSchema],
     pastSurgeries: [surgerySchema],
     allergies: [allergySchema],

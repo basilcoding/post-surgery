@@ -81,10 +81,10 @@ export const chatbot = async function (userId, message, isEnd, relationship, cha
         let fullSystemPrompt;
         if (chats.chatbotType === 'journal') {
             fullSystemPrompt = journalChatbotPrompt + patientMedicalHistory + surgeryChecklist;
-            console.log('Chatbot prompt is: ', fullSystemPrompt); 
+            // console.log('Chatbot prompt is: ', fullSystemPrompt);
         } else if (chats.chatbotType === 'emergency') {
             fullSystemPrompt = emergencyChatbotPrompt + patientMedicalHistory + surgeryChecklist;
-            console.log('Chatbot prompt is: ', fullSystemPrompt);
+            // console.log('Chatbot prompt is: ', fullSystemPrompt);
         }
 
         let chatbotResponse;
@@ -163,7 +163,7 @@ export const chatbot = async function (userId, message, isEnd, relationship, cha
         // Handle summaries if conversation ends
         if (chats.isEndBot) { // This isEnd needs to be true, then only the chats.isEnd will be checked. eg: even if isEnd is true, chats.End condition will not allow the user to make any more responses. (chats.isEnd is specified inside the else if condition )
             let summary = null;
-            if (chats.chatbotType === 'emergency') {
+            if (!chats.isEnd && chats.chatbotType === 'emergency') {
                 console.log("Conversation has ended, so creating emergency summary");
                 let emergencySummarybot;
                 for (let attempt = 1; attempt <= maxRetries; attempt++) {
@@ -194,10 +194,11 @@ export const chatbot = async function (userId, message, isEnd, relationship, cha
 
                 chats.isEnd = true;
                 chats.isEndBot = false;
+                console.log("chats.isEnd is: ", chats.isEnd);
                 summary = JSON.parse(emergencySummarybot.text);
-                emitSummary(userId, chats, summary, relationship);
+                emitSummary(userId, summary, relationship);
                 console.log("successfully created emergency summary:", JSON.parse(emergencySummarybot.text));
-            } else if (!chats.isEnd && chats.isEndBot) {
+            } else if (!chats.isEnd && chats.chatbotType === 'journal') {
                 // Run this code if conversation has NOT ended. Then flag it has ended. So since we flag it as ended, next time this code wont run because conversation HAS ended.
                 console.log("jounaling conversation has ended, so creating normal summary");
                 let journalSummarybot;
@@ -227,12 +228,13 @@ export const chatbot = async function (userId, message, isEnd, relationship, cha
                         await delay(retryDelayMs);
                     }
                 }
-
-                summary = JSON.parse(journalSummarybot.text);
-                emitSummary(userId, chats, summary, relationship);
-                console.log("journal summary created successfully ", JSON.parse(journalSummarybot.text));
                 chats.isEnd = true; // This will prevent any further user responses because even if isEnd = true, !chats.isEnd = false "always... after making the furst summary"
                 chats.isEndBot = false;
+                console.log("chats.isEnd is: ", chats.isEnd);
+                summary = JSON.parse(journalSummarybot.text);
+                emitSummary(userId, summary, relationship);
+                console.log("journal summary created successfully ", JSON.parse(journalSummarybot.text));
+
             }
         }
 

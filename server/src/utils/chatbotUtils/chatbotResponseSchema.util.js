@@ -56,6 +56,11 @@ export const journalSummarybotSchema = {
             type: Type.ARRAY,
             items: { type: Type.STRING } // each note is a detailed clinical summary line
         },
+        summaryType: {
+            type: Type.STRING,
+            enum: ["journal", "emergency"],
+            description: "Indicates whether the whole summary is an emergency or not"
+        },
         content: {
             type: Type.ARRAY,
             items: {
@@ -63,8 +68,8 @@ export const journalSummarybotSchema = {
             }
         }
     },
-    required: ["followUpQuestions", "content"],
-    propertyOrdering: ["followUpQuestions", "content"]
+    required: ["followUpQuestions", "summaryType", "content"],
+    propertyOrdering: ["followUpQuestions", "summaryType", "content"]
 };
 
 export const emergencySummarybotSchema = {
@@ -74,6 +79,11 @@ export const emergencySummarybotSchema = {
             type: Type.ARRAY,
             items: { type: Type.STRING } // each note is a detailed clinical summary line
         },
+        summaryType: {
+            type: Type.STRING,
+            enum: ["journal", "emergency"],
+            description: "Indicates whether the whole summary is an emergency or not"
+        },
         content: {
             type: Type.ARRAY,
             items: {
@@ -81,8 +91,8 @@ export const emergencySummarybotSchema = {
             }
         }
     },
-    required: ["followUpQuestions", "content"],
-    propertyOrdering: ["followUpQuestions", "content"]
+    required: ["followUpQuestions", "summaryType", "content"],
+    propertyOrdering: ["followUpQuestions", "summaryType", "content"]
 };
 
 
