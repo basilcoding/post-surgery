@@ -9,7 +9,7 @@ import { useSummaryStore } from "../../store/useSummaryStore";
  * - Uses newSummaries / underReviewSummaries / resolvedSummaries from store
  * - Calls fetchSummaries('journal') on mount & refresh
  */
-export default function PatientJournalPage() {
+export default function PatientJournalViewPage() {
   const navigate = useNavigate();
 
   const {
@@ -82,7 +82,10 @@ export default function PatientJournalPage() {
         <div className="card-body gap-3">
           <div className="flex items-center justify-between">
             <h3 className="card-title text-base">Journal entry</h3>
-            <StatusBadge status={s?.status} />
+            <div className='flex gap-2'>
+              <StatusBadge status={s?.status} />
+              {s?.type === 'emergency' && <StatusBadge status={'Concerning'} />}
+            </div>
           </div>
 
           <div className="text-sm text-base-content/70">

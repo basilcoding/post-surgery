@@ -51,21 +51,39 @@ export const useChatbotStore = create((set, get) => ({
                 },
             )
             const msgs = Array.isArray(res?.data?.messages) ? res.data.messages : [];
-            set({
-                messages: [
-                    {
-                        role: "bot",
-                        message: "Ready to start your questionare? Please give the responses in detail so I can give the best description about your well being to the doctor.",
-                        suggestedReplies: [
-                            "Yes, I'm ready. I'll try to describe everything as clearly as I can.",
-                            "Sure, let's begin. I've been feeling a few changes lately that I'd like to share.",
-                            "I'm ready to start. I'll do my best to explain how I've been feeling today.",
-                            "I'm in great pain."
-                        ]
+            if (chatbotType === 'journal') {
+                set({
+                    messages: [
+                        {
+                            role: "bot",
+                            message: "Ready to start your questionare? Please give the responses in detail so I can give the best description about your well being to the doctor.",
+                            suggestedReplies: [
+                                "Yes, I'm ready. I'll try to describe everything as clearly as I can.",
+                                "Sure, let's begin.",
+                                "I don't feel very good.",
+                                "I'm in great pain.",
+                            ]
 
 
-                    }, ...msgs],
-            });
+                        }, ...msgs],
+                });
+            } else {
+                set({
+                    messages: [
+                        {
+                            role: "bot",
+                            message: "Hello! Please tell me what's wrong",
+                            suggestedReplies: [
+                                "I have symptom I would like some insight about from the doctor.",
+                                "I've been feeling a few changes lately that I'd like to share.",
+                                "I dont feel very good.",
+                                "I'm in great pain."
+                            ]
+
+
+                        }, ...msgs],
+                });
+            }
         } catch {
             set((prev) => ({
                 messages: [...(prev.messages || []), { role: 'bot', message: 'Oops! Something went wrong.' }],

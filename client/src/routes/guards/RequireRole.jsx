@@ -4,7 +4,13 @@ import { useAuthStore } from "../../store/useAuthStore";
 
 export default function RequireRole({ allowedRoles = [], children }) {
     const { authUser } = useAuthStore();
-    if (!authUser) return <Navigate to='/login' replace />
+    const role = authUser?.role;
+
+    if (!authUser) {
+        if (authUser.role === 'patient') return <Navigate to='/patient-login' replace />
+        if (authUser.role === 'doctor') return <Navigate to='/doctor-login' replace />
+        if (authUser.role === 'admin') return <Navigate to='/admin-login' replace />
+    }
 
     if (allowedRoles.includes(authUser.role)) return children;
 
