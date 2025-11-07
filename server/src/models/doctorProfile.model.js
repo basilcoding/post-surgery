@@ -6,6 +6,9 @@ const doctorProfileSchema = new mongoose.Schema({
         ref: "User",
         required: true
     },
+    doctorId: {
+        type: String,
+    },
     specialty: {
         type: String,
         enum: ["cardiology", "psychiatry", "general", "other"]

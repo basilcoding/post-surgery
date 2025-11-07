@@ -65,7 +65,7 @@ export function initSocket(server) {
         };
 
         socket.on("createRoom", async ({ inviteeEmail }) => {
-            console.log('createRoom event received with email:', inviteeEmail);
+            // console.log('createRoom event received with email:', inviteeEmail);
             const creator = await User.findById(userId); //working
             const invitee = await User.findOne({ email: inviteeEmail }); //working
             if (!creator || !invitee) return;
@@ -75,7 +75,7 @@ export function initSocket(server) {
             const { doctor, patient } = await Promise.all([
                 DoctorProfile.findOneAndUpdate({ user: creator._id }, { currentRoomId: roomId }),
                 PatientProfile.findOneAndUpdate({ user: invitee._id }, { currentRoomId: roomId })
-            ])
+            ]);
 
             io.to(invitee._id.toString()).socketsJoin(roomId); // Add *all sockets* in the invitee's personal room to the chat room
             io.to(creator._id.toString()).socketsJoin(roomId); // Add *all sockets* in the creator's personal room to the chat room
@@ -84,7 +84,7 @@ export function initSocket(server) {
             io.to(creator._id.toString()).emit("roomNotify", { roomId, otherUser: invitee });
             io.to(invitee._id.toString()).emit("roomNotify", { roomId, otherUser: creator });
 
-            sendMail('basilshahul234@gmail.com', 'ChatRoom Created', `This is to notify you that a chatroom has been created by your Doctor ${creator.fullName}. Please Join the Chatroom promptly to converse with the doctor.`)
+            sendMail(inviteeEmail, 'ChatRoom Created', `This is to notify you that a chatroom has been created by your Doctor ${creator.fullName}. Please Join the Chatroom promptly to converse with the doctor.`)
         })
 
         // socket.on('getOnlineUsers', ({ roomId }) => {
@@ -102,7 +102,7 @@ export function initSocket(server) {
 
         // End conversation (kick everyone out)
         socket.on("endRoom", async ({ roomId, creator, invitee }) => {
-            console.log(`(endRoom Event) Socket ${socket.id} ended room ${roomId}`);
+            // console.log(`(endRoom Event) Socket ${socket.id} ended room ${roomId}`);
             // io.to(roomId).emit("roomEnded", { roomId });
             io.to(creator._id.toString()).emit("roomEnded", { roomId });
             io.to(invitee._id.toString()).emit("roomEnded", { roomId });
@@ -134,9 +134,10 @@ export function initSocket(server) {
                 } else {
                     profile = await PatientProfile.findOne({ user: socket.userId }).select("currentRoomId");
                 }
+                // check condition
                 if (profile && profile.currentRoomId === roomId) {
                     socket.join(roomId);
-                    console.log(`Socket ${socket.id} successfully joined authorized room ${roomId}`);
+                    // console.log(`Socket ${socket.id} successfully joined authorized room ${roomId}`);
                 } else {
                     // This is a security/consistency check. The user is trying to join a room
                     // that the server does not believe they belong to.
