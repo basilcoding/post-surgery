@@ -10,6 +10,10 @@ import HomePage from './pages/HomePage.jsx';
 import LoginPage from './pages/LoginPage'
 import ChatRoom from "./pages/ChatRoom.jsx";
 import SignUpPage from './pages/SignUpPage.jsx';
+import PatientLoginPage from "./pages/PatientPages/PatientLoginPage.jsx";
+import NotFoundPage from "./pages/NotFoundPage.jsx";
+
+import LoginRoutes from "./routes/LoginRoutes.jsx";
 
 export default function AppRoutes() {
 
@@ -21,26 +25,11 @@ export default function AppRoutes() {
       <Route path="/" element={<HomePage />} />
       <Route path="/signup" element={<SignUpPage />} />
 
-      {/* Login */}
-      <Route
-        path="/login"
-        element={
-          authUser ? (
-            authUser.role === "doctor" ? (
-              <Navigate to="/doctor" />
-            ) : authUser.role === "patient" ? (
-              <Navigate to="/patient" />
-            ) : (
-              <Navigate to="/admin" />
-            )
-          ) : (
-            <LoginPage />
-          )
-        }
-      />
-
       {/* Chatroom Route - requires login */}
       <Route path='/room/:roomId' element={authUser ? <ChatRoom /> : <Navigate to='/login' />} />
+
+      {/* role based login routes */}
+      {LoginRoutes()}
 
       {/* role-based routes */}
       {AdminRoutes()}
@@ -48,7 +37,7 @@ export default function AppRoutes() {
       {PatientRoutes()}
 
       {/* fallback */}
-      {/* <Route path="*" element={<NotFound />} /> */}
+      <Route path="*" element={<NotFoundPage />} />
     </Routes>
   );
 }

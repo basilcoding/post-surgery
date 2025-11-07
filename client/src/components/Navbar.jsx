@@ -11,7 +11,7 @@ const Navbar = ({ }) => {
         <>
             <header
                 className="border-b border-base-300 w-full
-            bg-primary">
+            bg-primary fixed overflow-hidden z-70">
                 <div className="container px-4 h-15">
                     <div className="flex items-center justify-between h-full">
                         {/* leftside */}
@@ -20,7 +20,7 @@ const Navbar = ({ }) => {
                                 <div className=''>
                                     <div className="">
                                         <div>
-                                            <label htmlFor="my-drawer-1" className="py-3 px-4 mr-2 drawer-button rounded-4xl bg-primary/70 text-base-300 border-none hover:bg-black/10 cursor-pointer">☰</label>
+                                            <label htmlFor="my-drawer-1" className="py-3 px-4 mr-2 drawer-button rounded-4xl bg-primary/70 text-base-300 border-none hover:bg-black/10 cursor-pointer block lg:hidden">☰</label>
                                         </div>
                                         <input id="my-drawer-1" type="checkbox" className="drawer-toggle" />
                                         <div className="drawer-side">

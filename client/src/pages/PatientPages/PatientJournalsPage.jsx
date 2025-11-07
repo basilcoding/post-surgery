@@ -134,7 +134,7 @@ export default function PatientJournalPage() {
   );
 
   return (
-    <div className="h-screen mx-auto max-w-6xl p-4 md:p-6 lg:p-8 overflow-y-auto">
+    <div className="min-h-screen pt-[80px] p-5 mx-auto max-w-6xl ">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
         <div>

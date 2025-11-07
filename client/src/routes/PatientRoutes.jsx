@@ -26,7 +26,7 @@ export default function PatientRoutes() {
             <Route path="dashboard" element={<PatientHomePage />} />
             <Route path="journal" element={<JournalbotPage />} />
             <Route path="symptom-concern" element={<SymptomConcernbotPage />} />
-            <Route path="patient-journals" element={<PatientJournalsPage />} />
+            <Route path="view-journals" element={<PatientJournalsPage />} />
         </Route>
     )
 }

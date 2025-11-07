@@ -20,14 +20,14 @@ const HomePage = () => {
 
                 <button
                     className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-                    onClick={() => navigate("/login")}
+                    onClick={() => navigate("/doctor-login")}
                 >
                     Doctor Login
                 </button>
 
                 <button
                     className="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-                    onClick={() => navigate("/login")}
+                    onClick={() => navigate("/patient-login")}
                 >
                     Patient Login
                 </button>

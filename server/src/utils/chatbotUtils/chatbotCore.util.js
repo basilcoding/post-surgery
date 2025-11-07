@@ -81,11 +81,11 @@ export const chatbot = async function (userId, message, isEnd, relationship, cha
 
         // MAKE LOCAL VARIABLE, IMPORTANT: Dont do chatbotPrompt += patientMedicalHistory !!! Users data will get mixed up!! It will keep growing indefinitely by appending to the same variable during every request!! Never modify an imported variable!!
         let fullSystemPrompt;
-        if (chats.chatbotType === 'journal') {
+        if (chatbotType === 'journal') {
             fullSystemPrompt = journalChatbotPrompt + patientMedicalHistory + surgeryChecklist;
             // console.log('Chatbot prompt is: ', fullSystemPrompt);
-        } else if (chats.chatbotType === 'emergency') {
-            fullSystemPrompt = emergencyChatbotPrompt + patientMedicalHistory + surgeryChecklist;
+        } else if (chatbotType === 'emergency') {
+            fullSystemPrompt = emergencyChatbotPrompt + patientMedicalHistory;
             // console.log('Chatbot prompt is: ', fullSystemPrompt);
         } else {
             fullSystemPrompt = generalChatbotPrompt + patientMedicalHistory + surgeryChecklist;

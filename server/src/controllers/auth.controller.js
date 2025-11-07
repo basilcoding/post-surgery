@@ -124,25 +124,57 @@ import jwt from 'jsonwebtoken';
 
 
 export const login = async (req, res) => {
-    const { email, password } = req.body;
+    const { email, doctorId, patientId, password } = req.body;
     try {
-        const user = await User.findOne({ email });
-        let profile;
-        if (!user) return res.status(400).json({ message: "Invalid Credentials!" });
+        let profile; let user;
+        if (patientId) {
+            profile = await PatientProfile.findOne({ patientId }).populate('user');
+            if (!profile || !profile.user) {
+                return res.status(401).json({ message: "Invalid Credentials!" });
+            }
+        } else if (doctorId) {
+            profile = await DoctorProfile.findOne({ doctorId }).populate('user');
+            if (!profile || !profile.user) {
+                return res.status(401).json({ message: "Invalid Credentials!" });
+            }
+        } else {
+            user = await User.findOne({ email });
+            if (!user) {
+                return res.status(401).json({ message: "Invalid Credentials!" });
+            }
+        }
 
-        const isPasswordCorrect = await bcrypt.compare(password, user.password);
-        if (!isPasswordCorrect) return res.status(400).json({ message: "Invalid Credentials!" });
 
-        generateToken(user._id, user.role, user.email, res);
+        if (profile) {
+            const isPasswordCorrect = await bcrypt.compare(password, profile.user.password);
+            if (!isPasswordCorrect) return res.status(400).json({ message: "Invalid Credentials!" });
 
-        res.status(200).json({
-            _id: user._id,
-            fullName: user.fullName,
-            email: user.email,
-            role: user.role,
-            profilePic: user.image?.[0]?.profilePic || "",
+            generateToken(profile.user._id, profile.user.role, profile.user.email, res);
 
-        });
+            res.status(200).json({
+                _id: profile.user._id,
+                fullName: profile.user.fullName,
+                email: profile.user.email,
+                role: profile.user.role,
+                profilePic: profile.user.image?.[0]?.profilePic || "",
+
+            });
+        } else {
+            const isPasswordCorrect = await bcrypt.compare(password, user.password);
+            if (!isPasswordCorrect) return res.status(400).json({ message: "Invalid Credentials!" });
+
+            generateToken(user._id, user.role, user.email, res);
+
+            res.status(200).json({
+                _id: user._id,
+                fullName: user.fullName,
+                email: user.email,
+                role: user.role,
+                profilePic: user.image?.[0]?.profilePic || "",
+
+            });
+        }
+
     } catch (error) {
         console.log("Error in login:", error.message);
         res.status(500).json({ message: "Internal Server Error" });
@@ -223,21 +255,31 @@ export const checkRoomStatus = async (req, res) => {
         }
 
         // If they have a room, find the other participant to send their info back
-        const otherUser = await User.findOne({
-            currentRoomId: roomId,
-            _id: { $ne: userId } // Find the user in the same room who is NOT me
-        }).select("-password");
+        let otherUser;
+        if (req.user.role === 'doctor') {
+            otherUser = await PatientProfile.findOne({
+                currentRoomId: roomId,
+                user: { $ne: userId } // Find the user in the same room who is NOT me
+            }).populate('user').select("-user.password");
+        } else {
+            otherUser = await DoctorProfile.findOne({
+                currentRoomId: roomId,
+                user: { $ne: userId } // Find the user in the same room who is NOT me
+            }).populate('user').select("-user.password");
+        }
+
+
 
         return res.status(200).json({
             activeRoom: true,
             roomId: roomId,
             userId: req.user?._id?.toString?.() || null,
             otherUser: {
-                _id: otherUser._id,
-                fullName: otherUser.fullName,
-                email: otherUser.email,
-                role: otherUser.role,
-                profilePic: otherUser.image?.[0]?.profilePic || "",
+                _id: otherUser.user._id,
+                fullName: otherUser.user.fullName,
+                email: otherUser.user.email,
+                role: otherUser.user.role,
+                profilePic: otherUser.user.image?.[0]?.profilePic || "",
             }
         });
 
@@ -305,7 +347,7 @@ export const clearRoomToken = async (req, res) => {
     try {
         const { roomId } = req.params;
         res.cookie("roomToken", "", { maxAge: 0 });
-        
+
         await Promise.all([
             DoctorProfile.updateMany(
                 { currentRoomId: roomId },

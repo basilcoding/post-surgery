@@ -41,7 +41,7 @@ export default function PatientHomePage() {
 
   return (
     // [CHANGE 1] Use h-screen and flex-col. Remove padding and overflow.
-    <div className="h-screen w-full bg-gradient-to-b from-white to-slate-50 flex flex-col">
+    <div className="h-screen pt-[65px] w-full bg-gradient-to-b from-white to-slate-50 flex flex-col">
       {/* [CHANGE 2] Add flex-1 (to grow) and p-6 (moved from parent). Add w-full/mx-auto for centering. */}
       <div className="max-w-7xl w-full mx-auto flex-1 overflow-y-auto p-6">
         {/* Header */}
