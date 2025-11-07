@@ -10,7 +10,7 @@ import { ioInstance } from "../../lib/socket.js";
 
 import {
     journalChatbotPrompt,
-    emergencyChatbotPrompt,
+    symptomCheckChatbotPrompt,
     emergencySummarybotPrompt,
     journalSummarybotPrompt,
     generalChatbotPrompt,
@@ -62,7 +62,7 @@ export const chatbot = async function (userId, message, isEnd, relationship, cha
         }
 
         // console.log("checking if its an emergency");
-        const recentHistory = getRecentHistory(chats.history, 50);
+        const recentHistory = getRecentHistory(chats.history, 100);
         // Create a new array containing ONLY the fields the AI needs.
         // This strips off 'suggestedReplies', 'timestamp', and any Mongoose IDs.
         const cleanedHistory = recentHistory.map(msg => ({
@@ -84,8 +84,8 @@ export const chatbot = async function (userId, message, isEnd, relationship, cha
         if (chatbotType === 'journal') {
             fullSystemPrompt = journalChatbotPrompt + patientMedicalHistory + surgeryChecklist;
             // console.log('Chatbot prompt is: ', fullSystemPrompt);
-        } else if (chatbotType === 'emergency') {
-            fullSystemPrompt = emergencyChatbotPrompt + patientMedicalHistory;
+        } else if (chatbotType === 'SymptomCheck') {
+            fullSystemPrompt = ChatbotPrompt + patientMedicalHistory;
             // console.log('Chatbot prompt is: ', fullSystemPrompt);
         } else {
             fullSystemPrompt = generalChatbotPrompt + patientMedicalHistory + surgeryChecklist;
@@ -165,48 +165,11 @@ export const chatbot = async function (userId, message, isEnd, relationship, cha
         }
 
         // Handle summaries if conversation ends
-        if (chats.isEndBot && (chats.chatbotType === 'emergency' || 'journal')) { // This isEnd needs to be true, then only the chats.isEnd will be checked. eg: even if isEnd is true, chats.End condition will not allow the user to make any more responses. (chats.isEnd is specified inside the else if condition )
+        if (chats.isEndBot && (chats.chatbotType !== 'general')) { // This isEnd needs to be true, then only the chats.isEnd will be checked. eg: even if isEnd is true, chats.End condition will not allow the user to make any more responses. (chats.isEnd is specified inside the else if condition )
             let summary = null;
-            if (!chats.isEnd && chats.chatbotType === 'emergency') {
-                console.log("Conversation has ended, so creating emergency summary");
-                let emergencySummarybot;
-                for (let attempt = 1; attempt <= maxRetries; attempt++) {
-                    try {
-                        console.log(`Chatbot API attempt ${attempt}/${maxRetries}...`);
-                        emergencySummarybot = await ai.models.generateContent({
-                            model: "gemini-2.0-flash",
-                            contents: JSON.parse(JSON.stringify(chats.history)),
-                            config: {
-                                systemInstruction: emergencySummarybotPrompt,
-                                responseMimeType: "application/json",
-                                responseSchema: emergencySummarybotSchema
-                            }
-                        });
-                        // If successful, break the loop
-                        break;
-                    } catch (error) {
-                        console.error(`Chatbot API attempt ${attempt} failed:`, error.message);
-                        lastError = error;
-                        if (attempt === maxRetries) {
-                            console.error("All retry attempts failed for chatbot.");
-                            throw lastError; // Throw the last error to be caught by outer try...catch
-                        }
-                        // Wait for the delay before retrying
-                        await delay(retryDelayMs);
-                    }
-                }
-
-                chats.isEnd = true;
-                chats.isEndBot = false;
-                console.log("chats.isEnd is: ", chats.isEnd);
-                summary = JSON.parse(emergencySummarybot.text);
-                emitSummary(userId, summary, relationship);
-                console.log("successfully created emergency summary:", JSON.parse(emergencySummarybot.text));
-            } else if (!chats.isEnd && chats.chatbotType === 'journal') {
-                // Run this code if conversation has NOT ended. Then flag it has ended. So since we flag it as ended, next time this code wont run because conversation HAS ended.
-                console.log("jounaling conversation has ended, so creating normal summary");
+            if (!chats.isEnd && chats.chatbotType === 'journal') {
+                // console.log("Conversation has ended, so creating emergency summary");
                 let journalSummarybot;
-
                 for (let attempt = 1; attempt <= maxRetries; attempt++) {
                     try {
                         console.log(`Chatbot API attempt ${attempt}/${maxRetries}...`);
@@ -232,17 +195,54 @@ export const chatbot = async function (userId, message, isEnd, relationship, cha
                         await delay(retryDelayMs);
                     }
                 }
-                chats.isEnd = true; // This will prevent any further user responses because even if isEnd = true, !chats.isEnd = false "always... after making the furst summary"
+
+                // chats.isEnd = true;
                 chats.isEndBot = false;
-                console.log("chats.isEnd is: ", chats.isEnd);
+                // console.log("chats.isEnd is: ", chats.isEnd);
                 summary = JSON.parse(journalSummarybot.text);
                 emitSummary(userId, summary, relationship);
-                console.log("journal summary created successfully ", JSON.parse(journalSummarybot.text));
-
+                console.log("successfully created emergency summary:", JSON.parse(journalSummarybot.text));
             }
         }
+        // else if (!chats.isEnd && chats.chatbotType === 'journal') {
+        //     // Run this code if conversation has NOT ended. Then flag it has ended. So since we flag it as ended, next time this code wont run because conversation HAS ended.
+        //     console.log("jounaling conversation has ended, so creating normal summary");
+        //     let journalSummarybot;
 
-        // Save updated chat (this will now save the sticky isEmergency flag)
+        //     for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        //         try {
+        //             console.log(`Chatbot API attempt ${attempt}/${maxRetries}...`);
+        //             journalSummarybot = await ai.models.generateContent({
+        //                 model: "gemini-2.0-flash",
+        //                 contents: JSON.parse(JSON.stringify(chats.history)),
+        //                 config: {
+        //                     systemInstruction: journalSummarybotPrompt,
+        //                     responseMimeType: "application/json",
+        //                     responseSchema: journalSummarybotSchema
+        //                 }
+        //             });
+        //             // If successful, break the loop
+        //             break;
+        //         } catch (error) {
+        //             console.error(`Chatbot API attempt ${attempt} failed:`, error.message);
+        //             lastError = error;
+        //             if (attempt === maxRetries) {
+        //                 console.error("All retry attempts failed for chatbot.");
+        //                 throw lastError; // Throw the last error to be caught by outer try...catch
+        //             }
+        //             // Wait for the delay before retrying
+        //             await delay(retryDelayMs);
+        //         }
+        //     }
+        //     chats.isEnd = true; // This will prevent any further user responses because even if isEnd = true, !chats.isEnd = false "always... after making the furst summary"
+        //     chats.isEndBot = false;
+        //     console.log("chats.isEnd is: ", chats.isEnd);
+        //     summary = JSON.parse(journalSummarybot.text);
+        //     emitSummary(userId, summary, relationship);
+        //     console.log("journal summary created successfully ", JSON.parse(journalSummarybot.text));
+
+        // }
+
         await chats.save();
         console.log("chat history saved, now total length is: ", chats.history.length);
 

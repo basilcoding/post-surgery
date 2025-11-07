@@ -30,11 +30,13 @@ export const emitSummary = async function (userId, summaryObj, relationship) {
         console.log('[emitSummary] onlineUsers size:', onlineUsers.size);
 
         const now = new Date();
-        const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+        // const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+        // start of today (server-local) at 00:00:00
+        const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
 
         // check if there was a summary sixty minutes ago for the current activeDoctor
-        const oldSummary = await BotSummary.findOne({ patient: userId, assignedDoctor: relationship.doctor._id, createdAt: { $gte: oneDayAgo }, type: 'journal' })
-
+        const oldSummary = await BotSummary.findOne({ patient: userId, assignedDoctor: relationship.doctor._id, createdAt: { $gte: startOfToday } })
         console.log('[emitSummary] oldSummary found?', !!oldSummary);
 
         const specialtyNeeded = relationship.careType || "general";
@@ -44,95 +46,103 @@ export const emitSummary = async function (userId, summaryObj, relationship) {
 
             let targetDoctor = null;
 
-            if (relationship?.doctor) {
-                // normalize doctor id string (oldSummary may have doctor id or populated doctor depending on query)
-                const deliveredToList =
-                    (oldSummary.deliveredTo || [])
-                        .map(d => d);
+            // if (relationship?.doctor) {
+            // normalize doctor id string (oldSummary may have doctor id or populated doctor depending on query)
+            const deliveredToList =
+                (oldSummary.deliveredTo || [])
+                    .map(d => d);
 
-                console.log('[emitSummary] existing deliveredTo length:', deliveredToList.length);
+            console.log('[emitSummary] existing deliveredTo length:', deliveredToList.length);
 
-                oldSummary.content.push(...summaryObj.content);
-                oldSummary.questionsAsked.push(...summaryObj.followUpQuestions);
-                oldSummary.status = 'New';
+            oldSummary.content.push(...summaryObj.content);
+            oldSummary.questionsAsked.push(...summaryObj.followUpQuestions);
+            oldSummary.status = 'New';
+            oldSummary.type = summaryObj.summaryType;
 
-                let deliveredToAtLeastOne = false;
-                for (const deliveredToDoc of deliveredToList) {
-                    const docId = deliveredToDoc.doctor?.toString?.();
-                    console.log('[emitSummary] checking deliveredTo doctor:', docId);
+            let deliveredToAtLeastOne = false;
+            for (const deliveredToDoc of deliveredToList) {
+                const docId = deliveredToDoc.doctor?.toString?.();
+                console.log('[emitSummary] checking deliveredTo doctor:', docId);
 
-                    if (docId && onlineUsers.has(docId)) {
-                        console.log('[emitSummary] doctor online:', docId);
-                        deliveredToDoc.delivered = true;
-                        deliveredToDoc.deliveredAt = new Date();
+                if (docId && onlineUsers.has(docId)) {
+                    console.log('[emitSummary] doctor online:', docId);
+                    deliveredToDoc.delivered = true;
+                    deliveredToDoc.deliveredAt = new Date();
 
-                        deliveredToAtLeastOne = true; // mark that at least one doctor got the message while they were online
-                    } else {
-                        console.log('[emitSummary] doctor not online or missing id:', docId);
-                    }
+                    deliveredToAtLeastOne = true; // mark that at least one doctor got the message while they were online
+                } else {
+                    console.log('[emitSummary] doctor not online or missing id:', docId);
                 }
-
-                await oldSummary.save()
-                console.log('[emitSummary] oldSummary saved after update');
-
-                await oldSummary.populate(["patient", "deliveredTo.doctor"]);
-                console.log('[emitSummary] oldSummary populated patient and deliveredTo.doctor');
-
-                for (const deliveredToDoc of deliveredToList) {
-                    const docId = deliveredToDoc.doctor?._id?.toString ? deliveredToDoc.doctor._id.toString() : deliveredToDoc.doctor?.toString?.();
-                    if (docId && onlineUsers.has(docId)) {
-                        console.log('[emitSummary] emitting emergencySummaryUpdated to doctor socket:', docId);
-                        io.to(docId).emit("emergencySummaryUpdated", { summary: oldSummary });
-                    }
-                }
-
-                if (!deliveredToAtLeastOne) {
-
-                    console.log('[emitSummary] no deliveredTo doctor was online; searching for any online doctor with specialty', specialtyNeeded);
-
-                    const doctorProfile = await DoctorProfile.findOne({
-                        specialty: specialtyNeeded,
-                        user: { $in: [...onlineUsers] }, // change the set to an array and then check if one of the online doctors is available
-                    }).populate("user");
-
-                    console.log('[emitSummary] doctorProfile found?', !!doctorProfile);
-
-                    if (doctorProfile) {
-                        targetDoctor = doctorProfile.user;
-
-                        // Create the new delivery status object
-                        const newDeliveryStatus = {
-                            doctor: targetDoctor._id, // Use the ID of the doctor you found
-                            delivered: true,
-                            deliveredAt: new Date(),
-                        };
-
-                        oldSummary.deliveredTo.push(newDeliveryStatus);
-
-                        await oldSummary.save();
-                        console.log('[emitSummary] oldSummary saved with newDeliveryStatus');
-
-                        await oldSummary.populate(["patient", "deliveredTo.doctor"]); // populate both before emit
-
-                        console.log('[emitSummary] emitting emergencySummaryCreated to routed doctor:', targetDoctor._id.toString());
-                        io.to(targetDoctor._id.toString()).emit("emergencySummaryCreated", { summary: oldSummary });
-
-                        console.log(`Emergency routed to available ${specialtyNeeded} doctor: ${targetDoctor.fullName}`);
-                    } else {
-                        console.log('[emitSummary] No online doctors are there for specialty:', specialtyNeeded);
-                        // notify the patient directly
-                        io.to(userId.toString()).emit("noDoctorAvailable", {
-                            message: "No online doctors available! Please call 108 or go to the nearest hospital."
-                        });
-                    }
-                }
-            } else {
-                console.log('[emitSummary] relationship.doctor missing while oldSummary exists');
             }
+
+            await oldSummary.save()
+            console.log('[emitSummary] oldSummary saved after update');
+
+            await oldSummary.populate(["patient", "deliveredTo.doctor"]);
+            console.log('[emitSummary] oldSummary populated patient and deliveredTo.doctor');
+
+            for (const deliveredToDoc of deliveredToList) {
+                const docId = deliveredToDoc.doctor?._id?.toString ? deliveredToDoc.doctor._id.toString() : deliveredToDoc.doctor?.toString?.();
+                if (docId && onlineUsers.has(docId)) {
+                    console.log('[emitSummary] emitting emergencySummaryUpdated to doctor socket:', docId);
+                    io.to(docId).emit("emergencySummaryUpdated", { summary: oldSummary });
+                }
+            }
+
+            if (!deliveredToAtLeastOne) {
+
+                console.log('[emitSummary] no deliveredTo doctor was online; searching for any online doctor with specialty', specialtyNeeded);
+
+                const doctorProfile = await DoctorProfile.findOne({
+                    specialty: specialtyNeeded,
+                    user: { $in: [...onlineUsers] }, // change the set to an array and then check if one of the online doctors is available
+                }).populate("user");
+
+                console.log('[emitSummary] doctorProfile found?', !!doctorProfile);
+
+                if (doctorProfile) {
+                    targetDoctor = doctorProfile.user;
+
+                    // Create the new delivery status object
+                    const newDeliveryStatus = {
+                        doctor: targetDoctor._id, // Use the ID of the doctor you found
+                        delivered: true,
+                        deliveredAt: new Date(),
+                    };
+
+                    oldSummary.deliveredTo.push(newDeliveryStatus);
+
+                    await oldSummary.save();
+                    console.log('[emitSummary] oldSummary saved with newDeliveryStatus');
+
+                    await oldSummary.populate(["patient", "deliveredTo.doctor"]); // populate both before emit
+
+                    console.log('[emitSummary] emitting emergencySummaryCreated to routed doctor:', targetDoctor._id.toString());
+                    io.to(targetDoctor._id.toString()).emit("emergencySummaryCreated", { summary: oldSummary });
+
+                    console.log(`Emergency routed to available ${specialtyNeeded} doctor: ${targetDoctor.fullName}`);
+                } else {
+                    console.log('[emitSummary] No online doctors are there for specialty:', specialtyNeeded);
+                    // notify the patient directly
+
+                    // await oldSummary.save();
+
+                    console.log('[emitSummary] oldSummary saved with newDeliveryStatus');
+                    io.to(userId.toString()).emit("noDoctorAvailable", {
+                        message: "No online doctors available! Please call 108 or go to the nearest hospital."
+                    });
+                }
+            }
+            // } 
+            // else if (!relationship?.doctor) {
+            // console.log('[emitSummary] relationship.doctor missing while oldSummary exists');
+            // }
         } else {
             // const patientUser = await User.findById(userId);
             let summary = null;
 
+            // IF AN OLD SUMMARY DOES NOT EXIST FOR THE CURRENT DAY, CREATE A NEW ONE.
+            // CHECK THE SUMMARYTYPE WHICH THE BOT HAS DETERMINED FOR THE SUMMARY AND CREATE THE SUMMARY ACCORDINGLY!
             if (summaryObj.summaryType === 'emergency') {
                 console.log('[emitSummary] creating new emergency summary');
                 // const relationship = await Relationship.findOne({ patient: userId }).populate("doctor");
@@ -205,8 +215,24 @@ export const emitSummary = async function (userId, summaryObj, relationship) {
                             io.to(targetDoctor._id.toString()).emit("emergencySummaryCreated", { summary });
                             console.log(`Emergency routed to available ${specialtyNeeded} doctor: ${targetDoctor.fullName}`);
                         } else {
-                            console.log('[emitSummary] No online doctors are there. notifying patient');
+                            console.log('[emitSummary] No online doctors are there. saving the document to the db and notifying patient');
                             // notify the patient directly
+                            summary = await BotSummary({
+                                patient: userId,
+                                type: "emergency",
+                                content: summaryObj.content,
+                                questionsAsked: summaryObj.followUpQuestions,
+                                assignedDoctor: relationship.doctor._id,
+                                status: 'New',
+                                deliveredTo: [
+                                    {
+                                        doctor: relationship.doctor._id,
+                                        delivered: false,
+                                        deliveredAt: new Date(),
+                                    }
+                                ],
+                            });
+                            summary.save();
                             io.to(userId.toString()).emit("noDoctorAvailable", {
                                 message: "No online doctors available! Please call 108 or go to the nearest hospital."
                             });
@@ -215,7 +241,7 @@ export const emitSummary = async function (userId, summaryObj, relationship) {
                 } else {
                     console.log('[emitSummary] relationship.doctor missing when creating emergency summary');
                 }
-            } else {
+            } else if (summaryObj.summaryType === 'journal') {
                 // Journal flow
                 console.log('[emitSummary] creating journal summary');
                 // const relationships = await Relationship.find({ patient: userId }).populate("doctor");

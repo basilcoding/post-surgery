@@ -45,7 +45,7 @@ const chatbotSchema = new mongoose.Schema({
     },
     chatbotType: {
         type: String,
-        enum: ['journal', 'emergency', 'general'],
+        enum: ['journal', 'SymptomCheck', 'general'],
         required: true,
     },
     isEnd: {
@@ -59,7 +59,7 @@ const chatbotSchema = new mongoose.Schema({
     createdAt: {
         type: Date,
         default: Date.now,
-        expires: '30m', // auto-delete after 30 min
+        expires: '1440m', // auto-delete after 24 hours
     }
 });
 

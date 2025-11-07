@@ -59,7 +59,7 @@ export const journalSummarybotSchema = {
         summaryType: {
             type: Type.STRING,
             enum: ["journal", "emergency"],
-            description: "Indicates whether the whole summary is an emergency or not"
+            description: "Indicates whether the whole summary of the journal is an emergency or not"
         },
         content: {
             type: Type.ARRAY,

@@ -64,27 +64,6 @@ export default function JournalSummaryPage() {
         <div className="card bg-base-200 shadow-md h-full w-full">
           <div className="card-body">
 
-            <SidebarOption
-              label='New patient Journals'
-              value='newSummaries'
-              activeView={viewType}
-              selectedOption={(value) => setViewType(value)}
-            />
-
-            <SidebarOption
-              label='Summaries Under Review'
-              value='underReviewSummaries'
-              activeView={viewType}
-              selectedOption={(value) => setViewType(value)}
-            />
-
-            <SidebarOption
-              label='Resolved Summaries'
-              value='resolvedSummaries'
-              activeView={viewType}
-              selectedOption={(value) => setViewType(value)}
-            />
-
           </div>
         </div>
 
