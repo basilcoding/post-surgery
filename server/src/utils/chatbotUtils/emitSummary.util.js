@@ -33,7 +33,7 @@ export const emitSummary = async function (userId, summaryObj, relationship) {
         const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
 
         // check if there was a summary sixty minutes ago for the current activeDoctor
-        const oldSummary = await BotSummary.findOne({ patient: userId, assignedDoctor: relationship.doctor._id, createdAt: { $gte: oneDayAgo }, type: 'emergency' })
+        const oldSummary = await BotSummary.findOne({ patient: userId, assignedDoctor: relationship.doctor._id, createdAt: { $gte: oneDayAgo }, type: 'journal' })
 
         console.log('[emitSummary] oldSummary found?', !!oldSummary);
 
