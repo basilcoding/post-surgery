@@ -21,9 +21,36 @@ export const useSummaryStore = create((set, get) => ({
 
         socket.on("journalSummaryCreated", ({ summary }) => {
             // set({ newSocketSummary: data });
-            set((prev) => ({
-                newSummaries: [summary, ...prev.newSummaries]
-            }));
+            const { authUser } = useAuthStore.getState();
+            const { newSummaries, underReviewSummaries, resolvedSummaries } = useSummaryStore.getState();
+            useSummaryStore.setState(prev => {
+
+                // remove any existing copies of this summary from all buckets
+                const withoutId = (arr) => arr.filter(s => s._id !== updatedId);
+
+                const newNewSummaries = withoutId(prev.newSummaries);
+                const newUnderReview = withoutId(prev.underReviewSummaries);
+                const newResolved = withoutId(prev.resolvedSummaries);
+
+                const status = summary.status;
+
+                // place updated summary at the front of the appropriate bucket
+                if (status === 'UnderReview') {
+                    return {
+                        ...prev,
+                        newSummaries: newNewSummaries,
+                        underReviewSummaries: [updated, ...newUnderReview],
+                        resolvedSummaries: newResolved,
+                    };
+                } else if (status === 'Resolved') {
+                    return {
+                        ...prev,
+                        newSummaries: newNewSummaries,
+                        underReviewSummaries: newUnderReview,
+                        resolvedSummaries: [updated, ...newResolved],
+                    };
+                }
+            })
             toast.success("New journal summary received");
         });
 

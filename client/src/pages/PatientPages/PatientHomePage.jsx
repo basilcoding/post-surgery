@@ -40,8 +40,10 @@ export default function PatientHomePage() {
       .toUpperCase();
 
   return (
-    <div className="min-h-screen p-6 bg-gradient-to-b from-white to-slate-50">
-      <div className="max-w-7xl mx-auto">
+    // [CHANGE 1] Use h-screen and flex-col. Remove padding and overflow.
+    <div className="h-screen w-full bg-gradient-to-b from-white to-slate-50 flex flex-col">
+      {/* [CHANGE 2] Add flex-1 (to grow) and p-6 (moved from parent). Add w-full/mx-auto for centering. */}
+      <div className="max-w-7xl w-full mx-auto flex-1 overflow-y-auto p-6">
         {/* Header */}
         <div className="flex items-center justify-between gap-4 mb-6">
           <div>
@@ -86,7 +88,21 @@ export default function PatientHomePage() {
               <div className="mt-4 flex flex-col gap-3">
                 <div className="flex items-center gap-3">
                   <div className="bg-base-200 rounded-md px-3 py-2 font-mono text-sm overflow-x-auto">{roomId ? `Room: ${roomId}` : "—"}</div>
-                  <button onClick={() => navigator.clipboard?.writeText(roomId ?? "") && toast.success("Room ID copied") } className="btn btn-sm">Copy</button>
+
+                  {/* Added a check for navigator.clipboard */}
+                  <button 
+                    onClick={() => {
+                      if (navigator.clipboard && roomId) {
+                        navigator.clipboard.writeText(roomId).then(() => {
+                          toast.success("Room ID copied");
+                        });
+                      }
+                    }} 
+                    className="btn btn-sm"
+                    disabled={!roomId}
+                  >
+                    Copy
+                  </button>
                 </div>
 
                 <div className="flex gap-3">
@@ -124,7 +140,7 @@ export default function PatientHomePage() {
                 </div>
 
                 <div className="mt-3 flex gap-2">
-                  <Link to="/patient/patient-journals" className="btn btn-ghost btn-sm">View All Summaries</Link>
+                  <Link to="/patient/patient-journals" className="btn btn-ghost btn-sm">View All Daily Journals</Link>
                   <Link to="/journal/settings" className="btn btn-outline btn-sm">Summary Settings</Link>
                 </div>
               </div>

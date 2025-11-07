@@ -19,7 +19,7 @@ export default function EmergencySummaryPage() {
 
   useEffect(() => {
     (async () => {
-      await fetchSummaries('journal');
+      await fetchSummaries('emergency');
     })();
   }, [fetchSummaries])
 

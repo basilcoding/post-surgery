@@ -52,8 +52,9 @@ export const emitSummary = async function (userId, summaryObj, relationship) {
 
                 console.log('[emitSummary] existing deliveredTo length:', deliveredToList.length);
 
-                oldSummary.content.push(summaryObj.content);
-                oldSummary.questionsAsked = summaryObj.followUpQuestions;
+                oldSummary.content.push(...summaryObj.content);
+                oldSummary.questionsAsked.push(...summaryObj.followUpQuestions);
+                oldSummary.status = 'New';
 
                 let deliveredToAtLeastOne = false;
                 for (const deliveredToDoc of deliveredToList) {
@@ -62,7 +63,6 @@ export const emitSummary = async function (userId, summaryObj, relationship) {
 
                     if (docId && onlineUsers.has(docId)) {
                         console.log('[emitSummary] doctor online:', docId);
-                        deliveredToDoc.viewed = false;
                         deliveredToDoc.delivered = true;
                         deliveredToDoc.deliveredAt = new Date();
 
@@ -105,7 +105,6 @@ export const emitSummary = async function (userId, summaryObj, relationship) {
                             doctor: targetDoctor._id, // Use the ID of the doctor you found
                             delivered: true,
                             deliveredAt: new Date(),
-                            viewed: false,
                         };
 
                         oldSummary.deliveredTo.push(newDeliveryStatus);
@@ -144,12 +143,12 @@ export const emitSummary = async function (userId, summaryObj, relationship) {
                     content: summaryObj.content,
                     questionsAsked: summaryObj.followUpQuestions,
                     assignedDoctor: relationship.doctor._id,
+                    status: 'New',
                     deliveredTo: [
                         {
                             doctor: relationship.doctor._id,
                             delivered: true,
                             deliveredAt: new Date(),
-                            viewed: false,
                         }
                     ],
                 });
@@ -194,7 +193,6 @@ export const emitSummary = async function (userId, summaryObj, relationship) {
                                 doctor: targetDoctor._id, // Use the ID of the doctor you found
                                 delivered: true,
                                 deliveredAt: new Date(),
-                                viewed: false,
                             };
 
                             summary.deliveredTo.push(newDeliveryStatus);
@@ -230,12 +228,12 @@ export const emitSummary = async function (userId, summaryObj, relationship) {
                     content: summaryObj.content,
                     questionsAsked: summaryObj.followUpQuestions,
                     assignedDoctor: relationship.doctor._id,
+                    status: 'New',
                     deliveredTo: [
                         {
                             doctor: relationship.doctor._id,
                             delivered: true,
                             deliveredAt: new Date(),
-                            viewed: false,
                         }
                     ],
                 });

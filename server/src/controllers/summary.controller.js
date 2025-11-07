@@ -1,47 +1,91 @@
 import BotSummary from "../models/botsummary.model.js";
 import { ioInstance } from "../lib/socket.js";
 
-export const getSummariesForDoctor = async (req, res) => {
+export const getSummaries = async (req, res) => {
     try {
-        // don't get confused, here type is either journal or emergency
-        const { type } = req.query;
-        const doctorId = req.user._id; // protectRoute runs before
-        const now = new Date();
-        // know that current time is always larger than the time that was seven days ago
-        // const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        if (req.user.role === 'doctor') {
+            // don't get confused, here type is either journal or emergency
+            const { type } = req.query;
+            const doctorId = req.user._id; // protectRoute runs before
+            const now = new Date();
+            // know that current time is always larger than the time that was seven days ago
+            // const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
-        // only the documents where it has --> the given type, createdAt specific days ago, and the deliveredTo array must contain the given doctorId (viewed: true/false also depending on the query)
-        const [newData, underReviewData, resolvedData] = await Promise.all([
-            BotSummary.find({
-                type,
-                status: 'New',
-                deliveredTo: { $elemMatch: { doctor: doctorId } },
-            }).populate("patient").lean(),
+            // only the documents where it has --> the given type, createdAt specific days ago, and the deliveredTo array must contain the given doctorId (viewed: true/false also depending on the query)
+            const [newData, underReviewData, resolvedData] = await Promise.all([
+                BotSummary.find({
+                    type,
+                    status: 'New',
+                    deliveredTo: { $elemMatch: { doctor: doctorId } },
+                }).populate("patient").lean(),
 
-            BotSummary.find({
-                type,
-                status: 'UnderReview',
-                deliveredTo: { $elemMatch: { doctor: doctorId } },
-            }).populate("patient").lean(),
+                BotSummary.find({
+                    type,
+                    status: 'UnderReview',
+                    deliveredTo: { $elemMatch: { doctor: doctorId } },
+                }).populate("patient").lean(),
 
-            BotSummary.find({
-                type,
-                status: 'Resolved',
-                deliveredTo: { $elemMatch: { doctor: doctorId } },
-            }).populate("patient").lean(),
-        ]);
+                BotSummary.find({
+                    type,
+                    status: 'Resolved',
+                    deliveredTo: { $elemMatch: { doctor: doctorId } },
+                }).populate("patient").lean(),
+            ]);
 
-        return res.json({
-            summaries: {
-                type: type,
-                newSummaries: newData,
-                underReviewSummaries: underReviewData,
-                resolvedSummaries: resolvedData,
+            return res.json({
+                summaries: {
+                    type: type,
+                    newSummaries: newData,
+                    underReviewSummaries: underReviewData,
+                    resolvedSummaries: resolvedData,
+                }
+            });
+        } else if (req.user.role === 'patient') {
+            // don't get confused, here type is either journal or emergency
+            // const { type } = req.query;
+            const patientId = req.user._id; // protectRoute runs before
+            const now = new Date();
+
+            if (!patientId) {
+                res.status(400).json({ message: 'UserId and Type of summary is required!' })
             }
-        });
+
+            // know that current time is always larger than the time that was seven days ago
+            // const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+            // only the documents where it has --> the given type, createdAt specific days ago, and the deliveredTo array must contain the given doctorId (viewed: true/false also depending on the query)
+            const [newData, underReviewData, resolvedData] = await Promise.all([
+                BotSummary.find({
+
+                    status: 'New',
+                    patient: patientId,
+                }).populate("patient").lean(),
+
+                BotSummary.find({
+
+                    status: 'UnderReview',
+                    patient: patientId
+                }).populate("patient").lean(),
+
+                BotSummary.find({
+
+                    status: 'Resolved',
+                    patient: patientId
+                }).populate("patient").lean(),
+            ]);
+
+            return res.json({
+                summaries: {
+                    
+                    newSummaries: newData,
+                    underReviewSummaries: underReviewData,
+                    resolvedSummaries: resolvedData,
+                }
+            });
+        }
 
     } catch (err) {
-        console.error("getSummariesForDoctor error", err);
+        console.error("getSummaries error", err);
         return res.status(500).json({ message: "Internal Server Error" });
     }
 };

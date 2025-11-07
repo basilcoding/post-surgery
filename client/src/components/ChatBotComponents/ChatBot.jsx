@@ -36,7 +36,7 @@ export default function Chatbot() {
     };
 
     return (
-        <div className="w-full h-[calc(100vh_-_65px)] bg-base-300 flex flex-col">
+        <div className="w-full min-h-screen bg-base-300 flex flex-1 flex-col">
             {/* Header */}
             <div className="bg-black-800 px-6 py-4 text-white flex items-center justify-between">
                 <div>
@@ -58,7 +58,7 @@ export default function Chatbot() {
             </div>
 
             {/* Messages section (start from bottom) */}
-            <div className="flex-1 overflow-y-auto p-6 flex flex-col-reverse space-y-4 space-y-reverse scrollbar-hide">
+            <div className="flex-1 min-h-full overflow-y-auto p-6 flex flex-col-reverse space-y-4 space-y-reverse scrollbar-hide">
                 <div ref={messagesEndRef} />
                 {(messages || []).slice().reverse().map((msg, index) => (
                     <div key={index} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
