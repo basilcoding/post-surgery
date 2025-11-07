@@ -4,6 +4,7 @@ import cors from 'cors';
 import http from 'http';
 import cookieParser from 'cookie-parser';
 import { initSocket } from './lib/socket.js';
+import { transporter } from './lib/email.js';
 
 import { connectDB } from './lib/db.js'
 import authRoutes from './routes/auth.route.js';

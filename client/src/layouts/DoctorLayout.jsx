@@ -6,7 +6,6 @@ export default function DoctorLayout() {
   return (
 
     <>
-      <Navbar />
       {/* Page content Only*/}
       <Outlet /> {/* This is where nested admin pages will render */}
     </>

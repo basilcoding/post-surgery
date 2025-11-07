@@ -1,11 +1,13 @@
+import jwt from 'jsonwebtoken';
+import cookie from 'cookie';
+
 import { Server } from 'socket.io';
 
 import User from '../models/user.model.js';
 import DoctorProfile from "../models/doctorProfile.model.js";
 import PatientProfile from "../models/patientProfile.model.js";
 
-import jwt from 'jsonwebtoken';
-import cookie from 'cookie';
+import { sendMail } from './email.js';
 
 let io;
 // const userSocketMap = {}; // {userId: socketId} (userId from database and socket.id from socket)
@@ -30,15 +32,24 @@ export function initSocket(server) {
             if (!token) return next(new Error("Unauthorized - No Token"));
 
             const decoded = jwt.verify(token, process.env.JWT_SECRET);
+            if (!decoded) {
+                return res.status(401).json({ message: 'Unauthorized - No Token Provided!' });
+            }
+            // const user = await User.findById(decoded.userId).select('-password'); // exclude the password field
+            // if (!user) {
+            //     return res.status(404).json({ message: 'User Not Found!' })
+            // }
+
             socket.userId = decoded.userId;
             socket.role = decoded.role;
-            if (socket.role === "doctor") {
-                const docProfile = await DoctorProfile.findOne({ user: socket.userId }).select("currentRoomId");
-                socket.currentRoomId = docProfile?.currentRoomId || null;
-            } else { // patient (or fallback)
-                const patientProfile = await PatientProfile.findOne({ user: socket.userId }).select("currentRoomId");
-                socket.currentRoomId = patientProfile?.currentRoomId || null;
-            }
+            socket.email = decoded.email;
+            // if (socket.role === "doctor") {
+            //     const docProfile = await DoctorProfile.findOne({ user: socket.userId }).select("currentRoomId");
+            //     socket.currentRoomId = docProfile?.currentRoomId || null;
+            // } else { // patient (or fallback)
+            //     const patientProfile = await PatientProfile.findOne({ user: socket.userId }).select("currentRoomId");
+            //     socket.currentRoomId = patientProfile?.currentRoomId || null;
+            // }
 
             next();
         } catch (err) {
@@ -61,7 +72,7 @@ export function initSocket(server) {
             const roomId = `room_${Date.now()}`;
 
             // set server-side canonical state for authorization/chatroomAuthChecking
-            await Promise.all([
+            const { doctor, patient } = await Promise.all([
                 DoctorProfile.findOneAndUpdate({ user: creator._id }, { currentRoomId: roomId }),
                 PatientProfile.findOneAndUpdate({ user: invitee._id }, { currentRoomId: roomId })
             ])
@@ -72,6 +83,8 @@ export function initSocket(server) {
             // notify invitee and creator via their private userId room
             io.to(creator._id.toString()).emit("roomNotify", { roomId, otherUser: invitee });
             io.to(invitee._id.toString()).emit("roomNotify", { roomId, otherUser: creator });
+
+            sendMail('basilshahul234@gmail.com', 'ChatRoom Created', `This is to notify you that a chatroom has been created by your Doctor ${creator.fullName}. Please Join the Chatroom promptly to converse with the doctor.`)
         })
 
         // socket.on('getOnlineUsers', ({ roomId }) => {

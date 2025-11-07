@@ -50,7 +50,7 @@ const App = () => {
 
   return (
     <div className=''>
-      {/* <Navbar /> */}
+      <Navbar />
       <AppRoutes />
       <Toaster />
     </div>

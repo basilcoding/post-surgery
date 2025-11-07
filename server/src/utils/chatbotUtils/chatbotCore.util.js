@@ -26,6 +26,8 @@ import {
 import { formatMedicalHistory } from "./formatMedicalHistory.js";
 import { formatSurgeryChecklist } from "./formatSurgeryChecklist.js";
 
+import { sendMail } from '../../lib/email.js'
+
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 // Helper functions given below
@@ -51,7 +53,6 @@ export const chatbot = async function (userId, message, isEnd, relationship, cha
         let chats = await Chatbot.findOne({ userId, chatbotType: chatbotType });
         const patientProfile = await PatientProfile.findOne({ user: userId });
         const protocol = await CareCheckList.findOne({ identifier: surgeryIdentifier });
-
 
         if (!chats) {
             chats = new Chatbot({ userId, chatbotType: chatbotType });
