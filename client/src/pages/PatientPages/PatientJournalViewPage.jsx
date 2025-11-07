@@ -1,10 +1,11 @@
+// PatientJournalViewPage.jsx
 import React, { useEffect, useMemo, useState } from "react";
 import { format } from "date-fns";
 import { useNavigate } from "react-router-dom";
 import { useSummaryStore } from "../../store/useSummaryStore";
 
 /**
- * PatientJournalPage using Zustand store values
+ * PatientJournalViewPage using Zustand store values
  * - No direct axios calls here
  * - Uses newSummaries / underReviewSummaries / resolvedSummaries from store
  * - Calls fetchSummaries('journal') on mount & refresh
@@ -20,7 +21,7 @@ export default function PatientJournalViewPage() {
   } = useSummaryStore();
 
   const [activeTab, setActiveTab] = useState("New");
-  const [q, setQ] = useState("");
+  const [typeFilter, setTypeFilter] = useState("All"); // All | journal | emergency
   const [preview, setPreview] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -29,7 +30,7 @@ export default function PatientJournalViewPage() {
     try {
       setLoading(true);
       setError("");
-      await fetchSummaries("");
+      await fetchSummaries(""); // server-side filtering optional
     } catch (err) {
       console.error(err);
       setError("Failed to load journals");
@@ -43,24 +44,20 @@ export default function PatientJournalViewPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const filterList = (list) => {
-    if (!q.trim()) return list;
-    const term = q.trim().toLowerCase();
-    return list.filter((s) => {
-      const content = Array.isArray(s?.content) ? s.content.join(" ") : String(s?.content || "");
-      const questions = Array.isArray(s?.questionsAsked) ? s.questionsAsked.join(" ") : "";
-      const doctorName = s?.assignedDoctor?.name || s?.assignedDoctor?.fullName || "";
-      return (
-        content.toLowerCase().includes(term) ||
-        questions.toLowerCase().includes(term) ||
-        doctorName.toLowerCase().includes(term)
-      );
-    });
+  const typeMatches = (s) => {
+    if (!s) return false;
+    if (typeFilter === "All") return true;
+    return (s.type || "").toLowerCase() === typeFilter.toLowerCase();
   };
 
-  const filteredNew = useMemo(() => filterList(newSummaries), [newSummaries, q]);
-  const filteredUnder = useMemo(() => filterList(underReviewSummaries), [underReviewSummaries, q]);
-  const filteredResolved = useMemo(() => filterList(resolvedSummaries), [resolvedSummaries, q]);
+  const filterList = (list) => {
+    if (!Array.isArray(list)) return [];
+    return list.filter((s) => typeMatches(s));
+  };
+
+  const filteredNew = useMemo(() => filterList(newSummaries), [newSummaries, typeFilter]);
+  const filteredUnder = useMemo(() => filterList(underReviewSummaries), [underReviewSummaries, typeFilter]);
+  const filteredResolved = useMemo(() => filterList(resolvedSummaries), [resolvedSummaries, typeFilter]);
 
   const StatusBadge = ({ status }) => {
     const map = { New: "badge-info", UnderReview: "badge-warning", Resolved: "badge-success" };
@@ -74,17 +71,16 @@ export default function PatientJournalViewPage() {
   const JournalCard = ({ s }) => {
     const created = s?.createdAt ? format(new Date(s.createdAt), "PPp") : "—";
     const updated = s?.updatedAt ? format(new Date(s.updatedAt), "PPp") : null;
-    const doctor =
-      s?.assignedDoctor?.fullName || s?.assignedDoctor?.email;
+    const doctor = s?.assignedDoctor?.fullName || s?.assignedDoctor?.email;
 
     return (
       <div className="card bg-base-100 shadow-sm border rounded-xl">
         <div className="card-body gap-3">
           <div className="flex items-center justify-between">
             <h3 className="card-title text-base">Journal entry</h3>
-            <div className='flex gap-2'>
+            <div className="flex gap-2">
               <StatusBadge status={s?.status} />
-              {s?.type === 'emergency' && <StatusBadge status={'Concerning'} />}
+              {s?.type === "emergency" && <div className="badge badge-error">Concerning</div>}
             </div>
           </div>
 
@@ -109,7 +105,7 @@ export default function PatientJournalViewPage() {
 
           <div className="flex items-center gap-3 text-sm opacity-80">
             <span>{(s?.questionsAsked?.length || 0)} question(s)</span>
-            <span>{s?.revision > 1 ? `Revisions: ${s?.revision - 1}` : ''}</span>
+            <span>{s?.revision > 1 ? `Revisions: ${s?.revision - 1}` : ""}</span>
           </div>
 
           <div className="card-actions justify-end">
@@ -137,15 +133,14 @@ export default function PatientJournalViewPage() {
   );
 
   return (
-    <div className="min-h-screen pt-[80px] p-5 mx-auto max-w-6xl ">
+    <div className="min-h-screen pt-[80px] px-10 w-full">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
         <div>
           <h1 className="text-2xl md:text-3xl font-semibold">My Journals</h1>
-          <p className="text-sm opacity-80">
-            Review your journal entries and see their review status.
-          </p>
+          <p className="text-sm opacity-80">Review your journal entries and see their review status.</p>
         </div>
+
         <div className="flex items-center gap-2">
           <button
             className={`btn btn-outline btn-sm ${loading ? "btn-disabled" : ""}`}
@@ -153,27 +148,45 @@ export default function PatientJournalViewPage() {
           >
             {loading ? <span className="loading loading-spinner loading-sm" /> : "Refresh"}
           </button>
-          <label className="input input-bordered flex items-center gap-2 w-64">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 16 16"
-              fill="currentColor"
-              className="w-4 h-4 opacity-70"
+
+          {/* DaisyUI dropdown for type filter */}
+          <div className="dropdown dropdown-end">
+            <label tabIndex={0} className="btn m-1">
+              Filter: {typeFilter}
+              <svg className="ml-2 w-4 h-4 inline" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" d="M6 9l6 6 6-6" />
+              </svg>
+            </label>
+            <ul
+              tabIndex={0}
+              className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-48"
             >
-              <path
-                fillRule="evenodd"
-                d="M9.965 11.026a5 5 0 1 1 1.06-1.06l2.755 2.754a.75.75 0 1 1-1.06 1.06l-2.755-2.754ZM10.5 7a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0Z"
-                clipRule="evenodd"
-              />
-            </svg>
-            <input
-              type="text"
-              className="grow"
-              placeholder="Search notes, questions, doctor..."
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-            />
-          </label>
+              <li>
+                <a
+                  onClick={() => setTypeFilter("All")}
+                  className={typeFilter === "All" ? "font-medium" : ""}
+                >
+                  All
+                </a>
+              </li>
+              <li>
+                <a
+                  onClick={() => setTypeFilter("journal")}
+                  className={typeFilter === "journal" ? "font-medium" : ""}
+                >
+                  Journal
+                </a>
+              </li>
+              <li>
+                <a
+                  onClick={() => setTypeFilter("emergency")}
+                  className={typeFilter === "emergency" ? "font-medium text-error" : ""}
+                >
+                  Emergency
+                </a>
+              </li>
+            </ul>
+          </div>
         </div>
       </div>
 
@@ -219,9 +232,7 @@ export default function PatientJournalViewPage() {
               filteredNew.length ? (
                 <Column list={filteredNew} />
               ) : (
-                <div className="p-8 border rounded-xl text-center opacity-70">
-                  No new journals.
-                </div>
+                <div className="p-8 border rounded-xl text-center opacity-70">No new journals.</div>
               )
             )}
 
@@ -229,9 +240,7 @@ export default function PatientJournalViewPage() {
               filteredUnder.length ? (
                 <Column list={filteredUnder} />
               ) : (
-                <div className="p-8 border rounded-xl text-center opacity-70">
-                  Nothing under review yet.
-                </div>
+                <div className="p-8 border rounded-xl text-center opacity-70">Nothing under review yet.</div>
               )
             )}
 
@@ -239,9 +248,7 @@ export default function PatientJournalViewPage() {
               filteredResolved.length ? (
                 <Column list={filteredResolved} />
               ) : (
-                <div className="p-8 border rounded-xl text-center opacity-70">
-                  No resolved journals yet.
-                </div>
+                <div className="p-8 border rounded-xl text-center opacity-70">No resolved journals yet.</div>
               )
             )}
           </div>
@@ -255,12 +262,8 @@ export default function PatientJournalViewPage() {
             <h3 className="font-bold text-lg mb-2">Journal details</h3>
 
             <div className="space-y-2 text-sm opacity-80">
-              <div>
-                Created: {preview?.createdAt ? format(new Date(preview.createdAt), "PPp") : "—"}
-              </div>
-              {preview?.updatedAt && (
-                <div>Updated: {format(new Date(preview.updatedAt), "PPp")}</div>
-              )}
+              <div>Created: {preview?.createdAt ? format(new Date(preview.createdAt), "PPp") : "—"}</div>
+              {preview?.updatedAt && <div>Updated: {format(new Date(preview.updatedAt), "PPp")}</div>}
               {preview?.assignedDoctor && (
                 <div>
                   Assigned doctor:{" "}
@@ -270,9 +273,7 @@ export default function PatientJournalViewPage() {
                 </div>
               )}
               <div>Status: {preview?.status}</div>
-              {preview?.resolvedAt && (
-                <div>Resolved at: {format(new Date(preview.resolvedAt), "PPp")}</div>
-              )}
+              {preview?.resolvedAt && <div>Resolved at: {format(new Date(preview.resolvedAt), "PPp")}</div>}
             </div>
 
             <div className="mt-4 space-y-3">
@@ -291,8 +292,8 @@ export default function PatientJournalViewPage() {
                 <div className="font-medium mb-2">Questions asked</div>
                 {Array.isArray(preview?.questionsAsked) && preview.questionsAsked.length > 0 ? (
                   <ul className="list-disc pl-6 text-sm space-y-1 max-h-48 overflow-auto">
-                    {preview.questionsAsked.map((q, i) => (
-                      <li key={i}>{q}</li>
+                    {preview.questionsAsked.map((item, i) => (
+                      <li key={i}>{item}</li>
                     ))}
                   </ul>
                 ) : (
@@ -302,9 +303,7 @@ export default function PatientJournalViewPage() {
             </div>
 
             <div className="modal-action">
-              <button className="btn" onClick={() => setPreview(null)}>
-                Close
-              </button>
+              <button className="btn" onClick={() => setPreview(null)}>Close</button>
               <button
                 className="btn btn-primary"
                 onClick={() => {

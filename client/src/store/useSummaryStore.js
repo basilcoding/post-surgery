@@ -25,6 +25,9 @@ export const useSummaryStore = create((set, get) => ({
             const { newSummaries, underReviewSummaries, resolvedSummaries } = useSummaryStore.getState();
             useSummaryStore.setState(prev => {
 
+                const updated = summary; // the single updated summary returned by server
+                const updatedId = String(updated._id);
+
                 // remove any existing copies of this summary from all buckets
                 const withoutId = (arr) => arr.filter(s => s._id !== updatedId);
 
@@ -35,14 +38,21 @@ export const useSummaryStore = create((set, get) => ({
                 const status = summary.status;
 
                 // place updated summary at the front of the appropriate bucket
-                if (status === 'UnderReview') {
+                if (status === 'New') {
+                    return {
+                        ...prev,
+                        newSummaries: [updated, ...newNewSummaries],
+                        underReviewSummaries: newUnderReview,
+                        resolvedSummaries: newResolved,
+                    };
+                } else if (status === 'UnderReview') {
                     return {
                         ...prev,
                         newSummaries: newNewSummaries,
                         underReviewSummaries: [updated, ...newUnderReview],
                         resolvedSummaries: newResolved,
                     };
-                } else if (status === 'Resolved') {
+                } else {
                     return {
                         ...prev,
                         newSummaries: newNewSummaries,
@@ -56,9 +66,46 @@ export const useSummaryStore = create((set, get) => ({
 
         socket.on("emergencySummaryCreated", ({ summary }) => {
             // set({ newSocketSummary: data });
-            set((prev) => ({
-                newSummaries: [summary, ...prev.newSummaries]
-            }));
+            const { authUser } = useAuthStore.getState();
+            const { newSummaries, underReviewSummaries, resolvedSummaries } = useSummaryStore.getState();
+            useSummaryStore.setState(prev => {
+
+                const updated = summary; // the single updated summary returned by server
+                const updatedId = String(updated._id);
+
+                // remove any existing copies of this summary from all buckets
+                const withoutId = (arr) => arr.filter(s => s._id !== updatedId);
+
+                const newNewSummaries = withoutId(prev.newSummaries);
+                const newUnderReview = withoutId(prev.underReviewSummaries);
+                const newResolved = withoutId(prev.resolvedSummaries);
+
+                const status = summary.status;
+
+                // place updated summary at the front of the appropriate bucket
+                if (status === 'New') {
+                    return {
+                        ...prev,
+                        newSummaries: [updated, ...newNewSummaries],
+                        underReviewSummaries: newUnderReview,
+                        resolvedSummaries: newResolved,
+                    };
+                } else if (status === 'UnderReview') {
+                    return {
+                        ...prev,
+                        newSummaries: newNewSummaries,
+                        underReviewSummaries: [updated, ...newUnderReview],
+                        resolvedSummaries: newResolved,
+                    };
+                } else {
+                    return {
+                        ...prev,
+                        newSummaries: newNewSummaries,
+                        underReviewSummaries: newUnderReview,
+                        resolvedSummaries: [updated, ...newResolved],
+                    };
+                }
+            })
             toast.error("New Emergency summary received!", { duration: 5000 });
         });
 
