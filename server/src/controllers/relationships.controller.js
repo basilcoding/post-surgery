@@ -27,7 +27,9 @@ export const createRelationship = async (req, res) => {
         // Create relationship
         const relationship = new Relationship({
             doctor: doctorId,
+            doctorProfile: doctor,
             patient: patientId,
+            patientProfile: patient,
             notes,
             surgeryName,
             careType: doctor.specialty
@@ -55,11 +57,13 @@ export const getRelationships = async (req, res) => {
     if (role === 'patient') {
         relationships = await Relationship.find({ patient: userId })
             .populate({ path: 'doctor' })
+            .populate({ path: 'doctorProfile' })
             .lean()
             .limit(25)
     } else if (role === 'doctor') {
         relationships = await Relationship.find({ doctor: userId })
-            .populate({ path: 'doctor' })
+            .populate({ path: 'patient' })
+            .populate({ path: 'patientProfile' })
             .lean()
             .limit(25)
     }

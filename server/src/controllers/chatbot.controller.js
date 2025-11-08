@@ -18,7 +18,13 @@ export const sendMessage = async (req, res) => {
 
         // Find the relationship document with current activeDoctor ONLY!
         // console.log(userId, activeDoctor, chatbotType)
-        const relationship = await Relationship.findOne({ patient: userId, doctor: activeDoctor, status: true }).populate(["patient", "doctor"]);
+        const relationship = await Relationship.findOne({ patient: userId, doctor: activeDoctor, status: true })
+            .populate([
+                "patient", 
+                "doctor",
+                // { path: 'doctorProfile', select: '_id'},
+                // { path: 'patientProfile', select: '_id'}
+            ]).lean();
 
         const isEnd = /^(?:quit|quite|quitt|quti|qit|qut|quyt|kwit|qiut|qiot|qujt|cuit|q|quuit|kuit|qwit|qu\s?it|qutit|qwiut|\/quit|syut|quik|qutting|kuite|qauit|:q|:wq|wuit|qq|done|send|sent|sen|sends)$/i.test(message.trim());
 
@@ -28,7 +34,7 @@ export const sendMessage = async (req, res) => {
             return;
         }
         if (!userId || !chatbotType) {
-            console.log("User's id and chatbotType needs to be specified!")
+            console.log("User's id, activeDoctor and patientId needs to be specified!")
             res.status(400).json("Internal Server Error!");
             return;
         }
@@ -39,7 +45,7 @@ export const sendMessage = async (req, res) => {
         return res.status(200).json({ message: 'OK' });
 
     } catch (error) {
-        console.log("Chatbot sendMessage in the server had a problem!")
+        console.log("Chatbot sendMessage in the server had a problem: ", error);
     }
 }
 

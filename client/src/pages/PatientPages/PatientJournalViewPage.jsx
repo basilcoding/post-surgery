@@ -9,6 +9,7 @@ import { useSummaryStore } from "../../store/useSummaryStore";
  * - No direct axios calls here
  * - Uses newSummaries / underReviewSummaries / resolvedSummaries from store
  * - Calls fetchSummaries('journal') on mount & refresh
+ * - Ensures newest-first ordering (createdAt desc) for all filtered lists
  */
 export default function PatientJournalViewPage() {
   const navigate = useNavigate();
@@ -50,9 +51,21 @@ export default function PatientJournalViewPage() {
     return (s.type || "").toLowerCase() === typeFilter.toLowerCase();
   };
 
+  /**
+   * Filters a list by typeFilter and returns a new array sorted newest-first by createdAt.
+   * Defensive: treats missing createdAt as 0 timestamp so they end up last.
+   */
   const filterList = (list) => {
     if (!Array.isArray(list)) return [];
-    return list.filter((s) => typeMatches(s));
+    const filtered = list.filter((s) => typeMatches(s));
+    // shallow copy then sort newest-first
+    const copy = filtered.slice();
+    copy.sort((a, b) => {
+      const ta = a?.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const tb = b?.createdAt ? new Date(b.createdAt).getTime() : 0;
+      return tb - ta; // newest (larger timestamp) first
+    });
+    return copy;
   };
 
   const filteredNew = useMemo(() => filterList(newSummaries), [newSummaries, typeFilter]);

@@ -6,10 +6,18 @@ const relationshipSchema = new mongoose.Schema({
         ref: "User",
         required: true,
     },
+    doctorProfile: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "DoctorProfile", // adjust model name if different
+    },
     patient: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
         required: true,
+    },
+    patientProfile: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "PatientProfile", // adjust model name if different
     },
     surgeryName: {
         type: String,
@@ -57,6 +65,16 @@ relationshipSchema.index(
 
 relationshipSchema.index(
     { doctor: 1, patient: 1 },
+    { partialFilterExpression: { status: true } } // Create an index on doctor and patient that is only for documents where status is true.
+);
+
+relationshipSchema.index(
+    { doctorProfile: 1},
+    { partialFilterExpression: { status: true } } // Create an index on doctor and patient that is only for documents where status is true.
+);
+
+relationshipSchema.index(
+    { patientProfile: 1 },
     { partialFilterExpression: { status: true } } // Create an index on doctor and patient that is only for documents where status is true.
 );
 

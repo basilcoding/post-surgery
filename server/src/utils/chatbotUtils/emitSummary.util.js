@@ -7,7 +7,7 @@ import User from "../../models/user.model.js";  // <-- import User
 import { ioInstance } from "../../lib/socket.js";
 
 
-export const emitSummary = async function (userId, summaryObj, relationship) {
+export const emitSummary = async function (userId, summaryObj, relationship, patientProfile, formattedTimestamp) {
     try {
         console.log('[emitSummary] called', { userId, summaryType: summaryObj.summaryType });
 
@@ -35,8 +35,8 @@ export const emitSummary = async function (userId, summaryObj, relationship) {
         const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
 
-        // check if there was a summary sixty minutes ago for the current activeDoctor
-        const oldSummary = await BotSummary.findOne({ patient: userId, assignedDoctor: relationship.doctor._id, createdAt: { $gte: startOfToday } })
+        // check if there was a summary after start of current day(12:00 am midnight) ago for the current activeDoctor
+        let oldSummary = await BotSummary.findOne({ user: userId, assignedDoctor: relationship.doctor._id, createdAt: { $gte: startOfToday } })
         console.log('[emitSummary] oldSummary found?', !!oldSummary);
 
         const specialtyNeeded = relationship.careType || "general";
@@ -48,19 +48,21 @@ export const emitSummary = async function (userId, summaryObj, relationship) {
 
             // if (relationship?.doctor) {
             // normalize doctor id string (oldSummary may have doctor id or populated doctor depending on query)
-            const deliveredToList =
-                (oldSummary.deliveredTo || [])
-                    .map(d => d);
 
-            console.log('[emitSummary] existing deliveredTo length:', deliveredToList.length);
+            // oldSummary.content.push(...summaryObj.content);
+            // oldSummary.questionsAsked.push(...summaryObj.followUpQuestions);
+            // oldSummary.status = 'New';
+            // oldSummary.type = summaryObj.summaryType;
+            // oldSummary.formattedTimestamps.push(formattedTimestamp);
 
-            oldSummary.content.push(...summaryObj.content);
-            oldSummary.questionsAsked.push(...summaryObj.followUpQuestions);
+            oldSummary.content.unshift(...summaryObj.content);
+            oldSummary.questionsAsked.unshift(...summaryObj.followUpQuestions);
             oldSummary.status = 'New';
             oldSummary.type = summaryObj.summaryType;
+            oldSummary.formattedTimestamps.unshift(formattedTimestamp);
 
             let deliveredToAtLeastOne = false;
-            for (const deliveredToDoc of deliveredToList) {
+            for (const deliveredToDoc of oldSummary.deliveredTo) {
                 const docId = deliveredToDoc.doctor?.toString?.();
                 console.log('[emitSummary] checking deliveredTo doctor:', docId);
 
@@ -68,7 +70,6 @@ export const emitSummary = async function (userId, summaryObj, relationship) {
                     console.log('[emitSummary] doctor online:', docId);
                     deliveredToDoc.delivered = true;
                     deliveredToDoc.deliveredAt = new Date();
-
                     deliveredToAtLeastOne = true; // mark that at least one doctor got the message while they were online
                 } else {
                     console.log('[emitSummary] doctor not online or missing id:', docId);
@@ -78,7 +79,19 @@ export const emitSummary = async function (userId, summaryObj, relationship) {
             await oldSummary.save()
             console.log('[emitSummary] oldSummary saved after update');
 
-            await oldSummary.populate(["patient", "deliveredTo.doctor"]);
+            oldSummary = await oldSummary.populate([
+                "user",
+                "patient",
+                { path: "assignedDoctor", select: "fullName" },
+                { path: "deliveredTo.doctor", select: "fullName" },
+                { path: "deliveredTo.doctorProfile", select: "doctorId" }]);
+            oldSummary = oldSummary.toObject();
+
+            const deliveredToList =
+                (oldSummary.deliveredTo || [])
+                    .map(d => d);
+            console.log('[emitSummary] existing deliveredTo length:', deliveredToList.length);
+
             console.log('[emitSummary] oldSummary populated patient and deliveredTo.doctor');
 
             for (const deliveredToDoc of deliveredToList) {
@@ -106,6 +119,7 @@ export const emitSummary = async function (userId, summaryObj, relationship) {
                     // Create the new delivery status object
                     const newDeliveryStatus = {
                         doctor: targetDoctor._id, // Use the ID of the doctor you found
+                        doctorProfile: doctorProfile._id,
                         delivered: true,
                         deliveredAt: new Date(),
                     };
@@ -115,7 +129,14 @@ export const emitSummary = async function (userId, summaryObj, relationship) {
                     await oldSummary.save();
                     console.log('[emitSummary] oldSummary saved with newDeliveryStatus');
 
-                    await oldSummary.populate(["patient", "deliveredTo.doctor"]); // populate both before emit
+                    oldSummary = await oldSummary.populate([
+                        "user",
+                        "patient",
+                        { path: "assignedDoctor", select: "fullName" },
+                        { path: "deliveredTo.doctor", select: "fullName" },// populate both before emit
+                        { path: "deliveredTo.doctorProfile", select: "doctorId" }]);
+
+                    oldSummary = oldSummary.toObject();
 
                     console.log('[emitSummary] emitting emergencySummaryCreated to routed doctor:', targetDoctor._id.toString());
                     io.to(targetDoctor._id.toString()).emit("emergencySummaryCreated", { summary: oldSummary });
@@ -141,22 +162,26 @@ export const emitSummary = async function (userId, summaryObj, relationship) {
             // const patientUser = await User.findById(userId);
             let summary = null;
 
-            // IF AN OLD SUMMARY DOES NOT EXIST FOR THE CURRENT DAY, CREATE A NEW ONE.
+            // IF AN OLD SUMMARY DOES NOT EXIST, CREATE A NEW ONE.
             // CHECK THE SUMMARYTYPE WHICH THE BOT HAS DETERMINED FOR THE SUMMARY AND CREATE THE SUMMARY ACCORDINGLY!
             if (summaryObj.summaryType === 'emergency') {
                 console.log('[emitSummary] creating new emergency summary');
                 // const relationship = await Relationship.findOne({ patient: userId }).populate("doctor");
                 let targetDoctor = null;
-                summary = await BotSummary({
-                    patient: userId,
+                summary = new BotSummary({
+                    user: userId,
+                    patient: patientProfile._id,
                     type: "emergency",
                     content: summaryObj.content,
                     questionsAsked: summaryObj.followUpQuestions,
                     assignedDoctor: relationship.doctor._id,
+                    assignedDoctorProfile: relationship.doctorProfile._id,
                     status: 'New',
+                    formattedTimestamps: formattedTimestamp,
                     deliveredTo: [
                         {
                             doctor: relationship.doctor._id,
+                            doctorProfile: relationship.doctorProfile._id,
                             delivered: true,
                             deliveredAt: new Date(),
                         }
@@ -180,7 +205,14 @@ export const emitSummary = async function (userId, summaryObj, relationship) {
                         await summary.save();
                         console.log('[emitSummary] emergency summary saved');
 
-                        await summary.populate(["patient", "deliveredTo.doctor"]); // populate both before emit
+                        summary = await summary.populate([
+                            "user",
+                            "patient",
+                            { path: "assignedDoctor", select: "fullName" },
+                            { path: "deliveredTo.doctor", select: "fullName" },
+                            { path: "deliveredTo.doctorProfile", select: "doctorId" }]);
+                        summary = summary.toObject();
+
                         console.log('[emitSummary] emergency summary populated');
 
                         io.to(assignedDoctorId).emit("emergencySummaryCreated", { summary });
@@ -201,6 +233,7 @@ export const emitSummary = async function (userId, summaryObj, relationship) {
 
                             const newDeliveryStatus = {
                                 doctor: targetDoctor._id, // Use the ID of the doctor you found
+                                doctorProfile: doctorProfile._id,
                                 delivered: true,
                                 deliveredAt: new Date(),
                             };
@@ -210,29 +243,39 @@ export const emitSummary = async function (userId, summaryObj, relationship) {
                             await summary.save();
                             console.log('[emitSummary] emergency summary saved with alternate doctor delivery');
 
-                            await summary.populate(["patient", "deliveredTo.doctor"]); // populate both before emit
+                            summary = await summary.populate([
+                                "user",
+                                "patient",
+                                { path: "assignedDoctor", select: "fullName" },
+                                { path: "deliveredTo.doctor", select: "fullName" },
+                                { path: "deliveredTo.doctorProfile", select: "doctorId" }]);
+
+                            summary = summary.toObject();
 
                             io.to(targetDoctor._id.toString()).emit("emergencySummaryCreated", { summary });
                             console.log(`Emergency routed to available ${specialtyNeeded} doctor: ${targetDoctor.fullName}`);
                         } else {
                             console.log('[emitSummary] No online doctors are there. saving the document to the db and notifying patient');
                             // notify the patient directly
-                            summary = await BotSummary({
-                                patient: userId,
+                            summary = new BotSummary({
+                                user: userId,
+                                patient: patientProfile._id,
                                 type: "emergency",
                                 content: summaryObj.content,
                                 questionsAsked: summaryObj.followUpQuestions,
                                 assignedDoctor: relationship.doctor._id,
+                                assignedDoctorProfile: relationship.doctorProfile._id,
                                 status: 'New',
                                 deliveredTo: [
                                     {
                                         doctor: relationship.doctor._id,
+                                        doctorProfile: relationship.doctorProfile._id,
                                         delivered: false,
                                         deliveredAt: new Date(),
                                     }
                                 ],
                             });
-                            summary.save();
+                            await summary.save();
                             io.to(userId.toString()).emit("noDoctorAvailable", {
                                 message: "No online doctors available! Please call 108 or go to the nearest hospital."
                             });
@@ -248,16 +291,20 @@ export const emitSummary = async function (userId, summaryObj, relationship) {
 
                 const doctorId = relationship.doctor._id.toString();
 
-                summary = await BotSummary({
-                    patient: userId,
+                summary = new BotSummary({
+                    user: userId,
+                    patient: patientProfile._id,
                     type: "journal",
                     content: summaryObj.content,
                     questionsAsked: summaryObj.followUpQuestions,
                     assignedDoctor: relationship.doctor._id,
+                    assignedDoctorProfile: relationship.doctorProfile._id,
                     status: 'New',
+                    formattedTimestamps: formattedTimestamp,
                     deliveredTo: [
                         {
                             doctor: relationship.doctor._id,
+                            doctorProfile: relationship.doctorProfile._id,
                             delivered: true,
                             deliveredAt: new Date(),
                         }
@@ -267,7 +314,14 @@ export const emitSummary = async function (userId, summaryObj, relationship) {
                 await summary.save();
                 console.log('[emitSummary] journal summary saved');
 
-                await summary.populate(["patient", "deliveredTo.doctor"]);
+                summary = await summary.populate([
+                    "user",
+                    "patient",
+                    { path: "assignedDoctor", select: "fullName" },
+                    { path: "deliveredTo.doctor", select: "fullName" },
+                    { path: "deliveredTo.doctorProfile", select: "doctorId" }]);
+
+                summary = summary.toObject();
                 console.log('[emitSummary] journal summary populated');
 
                 if (onlineUsers.has(doctorId)) {

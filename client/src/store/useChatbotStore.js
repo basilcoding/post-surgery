@@ -105,7 +105,8 @@ export const useChatbotStore = create((set, get) => ({
             const res = await axiosInstance.post("/chatbot/message",
                 {
                     message: input.trim(),
-                    activeDoctor: userProfile.activeDoctor,
+                    activeDoctor: userProfile?.activeDoctor,
+                    patientId: userProfile?.patientId,
                 },
                 {
                     params: { chatbotType: chatbotType },

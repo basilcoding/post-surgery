@@ -77,7 +77,7 @@ export default function JournalbotPage() {
                                         <button
                                             key={i}
                                             onClick={() => handleSendMessage(opt)}
-                                            className="text-left px-3 py-2 rounded-lg border border-black/20 bg-white/80 hover:bg-gray-200 shadow-sm"
+                                            className="cursor-pointer text-left px-3 py-2 rounded-lg border border-black/20 bg-white/80 hover:bg-gray-200 shadow-sm"
                                         >
                                             <span className="mr-1">→</span>{opt}
                                         </button>
@@ -87,7 +87,7 @@ export default function JournalbotPage() {
 
                             {/* Numerical options */}
                             {msg.requiresNumericalInput && (
-                                <div className="mt-3 w-fit flex bg-white/80 border border-black/10 rounded-md">
+                                <div className="cursor-pointer mt-3 w-fit flex bg-white/80 border border-black/10 rounded-md">
                                     {Array.from({ length: 11 }, (_, num) => (
                                         <button
                                             key={num}

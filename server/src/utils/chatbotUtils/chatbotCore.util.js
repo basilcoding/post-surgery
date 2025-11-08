@@ -1,12 +1,16 @@
 import { GoogleGenAI } from "@google/genai";
 
+import { ioInstance } from "../../lib/socket.js";
+import { sendMail } from '../../lib/email.js'
+
 import Chatbot from '../../models/chatbot.model.js';
 import PatientProfile from '../../models/patientProfile.model.js'
 import CareCheckList from '../../models/careCheckList.model.js'
 
 import { emitSummary } from "./emitSummary.util.js";
 
-import { ioInstance } from "../../lib/socket.js";
+import { formatTimestampLabel } from "../timeUtils/formatTimestampLabel.js";
+import { relativeAgeLabel } from "../timeUtils/relativeAgeLabel.js";
 
 import {
     journalChatbotPrompt,
@@ -26,8 +30,6 @@ import {
 import { formatMedicalHistory } from "./formatMedicalHistory.js";
 import { formatSurgeryChecklist } from "./formatSurgeryChecklist.js";
 
-import { sendMail } from '../../lib/email.js'
-
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 // Helper functions given below
@@ -40,6 +42,12 @@ let lastError = null;
 // 2)
 function getRecentHistory(history, n = 16) {
     return Array.isArray(history) ? history.slice(-n) : [];
+}
+
+// 3)
+function toIso(ts) {
+    try { return (ts instanceof Date) ? ts.toISOString() : new Date(ts).toISOString(); }
+    catch { return new Date().toISOString(); }
 }
 
 export const chatbot = async function (userId, message, isEnd, relationship, chatbotType = 'journal') {
@@ -61,17 +69,38 @@ export const chatbot = async function (userId, message, isEnd, relationship, cha
             console.log(`found a chat. length is ${chats.history.length}`);
         }
 
+
+
         // console.log("checking if its an emergency");
         const recentHistory = getRecentHistory(chats.history, 100);
-        // Create a new array containing ONLY the fields the AI needs.
-        // This strips off 'suggestedReplies', 'timestamp', and any Mongoose IDs.
-        const cleanedHistory = recentHistory.map(msg => ({
-            role: msg.role,
-            parts: msg.parts
-        }));
+
+        const now = new Date();
+        const isoNow = now.toISOString();
+        const nowForAges = new Date();
+        const formattedNow = formatTimestampLabel(now); // e.g. "[7:29 AM, Nov 8 2025]"
+
+        const cleanedHistory = recentHistory.map(msg => {
+            const ts = msg.timestamp ? msg.timestamp : nowForAges; // msg.timestamp is a Date (you store Date)
+            const formatted = formatTimestampLabel(ts);
+            return {
+                role: msg.role,
+                parts: (msg.parts || []).map(p => ({
+                    text: p.text,
+                })),
+                // formattedTimestamp: formatted,
+                age: relativeAgeLabel(msg.timestamp, nowForAges),
+            };
+        });
+
         const chatbotContext = [
             ...cleanedHistory,
-            { role: "user", parts: [{ text: message }] }
+            {
+                role: "user",
+                parts: [{ text: message }],
+                // messageTimestamp: toIso(now),
+                // formattedTimestamp: formattedNow,
+                age: "now",
+            }
         ];
         console.log('chatbot context is: ', chatbotContext)
 
@@ -85,7 +114,7 @@ export const chatbot = async function (userId, message, isEnd, relationship, cha
             fullSystemPrompt = journalChatbotPrompt + patientMedicalHistory + surgeryChecklist;
             // console.log('Chatbot prompt is: ', fullSystemPrompt);
         } else if (chatbotType === 'SymptomCheck') {
-            fullSystemPrompt = ChatbotPrompt + patientMedicalHistory;
+            fullSystemPrompt = symptomCheckChatbotPrompt + patientMedicalHistory;
             // console.log('Chatbot prompt is: ', fullSystemPrompt);
         } else {
             fullSystemPrompt = generalChatbotPrompt + patientMedicalHistory + surgeryChecklist;
@@ -96,7 +125,7 @@ export const chatbot = async function (userId, message, isEnd, relationship, cha
             try {
                 console.log(`Chatbot API attempt ${attempt}/${maxRetries}...`);
                 chatbotResponse = await ai.models.generateContent({
-                    model: "gemini-2.0-flash",
+                    model: "gemini-2.5-flash",
                     contents: chatbotContext,
                     config: {
                         systemInstruction: fullSystemPrompt,
@@ -128,25 +157,23 @@ export const chatbot = async function (userId, message, isEnd, relationship, cha
 
         // Append to history only if allowed (this implements your requirement)
         // push user message then model response
-        chats.history.push({ role: 'user', parts: [{ text: message }] });
+
+
+        // push user message with timestamp
+        chats.history.push({
+            role: 'user',
+            parts: [{ text: message }], // optional per-part timestamp
+            timestamp: now, // message-level timestamp (Date)
+        });
+
+        // push model reply with timestamp
         chats.history.push({
             role: 'model',
             parts: [{ text: botResponseText }],
             suggestedReplies: parsedResponse.suggestedReplies,
             requiresNumericalInput: parsedResponse.requiresNumericalInput,
+            timestamp: now,
         });
-
-        // if (chats.isEmergency && chats.isEnd) { // New emergency
-        //     canPatientEndSession = false; // Override end signal
-        // } else if (chats.isEmergency) { // Existing emergency
-        //     canPatientEndSession = false; // Override end signal
-        // }
-
-        // Add new messages to chat history
-        // if (chats.isEmergency || !canPatientEndSession) {
-        //     chats.history.push({ role: 'user', parts: [{ text: message }] });
-        //     chats.history.push({ role: 'model', parts: [{ text: botResponseText }] });
-        // }
 
         const data = {
             role: 'bot',
@@ -154,6 +181,7 @@ export const chatbot = async function (userId, message, isEnd, relationship, cha
             suggestedReplies: parsedResponse.suggestedReplies,
             requiresNumericalInput: parsedResponse.requiresNumericalInput,
         }
+
         // ioInstance().in(userId.toString()).allSockets().then(sockets => {
         // console.log(`Room ${userId} currently has sockets:`, Array.from(sockets));
         // });
@@ -169,13 +197,34 @@ export const chatbot = async function (userId, message, isEnd, relationship, cha
             let summary = null;
             if (!chats.isEnd && chats.chatbotType === 'journal') {
                 // console.log("Conversation has ended, so creating emergency summary");
+                // inside the end-of-conversation block
+                const recentHistoryForSummaryBot = getRecentHistory(chats.history, 100);
+                const nowForAgesForSummaryBot = new Date();
+                // const messageTsIso = msg.timestamp ? toIso(msg.timestamp) : toIso(nowForAges);
+                const cleanedHistoryForSummaryBot = recentHistoryForSummaryBot.map(msg => {
+                    const ts = msg.timestamp ? msg.timestamp : nowForAgesForSummaryBot; // msg.timestamp is a Date (you store Date)
+                    const formatted = formatTimestampLabel(ts);
+                    return {
+                        role: msg.role,
+                        parts: (msg.parts || []).map(p => ({ text: p.text })),
+                        // messageTimestamp: msg.timestamp ? toIso(msg.timestamp) : toIso(nowForAgesForSummaryBot)
+                        // formattedTimestamp: formatted,
+                        age: relativeAgeLabel(msg.timestamp || nowForAgesForSummaryBot, nowForAgesForSummaryBot),
+                    };
+                });
+
+                const chatbotContextForSummaryBot = [
+                    ...cleanedHistoryForSummaryBot
+                ];
+                console.log('chatbot context for summary bot is: ', chatbotContextForSummaryBot);
+
                 let journalSummarybot;
                 for (let attempt = 1; attempt <= maxRetries; attempt++) {
                     try {
                         console.log(`Chatbot API attempt ${attempt}/${maxRetries}...`);
                         journalSummarybot = await ai.models.generateContent({
-                            model: "gemini-2.0-flash",
-                            contents: JSON.parse(JSON.stringify(chats.history)),
+                            model: "gemini-2.5-flash",
+                            contents: chatbotContextForSummaryBot,
                             config: {
                                 systemInstruction: journalSummarybotPrompt,
                                 responseMimeType: "application/json",
@@ -200,7 +249,7 @@ export const chatbot = async function (userId, message, isEnd, relationship, cha
                 chats.isEndBot = false;
                 // console.log("chats.isEnd is: ", chats.isEnd);
                 summary = JSON.parse(journalSummarybot.text);
-                emitSummary(userId, summary, relationship);
+                emitSummary(userId, summary, relationship, patientProfile, formattedNow);
                 console.log("successfully created emergency summary:", JSON.parse(journalSummarybot.text));
             }
         }

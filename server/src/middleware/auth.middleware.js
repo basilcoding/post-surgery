@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken';
 import User from '../models/user.model.js';
+import patientProfile from '../models/patientProfile.model.js';
 
 // Middleware to protect routes
 // next is used to call the next middle/controller after this middleware function is done
@@ -17,13 +18,17 @@ export const protectRoute = async (req, res, next) => {
         }
         // decoded.userId is the ID of the user from the token
         const user = await User.findById(decoded.userId).select('-password'); // exclude the password field
-
         if (!user) {
             return res.status(404).json({ message: 'User Not Found!' })
         }
 
-        req.user = user;
+        // const profile = await patientProfile.findOne({ user: user._id})
+        // if (!profile) {
+        //     return res.status(404).json({ message: "User's Profile Not Found!" })
+        // }
 
+        req.user = user;
+        
         next();
 
     } catch (error) {

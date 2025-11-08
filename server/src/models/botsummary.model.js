@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 
 const DeliveredToSchema = new mongoose.Schema({
     doctor: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+    doctorProfile: { type: mongoose.Schema.Types.ObjectId, ref: "DoctorProfile" },
     delivered: { type: Boolean, default: false },
     deliveredAt: { type: Date },
     // viewed: { type: Boolean, default: false },
@@ -10,10 +11,14 @@ const DeliveredToSchema = new mongoose.Schema({
 }, { _id: false });
 
 const BotSummarySchema = new mongoose.Schema({
-    patient: {
+    user: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
         required: true
+    },
+    patient: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "PatientProfile",
     },
     type: {
         type: String,
@@ -37,12 +42,17 @@ const BotSummarySchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "User"
     },
+    assignedDoctorProfile: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "DoctorProfile"
+    },
     status: {
         type: String,
         enum: ["New", "UnderReview", "Resolved"],
         index: true,
         default: "New"
     },
+    formattedTimestamps: [String],
     resolvedBy: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User"
