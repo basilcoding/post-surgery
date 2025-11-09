@@ -7,15 +7,15 @@ export default function RequireRole({ allowedRoles = [], children }) {
     const role = authUser?.role;
 
     if (!authUser) {
-        if (authUser.role === 'patient') return <Navigate to='/patient-login' replace />
-        if (authUser.role === 'doctor') return <Navigate to='/doctor-login' replace />
-        if (authUser.role === 'admin') return <Navigate to='/admin-login' replace />
+        if (role === 'patient') return <Navigate to='/patient-login' replace />
+        if (role === 'doctor') return <Navigate to='/doctor-login' replace />
+        if (role === 'admin') return <Navigate to='/admin-login' replace />
     }
 
-    if (allowedRoles.includes(authUser.role)) return children;
+    if (allowedRoles.includes(role)) return children;
 
     // fallback redirect by role
-    if (authUser.role === "doctor") return <Navigate to="/doctor" replace />;
-    if (authUser.role === "patient") return <Navigate to="/patient" replace />;
+    if (role === "doctor") return <Navigate to="/doctor" replace />;
+    if (role === "patient") return <Navigate to="/patient" replace />;
     return <Navigate to="/" replace />;
 }
