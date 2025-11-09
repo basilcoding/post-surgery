@@ -1,7 +1,7 @@
 import express from "express";
 import { protectRoute } from "../middleware/auth.middleware.js";
 import { requireRole, requireSelfOrRole } from "../middleware/auth.middleware.js";
-import { createRelationship, getRelationships } from "../controllers/relationships.controller.js";
+import { createRelationship, getRelationships, getRelationshipById, updateRelationshipById } from "../controllers/relationships.controller.js";
 
 const router = express.Router();
 
@@ -10,7 +10,11 @@ const router = express.Router();
 // create relationship
 router.post("/", protectRoute, requireRole(["admin"]), createRelationship);
 
-router.get("/:id", protectRoute, requireSelfOrRole(["admin"]), getRelationships);
+router.get("/", protectRoute, requireRole(["admin", "doctor", "patient"]), getRelationships);
+
+router.get("/:id", protectRoute, requireRole(["admin", "doctor", "patient"]), getRelationshipById);
+
+router.patch("/:id", protectRoute, requireRole(["admin", "doctor", "patient"]), updateRelationshipById);
 
 // update relationship (admin only)
 // router.patch("/", protectRoute, requireRole(["admin"]), updateRelationship);

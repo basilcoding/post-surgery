@@ -1,11 +1,11 @@
 import mongoose from 'mongoose';
 
 const imageSchema = new mongoose.Schema({
-    profilePic: {
+    url: {
         type: String,
         default: "",
     },
-    profilePicId: {
+    public_id: {
         type: String,
         default: "",
     }
@@ -27,7 +27,7 @@ const userSchema = new mongoose.Schema(
             required: true,
             minlength: 6,
         },
-        image: [imageSchema],
+        image: imageSchema,
         role: {
             type: String,
             enum: ["doctor", "patient", "admin"],

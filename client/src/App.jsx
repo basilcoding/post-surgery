@@ -5,6 +5,7 @@ import { useAuthStore } from './store/useAuthStore.js';
 import { useThemeStore } from './store/useThemeStore.js';
 import { useUIStore } from './store/useUIStore.js';
 import { useUserStore } from './store/useUserStore.js';
+import { useProfileStore } from './store/useProfileStore.js';
 
 import { Loader } from 'lucide-react';
 import { Toaster } from 'react-hot-toast';
@@ -18,7 +19,7 @@ const App = () => {
 
   const { authUser, checkAuth, checkActiveRoom, subscribeToSelfRoom, isCheckingAuth, socket } = useAuthStore();
   const { theme } = useThemeStore();
-  const { getUserProfile } = useUserStore();
+  const { getSelfProfile } = useProfileStore();
 
   // only run once on mount (avoid infinite loop)
   useEffect(() => {
@@ -29,9 +30,9 @@ const App = () => {
 
   useEffect(() => {
     if (authUser) {
-      getUserProfile();
+      getSelfProfile();
     }
-  }, [authUser, getUserProfile]);
+  }, [authUser, getSelfProfile]);
 
   // Apply theme to <html>
   useEffect(() => {

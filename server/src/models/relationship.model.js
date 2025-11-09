@@ -37,7 +37,11 @@ const relationshipSchema = new mongoose.Schema({
     },
     notes: { type: String, default: "" },
     assignedAt: { type: Date, default: Date.now },
-});
+}, 
+{
+    strict: true,
+}
+);
 
 // Automatically ignore inactive (status: false)
 // relationshipSchema.pre(/^find/, function (next) { // /^find/ means, this pre condition will be used for all queries starting with letters f i n d

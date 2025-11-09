@@ -1,10 +1,14 @@
-import React from 'react'
+import { React, useState } from 'react'
 import { useAuthStore } from '../store/useAuthStore';
 import { Link } from 'react-router-dom';
 import { MessageSquare, Settings, User, LogOut } from 'lucide-react';
 
+import SidebarOption from './CommonComponents/SidebarOption';
+
 const Navbar = ({ }) => {
     const { logout, authUser } = useAuthStore();
+
+    const [viewType, setViewType] = useState('');
 
     const role = authUser?.role;
     return (
@@ -27,18 +31,84 @@ const Navbar = ({ }) => {
                                             <label htmlFor="my-drawer-1" aria-label="close sidebar" className="drawer-overlay"></label>
                                             <ul className="menu bg-base-200 min-h-full w-80 p-4">
                                                 {/* Sidebar content here */}
-                                                <Link to="/patient/dashboard" className="transition-all hover:bg-primary/30 p-4 rounded-4xl">
-                                                    <h2 className="card-title">Dashboard</h2>
-                                                </Link>
-                                                <Link to="/patient/symptom-concern" className="transition-all hover:bg-primary/30 p-4 rounded-4xl">
-                                                    <h2 className="card-title">Worried About A Symptom?</h2>
-                                                </Link>
-                                                <Link to="/patient/journal" className="transition-all hover:bg-primary/30 p-4 rounded-4xl">
-                                                    <h2 className="card-title">Take Your Daily Survery</h2>
-                                                </Link>
-                                                <Link to="/patient/patient-journals" className="transition-all hover:bg-primary/30 p-4 rounded-4xl">
-                                                    <h2 className="card-title">Past Journals</h2>
-                                                </Link>
+                                                <SidebarOption
+                                                    label="Dashboard"
+                                                    to="/patient/dashboard"
+                                                    value='dashboard'
+                                                    activeView={viewType}
+                                                    selectedOption={(value) => setViewType(value)}
+                                                />
+                                                <SidebarOption
+                                                    label="Take your Daily Journal"
+                                                    to="/patient/journal"
+                                                    value='journal'
+                                                    activeView={viewType}
+                                                    selectedOption={(value) => setViewType(value)}
+                                                />
+                                                <SidebarOption
+                                                    label="All Journals"
+                                                    to="/patient/view-journals"
+                                                    value='view-journals'
+                                                    activeView={viewType}
+                                                    selectedOption={(value) => setViewType(value)}
+                                                />
+                                                <SidebarOption
+                                                    label="Room Status"
+                                                    to="/patient/room-status"
+                                                    value='room-status'
+                                                    activeView={viewType}
+                                                    selectedOption={(value) => setViewType(value)}
+                                                />
+                                                <SidebarOption
+                                                    label="Update Your Profile"
+                                                    to="/patient/update-profile"
+                                                    value='update-profile'
+                                                    activeView={viewType}
+                                                    selectedOption={(value) => setViewType(value)}
+                                                />
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>}
+                            {role === 'doctor' &&
+                                <div className=''>
+                                    <div className="">
+                                        <div>
+                                            <label htmlFor="my-drawer-1" className="py-3 px-4 mr-2 drawer-button rounded-4xl bg-primary/70 text-base-300 border-none hover:bg-black/10 cursor-pointer block lg:hidden">☰</label>
+                                        </div>
+                                        <input id="my-drawer-1" type="checkbox" className="drawer-toggle" />
+                                        <div className="drawer-side">
+                                            <label htmlFor="my-drawer-1" aria-label="close sidebar" className="drawer-overlay"></label>
+                                            <ul className="menu bg-base-200 min-h-full w-80 p-4">
+                                                {/* Sidebar content here */}
+                                                <SidebarOption
+                                                    label="Dashboard"
+                                                    to="/doctor/dashboard"
+                                                    value='dashboard'
+                                                    activeView={viewType}
+                                                    selectedOption={(value) => setViewType(value)}
+                                                />
+                                                <SidebarOption
+                                                    label="View Patient Journals"
+                                                    to="/doctor/view-journals"
+                                                    value='view-journals'
+                                                    activeView={viewType}
+                                                    selectedOption={(value) => setViewType(value)}
+                                                />
+                                                <SidebarOption
+                                                    label="Communicate with the Patient"
+                                                    to="/doctor/create-room"
+                                                    value='create-room'
+                                                    activeView={viewType}
+                                                    selectedOption={(value) => setViewType(value)}
+                                                />
+                                                <SidebarOption
+                                                    label="Your Patients"
+                                                    to="/doctor/related-patients"
+                                                    value='related-patients'
+                                                    activeView={viewType}
+                                                    selectedOption={(value) => setViewType(value)}
+                                                />
                                             </ul>
                                         </div>
                                     </div>

@@ -16,7 +16,7 @@ export const useUserStore = create((set, get) => ({
 
     registerUser: async (formData) => {
         set({ isSigningUp: true });
-        console.log(formData.email)
+        // console.log(formData.email)
         try {
             const res = await axiosInstance.post("/users", formData, {
                 headers: { "Content-Type": "multipart/form-data" },
@@ -32,28 +32,28 @@ export const useUserStore = create((set, get) => ({
         }
     },
 
-    getUserProfile: async () => {
-        const { authUser } = useAuthStore.getState();
-        try {
-            const res = await axiosInstance.get(`/profiles/me`);
-            // console.log('active status is: ', res.data.activeRoom);
+    // getUserProfile: async () => {
+    //     const { authUser } = useAuthStore.getState();
+    //     try {
+    //         const res = await axiosInstance.get(`/profiles/me`);
+    //         // console.log('active status is: ', res.data.activeRoom);
 
-            set({ userProfile: res.data.userProfile })
-            // console.log('User Profile is: ', get().userProfile);
-            // if an active room exists
-            if (res.data.activeRoom) {
-                const { roomId, otherUser } = res.data;
-                // console.log("Rejoining active session in room:", roomId);
-                console.log('otherUser is: ', otherUser);
-                // Use the data from the server to restore the chat state
-                useChatStore.getState().setSelectedUserAndCurrentRoomId(otherUser, roomId);
-            }
-        } catch (error) {
-            console.error(error.response?.data?.message || error);
-            // If this fails, clear any potentially stale chat state
-            useChatStore.getState().clearChat();
-        }
-    },
+    //         set({ userProfile: res.data.userProfile })
+    //         // console.log('User Profile is: ', get().userProfile);
+    //         // if an active room exists
+    //         if (res.data.activeRoom) {
+    //             const { roomId, otherUser } = res.data;
+    //             // console.log("Rejoining active session in room:", roomId);
+    //             console.log('otherUser is: ', otherUser);
+    //             // Use the data from the server to restore the chat state
+    //             useChatStore.getState().setSelectedUserAndCurrentRoomId(otherUser, roomId);
+    //         }
+    //     } catch (error) {
+    //         console.error(error.response?.data?.message || error);
+    //         // If this fails, clear any potentially stale chat state
+    //         useChatStore.getState().clearChat();
+    //     }
+    // },
 
     // Get all the doctors
     // returns an array of doctors. signal is from AbortController

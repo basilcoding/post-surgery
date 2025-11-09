@@ -32,7 +32,7 @@ export const useRelationshipsStore = create((set, get) => ({
         try {
             set({ isFetchingRelationships: true });
 
-            const res = await axiosInstance.get(`/relationships/${authUser._id}`, {
+            const res = await axiosInstance.get(`/relationships`, {
                 params: { role: role },
             });
             set({ userRelationships: res.data.relationships || [] })
@@ -43,6 +43,21 @@ export const useRelationshipsStore = create((set, get) => ({
         } finally {
             set({ isFetchingRelationships: false });
         }
-    }
+    },
 
+    getRelationshipById: async (relationshipId) => {
+        const { authUser } = useAuthStore.getState();
+        if (authUser?.role === 'doctor') {
+            const res = await axiosInstance.get(`/relationships/${relationshipId}`);
+            return res.data;
+        }
+    },
+
+    updateRelationshipById: async (relationshipId, formData) => {
+        const { authUser } = useAuthStore.getState();
+        if (authUser?.role === 'doctor') {
+            const res = await axiosInstance.patch(`/relationships/${relationshipId}`, formData);
+            return res.data;
+        }
+    },
 }));

@@ -56,7 +56,7 @@ export const getMessages = async (req, res) => {
 
         const chatbotDoc = await Chatbot.findOne({ userId, chatbotType: chatbotType })
         if (!chatbotDoc) {
-            console.log("Chatbot Doc not present in getMessages!")
+            // console.log("Chatbot Doc not present in getMessages!")
             res.json("Internal Server Error!");
             return;
         }

@@ -58,6 +58,13 @@ export default function PatientLayout() {
                             activeView={viewType}
                             selectedOption={(value) => setViewType(value)}
                         />
+                        <SidebarOption
+                            label="Update Your Profile"
+                            to="/patient/update-profile"
+                            value='update-profile'
+                            activeView={viewType}
+                            selectedOption={(value) => setViewType(value)}
+                        />
                     </ul>
                 </div>
             </div>

@@ -9,120 +9,6 @@ import cloudinary from '../lib/cloudinary.js';
 import fs from 'fs';
 import jwt from 'jsonwebtoken';
 
-// This is used only for registering the admin
-// export const signup = async (req, res) => {
-//     const { fullName, email, password, adminCode } = req.body;
-//     // console.log(req.body);
-//     try {
-//         // Only the person with the admin code can register which is written in the .env file
-
-//         if (!fullName || !email || !password || !adminCode) {
-//             return res.status(400).json({ message: "All fields are required!" })
-//         }
-//         if (password.length < 6) {
-//             return res.status(400).json({ message: "Password must be at least 6 characters" })
-//         }
-
-//         const user = await User.findOne({ email }) // check if a user aldready exits with the same email
-//         if (user) {
-//             return res.status(400).json({ message: "Email aldready exits" })
-//         }
-
-//         const salt = await bcrypt.genSalt(10); // generate salt to be combined with password
-//         const hashedPassword = await bcrypt.hash(password, salt); // hash the password with the salt
-//         const isAdmin = await bcrypt.compare(adminCode, process.env.ADMIN_CODE);
-
-//         if (!isAdmin) {
-//             return res.status(400).json({ message: 'Sorry, You are not an Admin!' })
-//         }
-
-//         const newUser = new User({
-//             fullName,
-//             email,
-//             password: hashedPassword,
-//             role: 'admin',
-//         })
-
-
-//         if (newUser) {
-//             // generate JWT token here
-//             // generateToken(newUser._id, res); // generate token and set it in the cookie (function written in utils.js)
-//             await newUser.save();
-
-//             res.status(201).json({
-//                 _id: newUser._id,
-//                 fullName: newUser.fullName,
-//                 email: newUser.email,
-//                 profilePic: newUser.profilePic,
-//             });
-
-//         } else {// If user is not successfully created
-//             res.status(400).json({ message: 'Invalid user data' })
-//         }
-
-//     } catch (error) {
-//         console.log('Error in signup:', error.message);
-//         res.status(500).json({ message: 'Internal Server Error' })
-//     }
-// }
-// export const adminRegister = async (req, res) => {
-//     try {
-//         const { fullName, email, password, role } = req.body;
-
-//         if (!fullName || !email || !password || !role) {
-//             return res.status(400).json({ message: "All fields are required!" });
-//         }
-//         if (!["doctor", "patient"].includes(role)) {
-//             return res.status(400).json({ message: "Role must be doctor or patient" });
-//         }
-//         if (password.length < 6) {
-//             return res.status(400).json({ message: "Password must be at least 6 characters" });
-//         }
-
-//         const existingUser = await User.findOne({ email });
-//         if (existingUser) {
-//             return res.status(400).json({ message: "Email already exists" });
-//         }
-
-//         const salt = await bcrypt.genSalt(10);
-//         const hashedPassword = await bcrypt.hash(password, salt);
-
-//         // Handle profilePic upload if provided
-//         let profilePic = "";
-//         let profilePicId = "";
-//         if (req.file) {
-//             const uploadResponse = await cloudinary.uploader.upload(req.file.path, {
-//                 folder: "chatout-profile-pics",
-//             });
-//             profilePic = uploadResponse.secure_url;
-//             profilePicId = uploadResponse.public_id;
-//             fs.unlinkSync(req.file.path);
-//         }
-
-//         const newUser = new User({
-//             fullName,
-//             email,
-//             password: hashedPassword,
-//             role,
-//             image: [{ profilePic, profilePicId }],
-//         });
-
-//         await newUser.save();
-
-//         return res.status(201).json({
-//             _id: newUser._id,
-//             fullName: newUser.fullName,
-//             email: newUser.email,
-//             role: newUser.role,
-//             profilePic: newUser.image?.[0]?.profilePic || "",
-//         });
-//     } catch (error) {
-//         console.error("Error in adminRegister:", error.message);
-//         res.status(500).json({ message: "Internal Server Error" });
-//     }
-// };
-
-
 export const login = async (req, res) => {
     const { email, doctorId, patientId, password } = req.body;
     try {
@@ -156,7 +42,7 @@ export const login = async (req, res) => {
                 fullName: profile.user.fullName,
                 email: profile.user.email,
                 role: profile.user.role,
-                profilePic: profile.user.image?.[0]?.profilePic || "",
+                profilePic: profile.user.image?.url || "",
 
             });
         } else {
@@ -170,7 +56,7 @@ export const login = async (req, res) => {
                 fullName: user.fullName,
                 email: user.email,
                 role: user.role,
-                profilePic: user.image?.[0]?.profilePic || "",
+                profilePic: user.image?.url || "",
 
             });
         }
@@ -202,9 +88,9 @@ export const updateProfile = async (req, res) => {
         const userId = req.user._id;
         const user = await User.findById(userId).select("-password");
 
-        if (user.image?.[0]?.profilePicId) {
-            await cloudinary.uploader.destroy(user.image?.[0]?.profilePicId);
-            user.image[0].profilePic = ""; // newly updated
+        if (user.image?.url) {
+            await cloudinary.uploader.destroy(user.image?.url);
+            user.image.url = ""; // newly updated
         }
 
         if (!req.file) {
@@ -216,8 +102,8 @@ export const updateProfile = async (req, res) => {
         });
 
         if (uploadResponse) {
-            user.image[0].profilePic = uploadResponse.secure_url;
-            user.image[0].profilePicId = uploadResponse.public_id;
+            user.image.url = uploadResponse.secure_url;
+            user.image.public_id = uploadResponse.public_id;
             await user.save();
         }
         fs.unlinkSync(req.file.path);
@@ -236,7 +122,7 @@ export const checkAuth = (req, res) => {
             fullName: req.user.fullName,
             email: req.user.email,
             role: req.user.role,
-            profilePic: req.user.image?.[0]?.profilePic || "",
+            profilePic: req.user.image?.url || "",
         });
     } catch (error) {
         console.log("Error in checkAuth:", error.message);
@@ -275,7 +161,7 @@ export const checkRoomStatus = async (req, res) => {
                     fullName: otherUser.user.fullName,
                     email: otherUser.user.email,
                     role: otherUser.user.role,
-                    profilePic: otherUser.user.image?.[0]?.profilePic || "",
+                    profilePic: otherUser.user.image?.url|| "",
                     doctorId: otherUser.doctorId,
                 }
             });
@@ -298,7 +184,7 @@ export const checkRoomStatus = async (req, res) => {
                     fullName: otherUser.user.fullName,
                     email: otherUser.user.email,
                     role: otherUser.user.role,
-                    profilePic: otherUser.user.image?.[0]?.profilePic || "",
+                    profilePic: otherUser.user.image?.url|| "",
                     patientId: otherUser.patientId,
                 }
             });
@@ -356,7 +242,7 @@ export const createRoomToken = async (req, res) => {
                 fullName: selectedUser.fullName,
                 email: selectedUser.email,
                 role: selectedUser.role,
-                profilePic: selectedUser.image?.[0]?.profilePic || "",
+                profilePic: selectedUser.image?.url || "",
             },
         })
     } catch (err) {
@@ -402,7 +288,7 @@ export const checkRoomAuth = (req, res) => {
                 fullName: req.selectedUser.fullName,
                 email: req.selectedUser.email,
                 role: req.selectedUser.role,
-                profilePic: req.selectedUser.image?.[0]?.profilePic || "",
+                profilePic: req.selectedUser.image?.url || "",
             }
         });
     } catch (error) {

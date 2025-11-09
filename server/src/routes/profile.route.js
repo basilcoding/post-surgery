@@ -1,18 +1,19 @@
 import express from "express";
-import { getUserProfileById } from "../controllers/profile.controller.js"
+import { getSelfProfile, updateProfileById, updateSelfProfile } from "../controllers/profile.controller.js"
 import { protectRoute, requireRole } from "../middleware/auth.middleware.js";
+
+import upload from "../middleware/multer.middleware.js";
 import multer from "multer";
-const upload = multer({ dest: "uploads/" });
 
 const router = express.Router();
 
 // fetch for self
-router.get("/me", protectRoute, getUserProfileById);
+router.get("/me", protectRoute, getSelfProfile);
 
-// fetch by the admin or care team
-// router.get("/patients/:id", protectRoute, requireSelfAndRole(["patient"]), getPatientProfile);
+router.patch("/me", upload.single("profilePic"), protectRoute, updateSelfProfile);
 
-// fetch by the admin or care team
-// router.get("/doctors/:id", protectRoute, requireSelfAndRole(["doctor"]), getDoctorProfile);
+router.patch('/:id', protectRoute, requireRole(['doctor']), updateProfileById);
+
+// router.get("/:id", protectRoute, getProfileById);
 
 export default router;

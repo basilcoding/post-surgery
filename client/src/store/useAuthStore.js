@@ -235,4 +235,8 @@ export const useAuthStore = create((set, get) => ({
         }
     },
 
+    setUpdatedUser: (updatedUser) => {
+        set({ authUser: updatedUser })
+        // console.log('Updated User info is: ', get().authUser);
+    }
 }));

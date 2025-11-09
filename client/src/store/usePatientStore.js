@@ -13,7 +13,6 @@ export const usePatientStore = create((set, get) => ({
     setActiveDoctor: async (doctorId) => {
         const { authUser } = useAuthStore.getState();
         try {
-            console.log(doctorId)
             set({ isSettingActiveDoctor: true });
             const res = await axiosInstance.patch(`/patients/${authUser._id}`, { activeDoctor: doctorId || null });
             const patch = res.data || null;
@@ -22,7 +21,7 @@ export const usePatientStore = create((set, get) => ({
             useUserStore.setState((state) => ({
                 userProfile: { ...state.userProfile, ...patch.updates }
             }));
-            console.log('User Profile is: ', useUserStore.getState().userProfile);
+            // console.log('User Profile is: ', useUserStore.getState().userProfile);
             toast.success("Active doctor set");
             return res.data;
         } catch (error) {

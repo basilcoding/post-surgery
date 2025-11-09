@@ -72,3 +72,67 @@ export const getRelationships = async (req, res) => {
         relationships
     });
 }
+
+// 1) any doctor can get any patients relations.
+export const getRelationshipById = async (req, res) => {
+    try {
+        // console.log('getRelationshipById controller is working...')
+        const { id } = req.params;
+
+        if (req.user.role === 'doctor') {
+
+            const relationship = await Relationship.findOne({ _id: id })
+                .populate([
+                    { path: 'patient', select: 'fullName email' },
+                    { path: 'patientProfile' },
+                ]).lean();
+
+            // console.log('Found Profile is', relationship);
+            res.status(200).json({ relationship });
+
+
+        } else {
+            return;
+        }
+    } catch (error) {
+        console.error("Error in getProfileById controller:", error);
+        res.status(500).json({ message: "Internal Server Error" });
+    }
+}
+
+// 1) doctors can only update patient profile related to them
+export const updateRelationshipById = async (req, res) => {
+    try {
+        // console.log('updatePatient controller has been triggered!')
+        const { id } = req.params;
+        const updates = req.body; // This contains { "activeDoctor": "..." } OR { "name": "..." } OR both!
+
+        if (req.user.role === 'doctor') {
+            // Find the patient and update *only* the fields present in 'updates'
+            // Dynamically build the $set object
+            const fieldsToUpdate = {};
+            if (updates.hasOwnProperty('notes')) {
+                fieldsToUpdate.notes = updates.notes;
+            }
+            if (updates.hasOwnProperty('surgeryIdentifier')) {
+                fieldsToUpdate.surgeryIdentifier = updates.surgeryIdentifier;
+            }
+            const updatedRelationship = await Relationship.findOneAndUpdate({
+                _id: id,
+                doctor: req.user._id,
+            },
+                {
+                    $set: fieldsToUpdate,
+                },
+                { new: true }
+            );
+            // console.log('updatedRelationship is', updatedRelationship);
+            if (!updatedRelationship) {
+                return res.status(404).send({ message: "Patient not found" });
+            }
+            res.status(200).send(updatedRelationship); // Send back the updated patient
+        }
+    } catch (err) {
+        res.status(500).send({ message: "Error in update relationship controller", error: err });
+    }
+}

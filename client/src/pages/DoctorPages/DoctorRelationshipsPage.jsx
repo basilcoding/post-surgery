@@ -152,8 +152,8 @@ export default function DoctorRelationshipsPage() {
                                         )}
 
                                         <div className="mt-4 flex flex-wrap gap-2 justify-end">
-                                            <button onClick={() => navigate(`/patients/${r.patient || r.patientProfile}`)} className="text-sm px-3 py-1 rounded-md border">Open patient</button>
-                                            <button onClick={() => navigate(`/relationships/${r._id}`)} className="text-sm px-3 py-1 rounded-md border">Details</button>
+                                            <button onClick={() => navigate(`/doctor/relationships/${r._id || ''}`)} className="cursor-pointer text-sm px-3 py-1 rounded-md border">View patient Details</button>
+                                            {/* <button onClick={() => navigate(`/relationships/${r._id}`)} className="text-sm px-3 py-1 rounded-md border">Details</button> */}
                                         </div>
                                     </div>
                                 </div>

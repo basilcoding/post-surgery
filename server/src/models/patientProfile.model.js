@@ -35,7 +35,7 @@ const allergySchema = new mongoose.Schema({
     reaction: { type: String }, // e.g., "Anaphylaxis", "Rash"
     severity: {
         type: String,
-        enum: ["Mild", "Moderate", "Severe"],
+        // enum: ["Mild", "Moderate", "Severe"],
         default: "Mild"
     },
     ...commonHistoryOptions

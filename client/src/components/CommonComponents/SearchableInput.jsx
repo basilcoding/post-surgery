@@ -41,7 +41,7 @@ const SearchableInput = ({ type = 'dropdown', searchPlaceholder = "", fetchFunct
                 // It calls the passed-in fetchFunction with the query and signal
                 let data = await fetchFunction(q, controller.signal);
                 setResults(Array.isArray(data) ? data : []);
-                console.log(data)
+                // console.log(data)
             } catch (error) {
                 if (!controller.signal.aborted) {
                     console.error("Search error:", error);
@@ -58,7 +58,7 @@ const SearchableInput = ({ type = 'dropdown', searchPlaceholder = "", fetchFunct
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-                console.log('setting showdropdown to false')
+                // console.log('setting showdropdown to false')
                 setShowDropdown(false);
             }
         };

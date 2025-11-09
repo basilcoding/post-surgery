@@ -10,6 +10,7 @@ import JournalSummaryPage from "../pages/DoctorPages/JournalSummaryPage.jsx";
 import CreateRoomPage from "../pages/DoctorPages/CreateRoomPage.jsx";
 import ChatRoom from "../pages/ChatRoom.jsx";
 import DoctorRelationshipsPage from "../pages/DoctorPages/DoctorRelationshipsPage.jsx";
+import ViewIndividualPatient from "../pages/DoctorPages/ViewIndividualPatient.jsx";
 
 export default function DoctorRoutes() {
 
@@ -26,6 +27,7 @@ export default function DoctorRoutes() {
             <Route path="emergency-summaries" element={<EmergencySummaryPage />} />
             <Route path="create-room" element={<CreateRoomPage />} />
             <Route path="related-patients" element={<DoctorRelationshipsPage />} />
+            <Route path="relationships/:relationshipId" element={<ViewIndividualPatient />} />
             <Route path='room/:roomId' element={<ChatRoom />} />
         </Route>
     )

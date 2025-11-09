@@ -13,7 +13,7 @@ const SidebarOption = ({ label, value, activeView, selectedOption, to }) => {
             <Link
                 to={to}
                 className={`
-                    card-title p-2 hover:cursor-pointer hover:bg-base-300 rounded  
+                    card-title text-sm p-2 m-1 my-1 hover:cursor-pointer hover:bg-base-300 rounded-xl  
                     ${activeView === value ? "bg-base-300" : ""}`}
                 onClick={() => selectedOption(value)}
             >
