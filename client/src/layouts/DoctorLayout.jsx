@@ -6,7 +6,7 @@ import Navbar from "../components/Navbar.jsx";
 
 export default function DoctorLayout() {
 
-  const [viewType, setViewType] = useState('dashboard');
+  const [viewType, setViewType] = useState('');
 
   return (
 
@@ -24,29 +24,29 @@ export default function DoctorLayout() {
             {/* Sidebar content here */}
             <SidebarOption
               label="Dashboard"
-              to="/patient/dashboard"
+              to="/doctor/dashboard"
               value='dashboard'
               activeView={viewType}
               selectedOption={(value) => setViewType(value)}
             />
             <SidebarOption
-              label="Take your Daily Journal"
-              to="/patient/journal"
-              value='journal'
-              activeView={viewType}
-              selectedOption={(value) => setViewType(value)}
-            />
-            <SidebarOption
-              label="Worried About a Symptom?"
-              to="/patient/symptom-concern"
-              value='symptom-concern'
-              activeView={viewType}
-              selectedOption={(value) => setViewType(value)}
-            />
-            <SidebarOption
-              label="All Journals"
-              to="/patient/view-journals"
+              label="View Patient Journals"
+              to="/doctor/view-journals"
               value='view-journals'
+              activeView={viewType}
+              selectedOption={(value) => setViewType(value)}
+            />
+            <SidebarOption
+              label="Communicate with the Patient"
+              to="/doctor/create-room"
+              value='create-room'
+              activeView={viewType}
+              selectedOption={(value) => setViewType(value)}
+            />
+            <SidebarOption
+              label="Your Patients"
+              to="/doctor/related-patients"
+              value='related-patients'
               activeView={viewType}
               selectedOption={(value) => setViewType(value)}
             />

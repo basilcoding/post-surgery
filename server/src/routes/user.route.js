@@ -1,7 +1,7 @@
 import express from "express";
 import { protectRoute } from "../middleware/auth.middleware.js";
 import { requireRole, requireSelfAndRole } from "../middleware/auth.middleware.js";
-import { getAllUsers, getUserById, registerUser } from "../controllers/user.controller.js";
+import { getAllUsers, registerUser } from "../controllers/user.controller.js";
 import multer from "multer";
 const upload = multer({ dest: "uploads/" });
 

@@ -2,8 +2,6 @@ import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import toast from "react-hot-toast";
 
-import CreateRoomCard from "../../components/DoctorComponents/CreateRoomCard";
-
 import { useSummaryStore } from '../../store/useSummaryStore.js'
 
 export default function DoctorHomePage() {
@@ -24,30 +22,9 @@ export default function DoctorHomePage() {
 
 
   return (
-    <div className="p-6 h-screen overflow-y-auto">
+    <div className="p-6 pt-[80px] h-screen overflow-y-auto">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 auto-rows-[250px] gap-6">
-        {/* Create Room Card */}
-        <div>
-          <CreateRoomCard />
-        </div>
-
-        {/* Journal Summaries Link */}
-        <Link to="/doctor/journal-summaries" className="hover:opacity-70 transition-all">
-          <div className="card bg-base-200 shadow-md h-full">
-            <div className="card-body">
-              <h2 className="card-title">Journal Summaries</h2>
-            </div>
-          </div>
-        </Link>
-
-        {/* Emergency Summaries Link */}
-        <Link to="/doctor/emergency-summaries" className="hover:opacity-70 transition-all">
-          <div className="card bg-base-200 shadow-md h-full">
-            <div className="card-body">
-              <h2 className="card-title">Emergency Summaries</h2>
-            </div>
-          </div>
-        </Link>
+        
       </div>
     </div>
   );

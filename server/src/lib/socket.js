@@ -64,27 +64,31 @@ export function initSocket(server) {
             socket.join(userId.toString()); // make the user join the room with their own userId (ALERT! MAKE USERID AS STRING, THIS SMALL ISSUE WAS A BIG PROBLEM BECAUSE THE CHATBOTCOREUTIL FILE WILL BE EMITING TO room string formatted USERID).
         };
 
-        socket.on("createRoom", async ({ inviteeEmail }) => {
+        socket.on("createRoom", async ({ inviteeId }) => {
             // console.log('createRoom event received with email:', inviteeEmail);
-            const creator = await User.findById(userId); //working
-            const invitee = await User.findOne({ email: inviteeEmail }); //working
+            if (socket.role !== 'doctor') {
+                console.log("Create Room problem: Only doctors can create a room!")
+                return res.status(400).json({ message: "Only Doctors are allowed to Create a Room!" })
+            }
+            const creator = await User.findById(socket.userId);
+            const invitee = await PatientProfile.findOne({ patientId: inviteeId }).populate('user', '-password');
             if (!creator || !invitee) return;
             const roomId = `room_${Date.now()}`;
 
             // set server-side canonical state for authorization/chatroomAuthChecking
             const { doctor, patient } = await Promise.all([
-                DoctorProfile.findOneAndUpdate({ user: creator._id }, { currentRoomId: roomId }),
-                PatientProfile.findOneAndUpdate({ user: invitee._id }, { currentRoomId: roomId })
+                DoctorProfile.findOneAndUpdate({ user: socket.userId }, { currentRoomId: roomId }),
+                PatientProfile.findOneAndUpdate({ user: invitee.user._id }, { currentRoomId: roomId })
             ]);
 
-            io.to(invitee._id.toString()).socketsJoin(roomId); // Add *all sockets* in the invitee's personal room to the chat room
+            io.to(invitee.user._id.toString()).socketsJoin(roomId); // Add *all sockets* in the invitee's personal room to the chat room
             io.to(creator._id.toString()).socketsJoin(roomId); // Add *all sockets* in the creator's personal room to the chat room
 
             // notify invitee and creator via their private userId room
-            io.to(creator._id.toString()).emit("roomNotify", { roomId, otherUser: invitee });
-            io.to(invitee._id.toString()).emit("roomNotify", { roomId, otherUser: creator });
+            io.to(creator._id.toString()).emit("roomNotify", { roomId, otherUser: invitee.user });
+            io.to(invitee.user._id.toString()).emit("roomNotify", { roomId, otherUser: creator });
 
-            sendMail(inviteeEmail, 'ChatRoom Created', `This is to notify you that a chatroom has been created by your Doctor ${creator.fullName}. Please Join the Chatroom promptly to converse with the doctor.`)
+            sendMail(invitee.user.email, 'ChatRoom Created', `This is to notify you that a chatroom has been created by your Doctor ${creator.fullName}. Please Join the Chatroom promptly to converse with the doctor.`)
         })
 
         // socket.on('getOnlineUsers', ({ roomId }) => {

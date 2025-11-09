@@ -12,7 +12,7 @@ const Navbar = ({ }) => {
             <header
                 className="border-b border-base-300 w-full
             bg-primary fixed overflow-hidden z-70">
-                <div className="container px-4 h-15">
+                <div className="container px-4 h-16">
                     <div className="flex items-center justify-between h-full">
                         {/* leftside */}
                         <div className="flex">

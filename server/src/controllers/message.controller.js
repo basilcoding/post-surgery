@@ -40,8 +40,8 @@ export const sendMessage = async (req, res) => {
 
         await newMessage.save();
         // broadcast to the room so both sender + receiver see it
-        // console.log("roomId is: ", roomId); //working
-        // console.log("sockets in roomId from sendMessage controller are: ", await ioInstance().in(roomId).fetchSockets())
+        console.log("roomId is: ", roomId); //working
+        console.log("sockets in roomId from sendMessage controller are: ", await ioInstance().in(roomId).fetchSockets())
         ioInstance().to(roomId).emit("newMessage", newMessage); // newMessage is an object and not a string
 
         res.status(201).json(newMessage);

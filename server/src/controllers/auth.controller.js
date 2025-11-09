@@ -261,27 +261,49 @@ export const checkRoomStatus = async (req, res) => {
                 currentRoomId: roomId,
                 user: { $ne: userId } // Find the user in the same room who is NOT me
             }).populate('user').select("-user.password");
+
+            if (!otherUser) {
+                return;
+            }
+
+            return res.status(200).json({
+                activeRoom: true,
+                roomId: roomId,
+                userId: req.user?._id?.toString?.() || null,
+                otherUser: {
+                    _id: otherUser.user._id,
+                    fullName: otherUser.user.fullName,
+                    email: otherUser.user.email,
+                    role: otherUser.user.role,
+                    profilePic: otherUser.user.image?.[0]?.profilePic || "",
+                    doctorId: otherUser.doctorId,
+                }
+            });
         } else {
             otherUser = await DoctorProfile.findOne({
                 currentRoomId: roomId,
                 user: { $ne: userId } // Find the user in the same room who is NOT me
             }).populate('user').select("-user.password");
+
+            if (!otherUser) {
+                return;
+            }
+
+            return res.status(200).json({
+                activeRoom: true,
+                roomId: roomId,
+                userId: req.user?._id?.toString?.() || null,
+                otherUser: {
+                    _id: otherUser.user._id,
+                    fullName: otherUser.user.fullName,
+                    email: otherUser.user.email,
+                    role: otherUser.user.role,
+                    profilePic: otherUser.user.image?.[0]?.profilePic || "",
+                    patientId: otherUser.patientId,
+                }
+            });
         }
 
-
-
-        return res.status(200).json({
-            activeRoom: true,
-            roomId: roomId,
-            userId: req.user?._id?.toString?.() || null,
-            otherUser: {
-                _id: otherUser.user._id,
-                fullName: otherUser.user.fullName,
-                email: otherUser.user.email,
-                role: otherUser.user.role,
-                profilePic: otherUser.user.image?.[0]?.profilePic || "",
-            }
-        });
 
     } catch (error) {
         console.error("Error in session-status route:", error.message);

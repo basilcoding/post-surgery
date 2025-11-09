@@ -25,9 +25,6 @@ export default function AppRoutes() {
       <Route path="/" element={<HomePage />} />
       <Route path="/signup" element={<SignUpPage />} />
 
-      {/* Chatroom Route - requires login */}
-      <Route path='/room/:roomId' element={authUser ? <ChatRoom /> : <Navigate to='/login' />} />
-
       {/* role based login routes */}
       {LoginRoutes()}
 

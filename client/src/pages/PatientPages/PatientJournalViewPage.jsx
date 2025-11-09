@@ -83,7 +83,7 @@ export default function PatientJournalViewPage() {
 
   const JournalCard = ({ s }) => {
     const created = s?.createdAt ? format(new Date(s.createdAt), "PPp") : "—";
-    const updated = s?.updatedAt ? format(new Date(s.updatedAt), "PPp") : null;
+    // const updated = s?.updatedAt ? format(new Date(s.updatedAt), "PPp") : null;
     const doctor = s?.assignedDoctor?.fullName || s?.assignedDoctor?.email;
 
     return (
@@ -99,7 +99,7 @@ export default function PatientJournalViewPage() {
 
           <div className="text-sm text-base-content/70">
             <span>Created: {created}</span>
-            {updated && <span className="ml-2">• Updated: {updated}</span>}
+            {/* {updated && <span className="ml-2">• Updated: {updated}</span>} */}
           </div>
 
           {doctor && (
@@ -276,7 +276,7 @@ export default function PatientJournalViewPage() {
 
             <div className="space-y-2 text-sm opacity-80">
               <div>Created: {preview?.createdAt ? format(new Date(preview.createdAt), "PPp") : "—"}</div>
-              {preview?.updatedAt && <div>Updated: {format(new Date(preview.updatedAt), "PPp")}</div>}
+              {/* {preview?.updatedAt && <div>Updated: {format(new Date(preview.updatedAt), "PPp")}</div>} */}
               {preview?.assignedDoctor && (
                 <div>
                   Assigned doctor:{" "}
@@ -290,7 +290,7 @@ export default function PatientJournalViewPage() {
             </div>
 
             <div className="mt-4 space-y-3">
-              <div>
+              {/* <div>
                 <div className="font-medium mb-2">Bot notes</div>
                 {Array.isArray(preview?.content) && preview.content.length > 0 ? (
                   <div className="rounded-xl border p-3 text-sm whitespace-pre-wrap max-h-64 overflow-auto">
@@ -299,6 +299,18 @@ export default function PatientJournalViewPage() {
                 ) : (
                   <div className="text-sm italic opacity-70">No notes</div>
                 )}
+              </div> */}
+              <div>
+                <div className="font-medium mt-2 mb-1">Summary</div>
+                {preview?.content?.length ? (
+                  <div className="p-3 border rounded text-sm whitespace-pre-wrap max-h-48 overflow-auto bg-base-300">
+                    {preview.content.map((c, idx) => {
+                      return (
+                        <span>{(idx < (preview.formattedTimestamps.length - 1) ? `Updated: ${preview.formattedTimestamps[idx]} \n` : `Created: ${preview.formattedTimestamps[idx]} \n`)}{String(c) ? String(c + '\n\n') : String(c + '\n\n' || "")}</span>
+                      )
+                    })}
+                  </div>
+                ) : (<div className="italic text-muted-foreground">No notes</div>)}
               </div>
 
               <div>

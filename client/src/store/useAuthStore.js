@@ -193,11 +193,11 @@ export const useAuthStore = create((set, get) => ({
     },
 
     // For creator
-    createRoom: (email) => {
+    createRoom: (patientId) => {
 
         const { socket } = get();
-        if (!email) return;
-        socket.emit("createRoom", { inviteeEmail: email });
+        if (!patientId) return;
+        socket.emit("createRoom", { inviteeId: patientId });
     },
 
     getOnlineUsers: (roomId) => {

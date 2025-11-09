@@ -7,7 +7,7 @@ import Navbar from "../components/Navbar.jsx";
 
 export default function PatientLayout() {
 
-    const [viewType, setViewType] = useState('dashboard');
+    const [viewType, setViewType] = useState('');
 
     return (
 
@@ -37,17 +37,24 @@ export default function PatientLayout() {
                             activeView={viewType}
                             selectedOption={(value) => setViewType(value)}
                         />
-                        <SidebarOption
+                        {/* <SidebarOption
                             label="Worried About a Symptom?"
                             to="/patient/symptom-concern"
                             value='symptom-concern'
                             activeView={viewType}
                             selectedOption={(value) => setViewType(value)}
-                        />
+                        /> */}
                         <SidebarOption
                             label="All Journals"
                             to="/patient/view-journals"
                             value='view-journals'
+                            activeView={viewType}
+                            selectedOption={(value) => setViewType(value)}
+                        />
+                        <SidebarOption
+                            label="Room Status"
+                            to="/patient/room-status"
+                            value='room-status'
                             activeView={viewType}
                             selectedOption={(value) => setViewType(value)}
                         />

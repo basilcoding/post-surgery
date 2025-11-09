@@ -8,12 +8,19 @@ import PatientHomePage from "../pages/PatientPages/PatientHomePage.jsx";
 import ProfilePicker from "../pages/ProfilePicker.jsx";
 import JournalbotPage from "../pages/ChatbotPages/JournalbotPage.jsx";
 import SymptomConcernbotPage from "../pages/ChatbotPages/SymptomConcernbotPage.jsx";
+import ChatRoom from "../pages/ChatRoom.jsx";
+
+import { useUserStore } from '../store/useUserStore.js'
 
 import Chatbot from "../components/ChatbotComponents/Chatbot.jsx";
 import PatientJournalViewPage from "../pages/PatientPages/PatientJournalViewPage.jsx";
+import PatientRoomStatusPage from "../pages/PatientPages/RoomStatusPage.jsx";
 
 export default function PatientRoutes() {
 
+    const { userProfile } = useUserStore();
+    const activeDoctor = userProfile?.activeDoctor;
+    console.log('activedoctor is: ', activeDoctor)
     return (
         <Route path='/patient' element={
             <RequireRole allowedRoles={['patient']}>
@@ -21,12 +28,17 @@ export default function PatientRoutes() {
             </RequireRole>
         }>
             {/* the index ensures that the below line will run immdediately if you go to the /doctor route, there fore the route that will be rendered by going to /doctor will be /doctor/dashboard */}
-            <Route index element={<Navigate to='profiles' />} />
+            {activeDoctor
+                ? <Route index element={<Navigate to='dashboard' />} />
+                : <Route index element={<Navigate to='profiles' />} />
+            }
             <Route path="profiles" element={<ProfilePicker />} />
             <Route path="dashboard" element={<PatientHomePage />} />
             <Route path="journal" element={<JournalbotPage />} />
             <Route path="symptom-concern" element={<SymptomConcernbotPage />} />
             <Route path="view-journals" element={<PatientJournalViewPage />} />
+            <Route path='room-status' element={<PatientRoomStatusPage />} />
+            <Route path='room/:roomId' element={<ChatRoom />} />
         </Route>
     )
 }

@@ -29,7 +29,7 @@ export const useChatStore = create((set, get) => ({
                 const res = await axiosInstance.post(`/auth/create-room-token/${roomId}`, { selectedUser: otherUser });
 
                 get().setSelectedUserAndCurrentRoomId(otherUser, roomId);
-                toast.success(otherUser.role === 'doctor' ? 'Room created' : 'You were invited');
+                toast.success(authUser.role === 'doctor' ? 'Room created' : 'You were invited');
 
             } catch (error) {
                 console.log("Error in roomNotify socket Listener: ", error?.message);

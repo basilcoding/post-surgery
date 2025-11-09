@@ -41,7 +41,8 @@ export const getUserProfileById = async (req, res) => {
                     fullName: candidate.user.fullName,
                     email: candidate.user.email,
                     role: candidate.user.role,
-                    profilePic: candidate.user.image?.[0]?.profilePic || ""
+                    profilePic: candidate.user.image?.[0]?.profilePic || "",
+                    patientId: candidate.patientId,
                 }
             }
             return res.status(200).json({
@@ -60,7 +61,8 @@ export const getUserProfileById = async (req, res) => {
                     fullName: candidate.user.fullName,
                     email: candidate.user.email,
                     role: candidate.user.role,
-                    profilePic: candidate.user.image?.[0]?.profilePic || ""
+                    profilePic: candidate.user.image?.[0]?.profilePic || "",
+                    doctorId: candidate.patientId,
                 };
             }
             return res.status(200).json({

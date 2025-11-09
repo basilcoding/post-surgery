@@ -27,7 +27,7 @@ export default function PatientHomePage() {
 
   const handleEnterRoom = () => {
     if (!roomId) return toast.error("No room assigned yet — please wait for your provider.");
-    navigate(`/room/${roomId}`);
+    navigate(`/patient/room/${roomId}`);
   };
 
   // small helper for initials fallback

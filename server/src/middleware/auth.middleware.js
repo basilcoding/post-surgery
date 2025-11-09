@@ -1,6 +1,7 @@
 import jwt from 'jsonwebtoken';
 import User from '../models/user.model.js';
-import patientProfile from '../models/patientProfile.model.js';
+import PatientProfile from '../models/patientProfile.model.js';
+import DoctorProfile from '../models/patientProfile.model.js';
 
 // Middleware to protect routes
 // next is used to call the next middle/controller after this middleware function is done
@@ -28,7 +29,7 @@ export const protectRoute = async (req, res, next) => {
         // }
 
         req.user = user;
-        
+
         next();
 
     } catch (error) {
@@ -92,22 +93,35 @@ export const protectRoom = async (req, res, next) => {
         const token = req.cookies.roomToken; //  read from cookies
 
         if (!token) {
+            await Promise.all([
+                DoctorProfile.updateMany(
+                    { currentRoomId: roomId },
+                    { $set: { currentRoomId: null } }
+                ),
+                PatientProfile.updateMany(
+                    { currentRoomId: roomId },
+                    { $set: { currentRoomId: null } }
+                ),
+            ])
             return res.status(401).json({ message: "Unauthorized, you do not have a valid token!" });
         }
 
         // fetch authoritative user record (ensure req.user is in sync)
-        // const user = await User.findById(id).select("currentRoomId role");
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         // console.log("decoded.roomId is: ", decoded.roomId, " and roomId is: ", roomId)
-        // console.log("decoded.userId is: ", decoded.userId, " and Id is: ", id.toString())
         if (decoded.roomId !== roomId || decoded.userId !== id.toString()) {
+            await Promise.all([
+                DoctorProfile.updateMany(
+                    { currentRoomId: roomId },
+                    { $set: { currentRoomId: null } }
+                ),
+                PatientProfile.updateMany(
+                    { currentRoomId: roomId },
+                    { $set: { currentRoomId: null } }
+                ),
+            ])
             return res.status(401).json({ message: "Unauthorized, token you provided is not valid!" });
         }
-        // if (!user || user.currentRoomId !== decoded.roomId || decoded.roomId !== roomId) {
-        //     return res.status(401).json({ message: "Room is either Unavailable or has Expired!" });
-        // }
-
-
         // attach roomId to req for controllers
         req.roomId = decoded.roomId;
         req.userId = decoded.userId;
@@ -115,6 +129,16 @@ export const protectRoom = async (req, res, next) => {
         next();
     } catch (err) {
         console.error("Error in protectRoom middleware:", err.message);
+        await Promise.all([
+            DoctorProfile.updateMany(
+                { currentRoomId: roomId },
+                { $set: { currentRoomId: null } }
+            ),
+            PatientProfile.updateMany(
+                { currentRoomId: roomId },
+                { $set: { currentRoomId: null } }
+            ),
+        ])
         res.status(401).json({ message: "Room is either Unavailable or has Expired!" });
     }
 }

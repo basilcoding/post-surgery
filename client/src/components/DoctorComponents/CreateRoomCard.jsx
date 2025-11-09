@@ -6,7 +6,7 @@ import { useAuthStore } from "../../store/useAuthStore";
 import { useChatStore } from "../../store/useChatStore";
 
 export default function CreateRoomCard() {
-  const [email, setEmail] = useState("");
+  const [patientId, setPatientId] = useState("");
   const [roomId, setRoomId] = useState(null);
   const [createRoomButton, setCreateRoomButton] = useState(false);
   const navigate = useNavigate();
@@ -38,9 +38,9 @@ export default function CreateRoomCard() {
       toast.error("Please enter an email");
       return;
     }
-    await createRoom(email);
+    await createRoom(patientId);
 
-    setEmail("");
+    setPatientId("");
     setCreateRoomButton(false);
   };
 
@@ -59,8 +59,8 @@ export default function CreateRoomCard() {
         {createRoomButton ? (
           <>
             <input
-              type="email"
-              placeholder="Enter user's email"
+              type="text"
+              placeholder="Enter the Patient Id"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="input input-bordered w-full"
@@ -85,7 +85,7 @@ export default function CreateRoomCard() {
         )}
 
         <p className="text-sm text-gray-500 mt-3">
-          Create a private chat room for a patient by using their email. Rooms redirect automatically when
+          Create a private chat room for a patient by using their Patient Id. Rooms redirect automatically when
           created.
         </p>
 
