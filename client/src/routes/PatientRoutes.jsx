@@ -12,6 +12,7 @@ import ChatRoom from "../pages/ChatRoom.jsx";
 import PatientJournalViewPage from "../pages/PatientPages/PatientJournalViewPage.jsx";
 import PatientRoomStatusPage from "../pages/PatientPages/RoomStatusPage.jsx";
 import PatientProfileUpdatePage from "../pages/PatientPages/PatientProfileUpdatePage.jsx";
+import ViewSelectedSummaryPage from "../pages/PatientPages/ViewSelectedSummaryPage.jsx";
 
 import Chatbot from "../components/ChatbotComponents/Chatbot.jsx";
 
@@ -38,6 +39,7 @@ export default function PatientRoutes() {
             <Route path="journal" element={<JournalbotPage />} />
             <Route path="symptom-concern" element={<SymptomConcernbotPage />} />
             <Route path="view-journals" element={<PatientJournalViewPage />} />
+            <Route path='view-journals/:summaryId' element={<ViewSelectedSummaryPage />} />
             <Route path='room-status' element={<PatientRoomStatusPage />} />
             <Route path='update-profile' element={<PatientProfileUpdatePage />} />
             <Route path='room/:roomId' element={<ChatRoom />} />

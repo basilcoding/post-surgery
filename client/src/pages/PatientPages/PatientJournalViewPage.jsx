@@ -127,7 +127,7 @@ export default function PatientJournalViewPage() {
             </button>
             <button
               className="btn btn-primary btn-sm"
-              onClick={() => navigate(`/journals/${s._id}`)}
+              onClick={() => navigate(`/patient/view-journals/${s._id}`)}
             >
               Open
             </button>
@@ -334,7 +334,7 @@ export default function PatientJournalViewPage() {
                 onClick={() => {
                   const id = preview._id;
                   setPreview(null);
-                  navigate(`/journals/${id}`);
+                  navigate(`/patient/view-journals/${id}`);
                 }}
               >
                 Open

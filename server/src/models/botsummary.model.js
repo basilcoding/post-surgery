@@ -10,6 +10,17 @@ const DeliveredToSchema = new mongoose.Schema({
     // viewedAt: { type: Date },
 }, { _id: false });
 
+const imageSchema = new mongoose.Schema({
+    cid: {
+        type: String,
+        default: "",
+    },
+    url: {
+        type: String,
+        default: "",
+    },
+})
+
 const BotSummarySchema = new mongoose.Schema({
     user: {
         type: mongoose.Schema.Types.ObjectId,
@@ -32,6 +43,10 @@ const BotSummarySchema = new mongoose.Schema({
     questionsAsked: {
         type: [String],
         default: []
+    },
+    surgerySiteImages: {
+        type: [imageSchema],
+        default: [],
     },
     deliveredTo: {
         type: [DeliveredToSchema],
@@ -61,15 +76,14 @@ const BotSummarySchema = new mongoose.Schema({
     revision: { type: Number, default: 0 }, // keep track of how many updates the patient did...
 }, { timestamps: true });
 
-BotSummarySchema.index({ patient: 1, createdAt: -1 });
-// Best for "new" and "recentlyViewed" buckets (uses doctor + viewed + type, then range on createdAt)
-BotSummarySchema.index(
-    { "deliveredTo.doctor": 1, status: 1, type: 1, createdAt: -1 }
-);
-// Best for "history" bucket (no viewed filter)
-BotSummarySchema.index(
-    { "deliveredTo.doctor": 1, type: 1, createdAt: -1 }
-);
+// For queries filtering by user and status (e.g., new/recentlyViewed)
+BotSummarySchema.index({ user: 1, status: 1 });
+
+//  For queries on deliveredTo.doctor and status
+BotSummarySchema.index({ "deliveredTo.doctor": 1, status: 1 });
+
+// For sorting or fetching by user + _id (useful for pagination)
+BotSummarySchema.index({ user: 1, _id: 1 });
 
 // BotSummarySchema.index({ "deliveredTo.doctor": 1, patient: 1, type: 1, createdAt: -1 });
 // BotSummarySchema.index({ "deliveredTo.doctor": 1, createdAt: -1 });

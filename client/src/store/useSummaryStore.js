@@ -7,6 +7,7 @@ export const useSummaryStore = create((set, get) => ({
     newSummaries: [],
     underReviewSummaries: [],
     resolvedSummaries: [],
+    selectedSummary: {},
 
     newSocketSummary: {},
 
@@ -221,41 +222,28 @@ export const useSummaryStore = create((set, get) => ({
         }
     },
 
-    // USE THIS DURING DEPLOYMENT
-    // if this function is called once then it can't change the viewed status back to true for a particular summary
-    // markViewed: async (summaryId, viewedBy) => {
-    //     try {
-    //         const res = await axiosInstance.patch(`/summaries/${summaryId}`, { viewedBy }, { withCredentials: true });
-    //     } catch (err) {
-    //         toast.error(err?.response?.data?.message || "Failed to mark as viewed");
-    //     }
-    // },
+    getSummaryById: async (summaryId) => {
+        try {
+            const res = await axiosInstance.get(`/summaries/${summaryId}`)
+            set({ selectedSummary: res.data.summary })
+            // set((prev) => {
+            //     return { ...prev.selectedSummary, ...res.data.summary }
+            // })
+        } catch (error) {
+            console.log("Error occured in updateSummaryById zustand store function: ", error);
+        }
+    },
 
-    // toggleViewedStatus
-    // if this function is called once then it CAN toggle the viewed status in the backend
-
-    // markViewed: async (summaryId, viewedBy) => {
-    //     const { authUser } = useAuthStore.getState();
-    //     const newSummaries = get().newSummaries;
-    //     const viewedSummaries = get().recentlyViewedSummaries;
-    //     const summariesHistory = get().summariesHistory;
-
-    //     try {
-    //         const all = [
-    //             // all 3 of these is an array which has summary objects in each of it, where each of them are spreaded/copied into this new 'all' array
-    //             ...get().newSummaries,
-    //             ...get().recentlyViewedSummaries,
-    //             ...get().summariesHistory,
-    //         ];
-    //         // in this whole..... array called 'all' (which has all the summaries object i.e new, viewed and history) find one summary object whose ._id = summaryId (summaryId we pass in through the function argument)
-    //         const clickedSummary = all.find((s) => s._id === summaryId)
-
-    //         const res = await axiosInstance.patch(`/summaries/${summaryId}`, { viewedStatus: clickedSummary.viewed, viewedBy }, { withCredentials: true });
-    //         // update local state
-    //         // await get.fetchSummaries(allSummaries.type);
-    //     } catch (err) {
-    //         toast.error(err?.response?.data?.message || "Failed to mark as viewed");
-    //     }
-    // },
+    updateSurgeryImages: async (formData, summaryId) => {
+        try {
+            const res = await axiosInstance.patch(`/summaries/${summaryId}`, formData);
+            set({ selectedSummary: res.data.summary })
+            // set((prev) => {
+            //     return { ...prev.selectedSummary, ...res.data.summary }
+            // })
+        } catch (error) {
+            console.log("Error occured in updateSummaryById zustand store function: ", error);
+        }
+    }
 
 }));

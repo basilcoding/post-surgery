@@ -1,8 +1,8 @@
 import User from '../models/user.model.js';
-import bcrypt from 'bcryptjs';
-import cloudinary from '../lib/cloudinary.js';
-import fs from 'fs';
-import jwt from 'jsonwebtoken';
+
+import { Blob } from "buffer";
+import pinata from "../lib/pinata.js";
+
 import { chatbot } from '../utils/chatbotUtils/chatbotCore.util.js'
 
 import Chatbot from '../models/chatbot.model.js';
@@ -20,13 +20,11 @@ export const sendMessage = async (req, res) => {
         // console.log(userId, activeDoctor, chatbotType)
         const relationship = await Relationship.findOne({ patient: userId, doctor: activeDoctor, status: true })
             .populate([
-                "patient", 
+                "patient",
                 "doctor",
                 // { path: 'doctorProfile', select: '_id'},
                 // { path: 'patientProfile', select: '_id'}
             ]).lean();
-
-        const isEnd = /^(?:quit|quite|quitt|quti|qit|qut|quyt|kwit|qiut|qiot|qujt|cuit|q|quuit|kuit|qwit|qu\s?it|qutit|qwiut|\/quit|syut|quik|qutting|kuite|qauit|:q|:wq|wuit|qq|done|send|sent|sen|sends)$/i.test(message.trim());
 
         if (!relationship) {
             console.log("No relationship found! Please select a valid doctor profile")
@@ -38,6 +36,8 @@ export const sendMessage = async (req, res) => {
             res.status(400).json("Internal Server Error!");
             return;
         }
+
+        const isEnd = /^(?:quit|quite|quitt|quti|qit|qut|quyt|kwit|qiut|qiot|qujt|cuit|q|quuit|kuit|qwit|qu\s?it|qutit|qwiut|\/quit|syut|quik|qutting|kuite|qauit|:q|:wq|wuit|qq|done|send|sent|sen|sends)$/i.test(message.trim());
 
         // The relationship with the current ACTIVEDOCTOR is given to chatbot
         chatbot(userId, message, isEnd, relationship, chatbotType);

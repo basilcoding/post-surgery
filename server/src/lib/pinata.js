@@ -1,0 +1,12 @@
+import { PinataSDK } from "pinata";
+
+import { config } from 'dotenv';
+
+config();
+
+const pinata = new PinataSDK({
+  pinataJwt: process.env.PINATA_JWT,
+  pinataGateway: process.env.PINATA_GATEWAY,
+});
+
+export default pinata;
