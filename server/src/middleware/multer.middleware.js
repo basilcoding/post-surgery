@@ -14,4 +14,9 @@ const upload = multer({
     limits: limits
 });
 
-export default upload;
+// Define the specific fields you will accept
+export const profileUploadConfig = upload.fields([
+    { name: 'profilePic', maxCount: 1 },  // Will accept 1 file in a field named 'profilePic'
+]);
+
+// export default upload;

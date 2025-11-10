@@ -168,13 +168,16 @@ export const updateSelfProfile = async (req, res) => {
         // console.log('req.file is: ', req.file);
 
         if (req.user.role === 'patient') {
-            if (req.file) {
+            if (req.files && req.files.profilePic.length > 0) {
+
+                const profileFile = req.files.profilePic[0];
+
                 if (req.user?.image?.public_id) {
                     await cloudinary.uploader.destroy(req.user.image.public_id);
                 }
                 // 1. Convert the buffer from req.file.buffer into a Data URI
-                const b64 = Buffer.from(req.file.buffer).toString('base64');
-                let dataURI = "data:" + req.file.mimetype + ";base64," + b64;
+                const b64 = Buffer.from(profileFile.buffer).toString('base64');
+                let dataURI = "data:" + profileFile.mimetype + ";base64," + b64;
 
                 // 2. Upload the Data URI string to Cloudinary
                 const uploadResponse = await cloudinary.uploader.upload(dataURI, {
