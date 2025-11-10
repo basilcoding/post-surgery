@@ -1,7 +1,6 @@
 import BotSummary from "../models/botsummary.model.js";
 import Relationship from "../models/relationship.model.js";
 import { ioInstance } from "../lib/socket.js";
-import { Blob } from "buffer";
 import pinata from "../lib/pinata.js";
 
 export const getSummaries = async (req, res) => {
@@ -159,10 +158,14 @@ export const getSummariesById = async (req, res) => {
         if (req.user.role === 'patient') {
             // GET SUMMARIES FOR PATIENT BY ID BEGIN HERE <---------------------------------
 
-            const summary = await BotSummary.findOne({ user: req.user._id, _id: summaryId }).select('-surgerySiteImages.cid');
+            const summary = await BotSummary.findOne({ user: req.user._id, _id: summaryId }).select('-surgerySiteImages.cid')
+                .populate([
+                    { path: "deliveredTo.doctorProfile", select: 'doctorId' },
+                    { path: "assignedDoctorProfile", select: "doctorId" }
+                ]);
 
             if (!summary) return res.status(404).json({ message: "Requested Summary Not found!" });
-            res.status(200).json({ summary });
+            res.status(200).json({ summary })
             // GET SUMMARIES FOR PATIENT BY ID ENDS HERE <----------------------------------
         }
 
@@ -196,7 +199,7 @@ export const updateSummaryById = async (req, res) => {
                 update.$set.resolvedAt = new Date();
             } else {
                 // Moving away from Resolved clears stamps
-                update.$unset = { resolvedBy: "", resolvedAt: "" };
+                update.$set = { resolvedBy: "", resolvedAt: "" };
             }
 
             const summary = await BotSummary.findOneAndUpdate(query, update, {
@@ -242,21 +245,32 @@ export const updateSummaryById = async (req, res) => {
                 const cidsToDelete = matchedImages.map(img => img.cid);
 
                 // Unpin each CID from Pinata
-                await Promise.all(
-                    cidsToDelete.map(async (cid) => {
-                        try {
-                            await pinata.unpin(cid);
-                            console.log(`Unpinned ${cid}`);
-                        } catch (err) {
-                            console.warn(`Failed to unpin ${cid}:`, err.message);
-                        }
-                    })
-                );
+                // const deleted = await Promise.all(
+                //     cidsToDelete.map(async (cid) => {
+                //         try {
+                //             await pinata.files.public.delete([cid]);
+                //             console.log(`Unpinned ${cid}`);
+                //         } catch (err) {
+                //             console.warn(`Failed to unpin ${cid}:`, err.message);
+                //         }
+                //     })
+                // );
+                let unpin;
+                try {
+                    // const file = await pinata.groups.public.get({ groupId: process.env.PINATA_GROUP_ID });
+                    // console.log('Group details: ', file);
+                    unpin = await pinata.files.public.delete(cidsToDelete);
+                    console.log(`Unpinned ${unpin}`);
+                } catch (err) {
+                    console.warn(`Failed to unpin ${unpin}:`, err.message);
+                }
 
                 // Remove the matching images from DB
-                botSummary.surgerySiteImages = botSummary.surgerySiteImages.filter(
-                    img => !urlsToDelete.includes(img.url)
-                );
+                if (unpin) {
+                    botSummary.surgerySiteImages = botSummary.surgerySiteImages.filter(
+                        img => !urlsToDelete.includes(img.url)
+                    );
+                }
 
                 await botSummary.save();
             }
@@ -264,17 +278,17 @@ export const updateSummaryById = async (req, res) => {
 
             // Handle new uploads
             if (req.files?.surgerySiteImages?.length > 0) {
-                const uploadPromises = req.files.surgerySiteImages.map(async (file) => {
-                    const blob = new Blob([file.buffer]);
-                    const pinataFile = {
-                        stream: () => blob.stream(),
-                        name: file.originalname,
-                    };
-
-                    const result = await pinata.upload.file(pinataFile);
+                const uploadPromises = req.files.surgerySiteImages.map(async (f) => {
+                    const file = new File([f.buffer], f.originalname, { type: f.mimetype });
+                    // const options = {
+                    //     targetGroupId: process.env.PINATA_GROUP_ID,
+                    // };
+                    const result = await pinata.upload.public
+                        .file(file)
+                        .group(process.env.PINATA_GROUP_ID);
                     const cid = result.cid || result.IpfsHash;
                     const url = `https://${process.env.PINATA_GATEWAY}/ipfs/${cid}`;
-
+                    console.log('url is: ', url);
                     return { cid, url };
                 });
 
