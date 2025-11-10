@@ -2,6 +2,8 @@ import React, { useState, useRef, useEffect } from "react";
 import { useAuthStore } from "../../store/useAuthStore";
 import { useChatbotStore } from "../../store/useChatbotStore";
 
+import { Image, Send } from 'lucide-react'
+
 export default function JournalbotPage() {
     const { authUser, socket, subscribeToSelfRoom } = useAuthStore();
     const [userId] = useState(authUser?._id);
@@ -117,14 +119,28 @@ export default function JournalbotPage() {
                     onChange={(e) => setInput(e.target.value)}
                     onKeyDown={handleKeyPress}
                 />
-                <button
+                {/* <button
                     onClick={() => handleSendMessage(input)}
                     className="bg-primary text-white px-5 py-3 rounded-r-4xl hover:bg-primary/90 transition"
                 >
                     Send
+                </button> */}
+                <button
+                    type="button"
+                    className={`hidden sm:flex btn btn-circle `}
+                >
+                    <Image size={20} />
                 </button>
+                <button
+                type="submit"
+                className="btn btn-lg btn-circle"
+                onClick={() => handleSendMessage(input)}
+            >
+                <Send size={22} />
+            </button>
             </div>
-        </div>
+            
+        </div >
     );
 
 }
