@@ -28,6 +28,9 @@ const careCheckListSchema = new mongoose.Schema({
         index: true
         // e.g., "total-knee-replacement-v1", "appendectomy-v1"
     },
+    relatedSpecialty: {
+        type: String,
+    },
     description: {
         type: String
         // e.g., "Standard post-operative care checklist for TKR patients."

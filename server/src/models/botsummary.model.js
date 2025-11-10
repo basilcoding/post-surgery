@@ -11,6 +11,10 @@ const DeliveredToSchema = new mongoose.Schema({
 }, { _id: false });
 
 const imageSchema = new mongoose.Schema({
+    fileId: {
+        type: String,
+        default: "",
+    },
     cid: {
         type: String,
         default: "",

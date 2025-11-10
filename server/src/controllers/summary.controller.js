@@ -242,25 +242,14 @@ export const updateSummaryById = async (req, res) => {
                 );
 
                 // Extract their CIDs for unpinning
-                const cidsToDelete = matchedImages.map(img => img.cid);
+                const fileIdsToDelete = matchedImages.map(img => img.fileId);
 
-                // Unpin each CID from Pinata
-                // const deleted = await Promise.all(
-                //     cidsToDelete.map(async (cid) => {
-                //         try {
-                //             await pinata.files.public.delete([cid]);
-                //             console.log(`Unpinned ${cid}`);
-                //         } catch (err) {
-                //             console.warn(`Failed to unpin ${cid}:`, err.message);
-                //         }
-                //     })
-                // );
                 let unpin;
                 try {
                     // const file = await pinata.groups.public.get({ groupId: process.env.PINATA_GROUP_ID });
                     // console.log('Group details: ', file);
-                    unpin = await pinata.files.public.delete(cidsToDelete);
-                    console.log(`Unpinned ${unpin}`);
+                    unpin = await pinata.files.public.delete(fileIdsToDelete);
+                    console.log(`Unpinned ${JSON.stringify(unpin)}`);
                 } catch (err) {
                     console.warn(`Failed to unpin ${unpin}:`, err.message);
                 }
@@ -286,10 +275,11 @@ export const updateSummaryById = async (req, res) => {
                     const result = await pinata.upload.public
                         .file(file)
                         .group(process.env.PINATA_GROUP_ID);
+                    const fileId = result.id;
                     const cid = result.cid || result.IpfsHash;
                     const url = `https://${process.env.PINATA_GATEWAY}/ipfs/${cid}`;
                     console.log('url is: ', url);
-                    return { cid, url };
+                    return { fileId, cid, url };
                 });
 
                 const uploadedImages = await Promise.all(uploadPromises);

@@ -3,10 +3,11 @@ import dotenv from 'dotenv'
 import cors from 'cors';
 import http from 'http';
 import cookieParser from 'cookie-parser';
+
 import { initSocket } from './lib/socket.js';
 import { transporter } from './lib/email.js';
-
 import { connectDB } from './lib/db.js'
+
 import authRoutes from './routes/auth.route.js';
 import messageRoutes from './routes/message.route.js';
 import adminRoutes from './routes/admin.route.js';
@@ -16,6 +17,7 @@ import summaryRoutes from './routes/summary.route.js';
 import relationshipRoutes from './routes/relationships.route.js';
 import patientRoutes from './routes/patient.route.js';
 import profileRoutes from './routes/profile.route.js';
+import careCheckListRoutes from './routes/careCheckList.route.js'
 
 dotenv.config();
 
@@ -42,6 +44,7 @@ app.use('/api/summaries', summaryRoutes);
 app.use('/api/relationships', relationshipRoutes);
 app.use('/api/patients', patientRoutes);
 app.use('/api/profiles', profileRoutes);
+app.use('/api/care-check-lists', careCheckListRoutes);
 
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
