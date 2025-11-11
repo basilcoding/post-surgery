@@ -34,14 +34,19 @@ export const getSelfProfile = async (req, res) => {
         let otherUser;
         if (role === 'doctor') {
             // if the role is doctor find the patient who has the same room
-            let candidate = await PatientProfile.findOne({ currentRoomId: userProfile.currentRoomId }).populate({ path: "user" })
+            let candidate;
+            if (userProfile.currentRoomId) {
+                candidate = await PatientProfile.findOne({
+                    currentRoomId: userProfile.currentRoomId,
+                }).populate("user");
+            }
             if (candidate) {
                 otherUser = {
                     _id: candidate.user._id,
                     fullName: candidate.user.fullName,
                     email: candidate.user.email,
                     role: candidate.user.role,
-                    profilePic: candidate.user.image?.[0]?.profilePic || "",
+                    profilePic: candidate.user.image?.url || "",
                     patientId: candidate.patientId,
                 }
             }
@@ -53,15 +58,20 @@ export const getSelfProfile = async (req, res) => {
             });
         } else if (role === 'patient') {
             // if the role is patient find the doctor who has the same room
-            let candidate = await DoctorProfile.findOne({ currentRoomId: userProfile.currentRoomId }).populate("user")
-            // console.log('candidate is: ', candidate)
+            // console.log('req.user is: ', req.user);
+            let candidate;
+            if (userProfile.currentRoomId) {
+                candidate = await DoctorProfile.findOne({
+                    currentRoomId: userProfile.currentRoomId,
+                }).populate("user");
+            }
             if (candidate) {
                 otherUser = {
                     _id: candidate.user._id,
                     fullName: candidate.user.fullName,
                     email: candidate.user.email,
                     role: candidate.user.role,
-                    profilePic: candidate.user.image?.[0]?.profilePic || "",
+                    profilePic: candidate.user.image.url || "",
                     doctorId: candidate.patientId,
                 };
             }
@@ -197,6 +207,7 @@ export const updateSelfProfile = async (req, res) => {
                     if (updates.user.email) userFieldsToUpdate.email = updates.user.email;
                 }
                 // Profile fields (are JSON strings and must be parsed)
+                console.log('this is how udpates.familyHistory looks like: ', updates.familyHistory);
                 if (updates.familyHistory) profileFieldsToUpdate.familyHistory = JSON.parse(updates.familyHistory);
                 if (updates.allergies) profileFieldsToUpdate.allergies = JSON.parse(updates.allergies);
                 if (updates.currentMedications) profileFieldsToUpdate.currentMedications = JSON.parse(updates.currentMedications);

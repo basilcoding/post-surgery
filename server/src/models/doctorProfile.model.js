@@ -27,37 +27,28 @@ const doctorProfileSchema = new mongoose.Schema({
         enum: ["cardiology", "psychiatry", "general", "neurology", "orthopedics"],
         trim: true,
         lowercase: true,
-        required: true // Essential for filtering and display
+        required: true
     },
-    // --- Professional Credentials & Status ---
     licenseNumber: {
         type: String,
-        required: true,
-        unique: true,
-        trim: true // Visible/editable in the Settings area for compliance
     },
     yearsOfExperience: {
         type: Number,
         min: 0,
-        default: 0 // Displayed on profile/settings page
+        default: 0 
     },
-    // --- Descriptive Fields ---
     bio: {
         type: String,
         maxlength: 500,
-        trim: true // Editable in the Settings section; previewed on the dashboard
+        trim: true 
     },
-    // --- Location & Availability ---
     currentRoomId: {
         type: String,
         default: null,
-        index: true // Used for real-time connection status (e.g., "In a Consult")
     },
     clinicAddress: {
-        type: clinicAddressSchema, // Using the sub-schema for structure
-        required: false // Location where the doctor primarily practices
+        type: clinicAddressSchema, 
     },
-    // --- Additional Information (Optional but recommended) ---
     education: [
         {
             degree: String,
@@ -68,7 +59,7 @@ const doctorProfileSchema = new mongoose.Schema({
     documents: [
         {
             url: String,
-            publicId: String,
+            public_id: String,
             documentType: String // e.g., "License Scan"
         }
     ],

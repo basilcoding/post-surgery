@@ -10,14 +10,14 @@ export default function AdminLayout() {
   return (
     <div className="drawer md:drawer-open">
       <input id="my-drawer-2" type="checkbox" className="drawer-toggle" />
-      <div className="drawer-content flex flex-col items-center justify-left relative">
+      <div className="drawer-content pt-[80px] flex flex-col items-center justify-left relative">
         {/* Page content here */}
         <label htmlFor="my-drawer-2" className="btn btn-primary drawer-button md:hidden flex justify-left w-full mb-3">
           Menu
         </label>
         <Outlet />
       </div>
-      <div className="drawer-side">
+      <div className="drawer-side pt-[65px]">
         <label htmlFor="my-drawer-2" aria-label="close sidebar" className="drawer-overlay"></label>
         <ul className="menu bg-base-200 text-base-content min-h-full w-80 p1">
           <div className='flex justify-between'>

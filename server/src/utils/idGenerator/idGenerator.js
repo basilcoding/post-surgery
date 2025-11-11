@@ -1,5 +1,4 @@
-// utils/idGenerator.js
-import { Counter } from "../models/counter.model.js";
+import { Counter } from "../../models/counter.model.js";
 
 // Example ids,
 // PAT-2025-0001
@@ -18,11 +17,11 @@ async function getNextSequence(type) {
 export async function generatePatientId() {
     const year = new Date().getFullYear();
     const seq = await getNextSequence("patient");
-    return `PAT${year}-${String(seq).padStart(4, "0")}`;
+    return `PAT-${year}-${String(seq).padStart(4, "0")}`;
 }
 
 export async function generateDoctorId() {
     const year = new Date().getFullYear();
     const seq = await getNextSequence("doctor");
-    return `DOC${year}-${String(seq).padStart(4, "0")}`;
+    return `DOC-${year}-${String(seq).padStart(4, "0")}`;
 }

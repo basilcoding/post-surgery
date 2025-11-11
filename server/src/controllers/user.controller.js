@@ -7,6 +7,8 @@ import Relationship from "../models/relationship.model.js";
 import DoctorProfile from '../models/doctorProfile.model.js';
 import PatientProfile from '../models/patientProfile.model.js';
 
+import { generatePatientId, generateDoctorId } from '../utils/idGenerator/idGenerator.js';
+
 // ADMIN gets all doctors
 export const getAllUsers = async (req, res) => {
     try {
@@ -89,13 +91,17 @@ export const registerUser = async (req, res) => {
         // Create role-specific profile
         if (role === "doctor") {
             if (!specialty) return res.status(400).json({ message: "Doctor specialty required" });
+            const doctorHospitalId = await generateDoctorId();
             await DoctorProfile.create({
                 user: newUser._id,
+                doctorId: doctorHospitalId,
                 specialty,
             });
         } else if (role === "patient") {
+            const patientHospitalId = await generatePatientId();
             await PatientProfile.create({
                 user: newUser._id,
+                patientId: patientHospitalId,
             });
         }
 

@@ -13,7 +13,7 @@ const HomePage = () => {
             <div className="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4">
                 <button
                     className="px-6 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-                    onClick={() => navigate("/admin")}
+                    onClick={() => navigate("/admin-login")}
                 >
                     Admin Login
                 </button>

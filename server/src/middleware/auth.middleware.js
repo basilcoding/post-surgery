@@ -27,8 +27,8 @@ export const protectRoute = async (req, res, next) => {
         // if (!profile) {
         //     return res.status(404).json({ message: "User's Profile Not Found!" })
         // }
-
         req.user = user;
+        // console.log('req.user is: ', req.user);
 
         next();
 

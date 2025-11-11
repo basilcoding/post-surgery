@@ -27,7 +27,7 @@ const server = http.createServer(app);
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cors({
-    origin: 'http://localhost:5173',
+    origin: process.env.CLIENT_ORIGIN || 'http://localhost:5173',
     credentials: true, // allow cookie headers to be sent with the req object
 }));
 app.use(cookieParser()); // parse the cookie header from incoming requests(cookie-parser essentially looks at the Cookie header) and make them accessible under req.cookies
