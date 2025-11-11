@@ -50,6 +50,13 @@ export default function DoctorLayout() {
               activeView={viewType}
               selectedOption={(value) => setViewType(value)}
             />
+            <SidebarOption
+              label="Care Check Lists"
+              to="/doctor/care-check-lists"
+              value='care-check-lists'
+              activeView={viewType}
+              selectedOption={(value) => setViewType(value)}
+            />
           </ul>
         </div>
       </div>

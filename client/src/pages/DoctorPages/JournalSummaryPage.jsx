@@ -329,6 +329,13 @@ export default function DoctorJournalPage() {
                   View patient
                 </button>
 
+                <button
+                  className="btn btn-secondary"
+                  onClick={() => navigate(`/doctor/view-journals/${modalSummary._id}`)}
+                >
+                  Open
+                </button>
+
                 {/* <button className="btn btn-primary" onClick={() => { openFull(modalSummary._id); setModalSummary(null); }}>Open</button> */}
               </div>
             </div>

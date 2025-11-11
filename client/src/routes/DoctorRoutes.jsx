@@ -11,6 +11,10 @@ import CreateRoomPage from "../pages/DoctorPages/CreateRoomPage.jsx";
 import ChatRoom from "../pages/ChatRoom.jsx";
 import DoctorRelationshipsPage from "../pages/DoctorPages/DoctorRelationshipsPage.jsx";
 import ViewIndividualPatient from "../pages/DoctorPages/ViewIndividualPatient.jsx";
+import ShowAllCareCheckListsPage from "../pages/CareCheckListPages/ShowAllCareCheckListsPage.jsx";
+import CreateCareCheckListPage from "../pages/CareCheckListPages/CreateCareCheckListPage.jsx";
+import UpdateCareCheckListPage from "../pages/CareCheckListPages/UpdateCareCheckListPage.jsx";
+import DoctorViewSummaryPage from "../pages/DoctorPages/DoctorViewSelectedSummaryPage.jsx";
 
 export default function DoctorRoutes() {
 
@@ -24,11 +28,15 @@ export default function DoctorRoutes() {
             <Route index element={<Navigate to='dashboard' />} />
             <Route path="dashboard" element={<DoctorHomePage />} />
             <Route path="view-journals" element={<JournalSummaryPage />} />
+            <Route path="view-journals/:summaryId" element={<DoctorViewSummaryPage />} />
             <Route path="emergency-summaries" element={<EmergencySummaryPage />} />
             <Route path="create-room" element={<CreateRoomPage />} />
             <Route path="related-patients" element={<DoctorRelationshipsPage />} />
+            <Route path="care-check-lists" element={<ShowAllCareCheckListsPage />} />
+            <Route path="create-care-check-list" element={<CreateCareCheckListPage />} />
+            <Route path="care-check-list/:careCheckListId" element={<UpdateCareCheckListPage />} />
             <Route path="relationships/:relationshipId" element={<ViewIndividualPatient />} />
-            <Route path='room/:roomId' element={<ChatRoom />} />
+            <Route path='room/:roomId' element={<ShowAllCareCheckListsPage />} />
         </Route>
     )
 }

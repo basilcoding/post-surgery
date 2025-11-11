@@ -158,7 +158,7 @@ export const getSummariesById = async (req, res) => {
         if (req.user.role === 'patient') {
             // GET SUMMARIES FOR PATIENT BY ID BEGIN HERE <---------------------------------
 
-            const summary = await BotSummary.findOne({ user: req.user._id, _id: summaryId }).select('-surgerySiteImages.cid')
+            const summary = await BotSummary.findOne({ user: req.user._id, _id: summaryId }).select(['-surgerySiteImages.cid', '-surgerySiteImages.fileId'])
                 .populate([
                     { path: "deliveredTo.doctorProfile", select: 'doctorId' },
                     { path: "assignedDoctorProfile", select: "doctorId" }
@@ -167,6 +167,21 @@ export const getSummariesById = async (req, res) => {
             if (!summary) return res.status(404).json({ message: "Requested Summary Not found!" });
             res.status(200).json({ summary })
             // GET SUMMARIES FOR PATIENT BY ID ENDS HERE <----------------------------------
+        } else if (req.user.role === 'doctor') {
+            // GET SUMMARIES FOR DOCTOR BY ID BEGIN HERE <---------------------------------
+
+            const summary = await BotSummary.findOne({ 'deliveredTo.doctor': req.user._id, _id: summaryId }).select(['-surgerySiteImages.cid', '-surgerySiteImages.fileId'])
+                .populate([
+                    { path: "deliveredTo.doctor", select: 'fullName' },
+                    { path: "deliveredTo.doctorProfile", select: 'doctorId' },
+                    { path: "assignedDoctorProfile", select: "doctorId" },
+                    { path: "user", select: "fullName"},
+                    { path: "patient", select: "patientId"},
+                ]);
+
+            if (!summary) return res.status(404).json({ message: "Requested Summary Not found!" });
+            res.status(200).json({ summary })
+            // GET SUMMARIES FOR DOCTOR BY ID ENDS HERE <----------------------------------
         }
 
     } catch (error) {
@@ -199,7 +214,7 @@ export const updateSummaryById = async (req, res) => {
                 update.$set.resolvedAt = new Date();
             } else {
                 // Moving away from Resolved clears stamps
-                update.$set = { resolvedBy: "", resolvedAt: "" };
+                update.$unset = { resolvedBy: "", resolvedAt: "" };
             }
 
             const summary = await BotSummary.findOneAndUpdate(query, update, {
@@ -249,7 +264,7 @@ export const updateSummaryById = async (req, res) => {
                     // const file = await pinata.groups.public.get({ groupId: process.env.PINATA_GROUP_ID });
                     // console.log('Group details: ', file);
                     unpin = await pinata.files.public.delete(fileIdsToDelete);
-                    console.log(`Unpinned ${JSON.stringify(unpin)}`);
+                    // console.log(`Unpinned ${JSON.stringify(unpin)}`);
                 } catch (err) {
                     console.warn(`Failed to unpin ${unpin}:`, err.message);
                 }
@@ -278,7 +293,7 @@ export const updateSummaryById = async (req, res) => {
                     const fileId = result.id;
                     const cid = result.cid || result.IpfsHash;
                     const url = `https://${process.env.PINATA_GATEWAY}/ipfs/${cid}`;
-                    console.log('url is: ', url);
+                    // console.log('url is: ', url);
                     return { fileId, cid, url };
                 });
 

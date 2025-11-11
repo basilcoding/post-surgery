@@ -16,10 +16,9 @@ const checklistTopicSchema = new mongoose.Schema({
 });
 
 const careCheckListSchema = new mongoose.Schema({
-    displayName: {
+    surgeryName: {
         type: String,
-        required: true
-        // e.g., "Total Knee Replacement"
+        required: true,
     },
     identifier: {
         type: String,
