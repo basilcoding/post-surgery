@@ -17,6 +17,7 @@ const upload = multer({
 // Define the specific fields you will accept
 export const profileUploadConfig = upload.fields([
     { name: 'profilePic', maxCount: 1 },  // Will accept 1 file in a field named 'profilePic'
+      { name: "documents", maxCount: 10 },
 ]);
 
 export const surgerySiteImagesUploadConfig = upload.fields([

@@ -15,6 +15,7 @@ import ShowAllCareCheckListsPage from "../pages/CareCheckListPages/ShowAllCareCh
 import CreateCareCheckListPage from "../pages/CareCheckListPages/CreateCareCheckListPage.jsx";
 import UpdateCareCheckListPage from "../pages/CareCheckListPages/UpdateCareCheckListPage.jsx";
 import DoctorViewSummaryPage from "../pages/DoctorPages/DoctorViewSelectedSummaryPage.jsx";
+import DoctorProfileUpdatePage from "../pages/DoctorPages/DoctorProfileUpdatePage.jsx";
 
 export default function DoctorRoutes() {
 
@@ -27,6 +28,7 @@ export default function DoctorRoutes() {
             {/* the index ensures that the below line will run immdediately if you go to the /doctor route, there fore the route that will be rendered by going to /doctor will be /doctor/dashboard */}
             <Route index element={<Navigate to='dashboard' />} />
             <Route path="dashboard" element={<DoctorHomePage />} />
+            <Route path="update-profile" element={<DoctorProfileUpdatePage />} />
             <Route path="view-journals" element={<JournalSummaryPage />} />
             <Route path="view-journals/:summaryId" element={<DoctorViewSummaryPage />} />
             <Route path="emergency-summaries" element={<EmergencySummaryPage />} />

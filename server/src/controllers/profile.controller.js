@@ -169,15 +169,19 @@ export const updateSelfProfile = async (req, res) => {
     try {
         // console.log('updateSelfProfile controller has been triggered!')
         const id = req.user._id;
-        const updates = req.body;
 
-        const userFieldsToUpdate = {};
-        const profileFieldsToUpdate = {};
-
+        console.log('req.body is: ', req.body);
+        console.log('req.body.data is: ', req.body.data);
+        console.log('req.files is: ', req.files);
         // console.log('req.body is: ', req.body);
         // console.log('req.file is: ', req.file);
 
         if (req.user.role === 'patient') {
+
+            const updates = req.body;
+            const userFieldsToUpdate = {};
+            const profileFieldsToUpdate = {};
+
             if (req.files && req.files.profilePic.length > 0) {
 
                 const profileFile = req.files.profilePic[0];
@@ -248,6 +252,179 @@ export const updateSelfProfile = async (req, res) => {
             if (!updatedUser) {
                 return res.status(404).send({ message: "User info not found" });
             }
+
+            res.status(200).send({
+                profile: updatedSelfProfile,
+                user: {
+                    _id: updatedUser._id,
+                    fullName: updatedUser.fullName,
+                    email: updatedUser.email,
+                    role: updatedUser.role,
+                    profilePic: updatedUser?.image?.url || "",
+                }
+            });
+        }
+
+
+        // If patient branch already exists above, keep it. Below: doctor branch.
+        else if (req.user.role === 'doctor') {
+
+            const documentsToUpdate = {};
+            const userFieldsToUpdate = {};
+            const profileFieldsToUpdate = {};
+            let updates = typeof req.body.jsonData === 'string' ? JSON.parse(req.body.jsonData) : req.body.jsonData;
+            const deleteImages = updates.deleteImages;
+
+            const hasProfilePic = req.files && Array.isArray(req.files.profilePic) && req.files.profilePic.length > 0;
+            const hasDocuments = req.files && Array.isArray(req.files.documents) && req.files.documents.length > 0;
+            // const doctorProfile = await DoctorProfile.findOne({ user: req.user._id });
+            // Helper: convert buffer -> data URI
+            function bufferToDataURI(buffer, mimetype) {
+                const b64 = buffer.toString('base64');
+                return `data:${mimetype};base64,${b64}`;
+            }
+
+            if (hasProfilePic || hasDocuments || updates) {
+                if (hasProfilePic) {
+                    const profileFile = req.files.profilePic[0];
+
+                    if (req.user?.image?.public_id) {
+                        try {
+                            await cloudinary.uploader.destroy(req.user.image.public_id);
+                        } catch (error) {
+                            console.log('Error deleting profile picture: ', error);
+                        }
+                    }
+                    const dataURI = bufferToDataURI(profileFile.buffer, profileFile.mimetype);
+                    const uploadResponse = await cloudinary.uploader.upload(dataURI, {
+                        folder: 'SRMS-doctor-profile-pics',
+                    });
+                    // Add image to the user update $set object
+                    userFieldsToUpdate.image = {
+                        url: uploadResponse.secure_url,
+                        public_id: uploadResponse.public_id,
+                    };
+                }
+
+                // DOCUMENTS: convert each buffer -> dataURI and upload
+                if (hasDocuments || deleteImages && Array.isArray(deleteImages) && deleteImages.length > 0) {
+                    let uploadedDocs = [];
+                    if (hasDocuments) {
+                        const uploadPromises = req.files?.documents?.map(async (f) => {
+                            const dataURI = bufferToDataURI(f.buffer, f.mimetype);
+                            const res = await cloudinary.uploader.upload(dataURI, {
+                                folder: 'SRMS-doctor-documents',
+                            });
+                            return {
+                                url: res.secure_url,
+                                public_id: res.public_id,
+                                documentType: f.fieldname || 'document'
+                            };
+                        });
+                        uploadedDocs = await Promise.all(uploadPromises);
+                    }
+
+                    let deletedPublicIds = [];
+                    if (deleteImages && Array.isArray(deleteImages) && deleteImages.length > 0) {
+                        const destroyPromises = deleteImages.map(async (public_id) => {
+                            await cloudinary.uploader.destroy(public_id);
+                            deletedPublicIds.push(public_id);
+                        });
+                        await Promise.all(destroyPromises);
+                    }
+
+                    // make sure doctorProfile is loaded earlier:
+                    const doctorProfile = await DoctorProfile.findOne({ user: req.user._id });
+                    if (!doctorProfile) return res.status(404).send({ message: 'Doctor profile not found' });
+                    const existingDocs = Array.isArray(doctorProfile.documents) ? doctorProfile.documents : [];
+                    const remaining = existingDocs.filter(d => !deletedPublicIds.includes(d.public_id));
+
+                    // final documents array = remaining + newly uploaded
+                    const finalDocuments = remaining.concat(uploadedDocs || []);
+                    profileFieldsToUpdate.documents = finalDocuments;
+
+                    // Use $push to append documents atomically in DB (avoid local mutation + save race)
+                    // if (!documentsToUpdate.$push) documentsToUpdate.$push = {};
+                    // documentsToUpdate.$push.documents = { $each: uploadedDocs };
+                }
+
+                // Parse text fields present in multipart/form-data (they are strings)
+                if (updates?.user) {
+                    if (updates.user.fullName) userFieldsToUpdate.fullName = updates.user.fullName;
+                    if (updates.user.email) userFieldsToUpdate.email = updates.user.email;
+                }
+                if (updates?.doctorId) profileFieldsToUpdate.doctorId = updates.doctorId; // treat as string
+                if (updates?.specialty) profileFieldsToUpdate.specialty = updates.specialty;
+                // if (updates?.licenseNumber) profileFieldsToUpdate.licenseNumber = updates.licenseNumber;
+                if (updates?.yearsOfExperience) profileFieldsToUpdate.yearsOfExperience = Number(updates.yearsOfExperience);
+                // if (updates?.languages) profileFieldsToUpdate.languages = updates.languages;
+                // if (updates?.education.length > 0) profileFieldsToUpdate.education = updates.education;
+                // if (updates?.clinicAddress)  profileFieldsToUpdate.clinicAddress = updates.clinicAddress; 
+                if (updates?.bio) profileFieldsToUpdate.bio = updates.bio;
+
+
+                // if (deleteImages && Array.isArray(deleteImages) && deleteImages.length > 0) {
+                //     try {
+                //         let deletedPublicIds = [];
+                //         const destroyPromises = deleteImages.map(async (public_id) => {
+                //             await cloudinary.uploader.destroy(public_id);
+                //             deletedPublicIds.push(public_id);
+                //         });
+                //         await Promise.all(destroyPromises);
+
+                //         // Remove from DB documents array by public_id. Use $pull with $in for atomic update
+                //         // if (!documentsToUpdate.$pull) documentsToUpdate.$pull = {};
+                //         // documentsToUpdate.$pull['documents'] = { public_id: { $in: deletedPublicIds } };
+                //     } catch (err) {
+                //         console.warn('Cloudinary destroy error (document):', err);
+
+                //     }
+                // }
+            }
+            // else {
+            //     // --- No file is present, so we are in JSON mode ---
+
+            //     // User fields (are nested in 'user' object)
+            //     if (updates.user) {
+            //         if (updates.user.fullName) userFieldsToUpdate.fullName = updates.user.fullName;
+            //         if (updates.user.email) userFieldsToUpdate.email = updates.user.email;
+            //     }
+
+            //     if (updates.doctorId) profileFieldsToUpdate.doctorId = updates.doctorId;
+            //     if (updates.specialty) profileFieldsToUpdate.specialty = updates.specialty;
+            //     if (updates.licenseNumber) profileFieldsToUpdate.licenseNumber = updates.licenseNumber;
+            //     if (updates.yearsOfExperience) profileFieldsToUpdate.yearsOfExperience = Number(updates.yearsOfExperience);
+            //     if (updates.bio) profileFieldsToUpdate.bio = updates.bio;
+
+
+            // }
+
+
+            const updateDoc = {};
+            if (Object.keys(profileFieldsToUpdate).length > 0) {
+                updateDoc.$set = profileFieldsToUpdate; // if profileFieldsToUpdate is empty, so we don't want to do set values to null in the db
+            }
+            // copy $push/$pull through
+            if (documentsToUpdate.$push) updateDoc.$push = documentsToUpdate.$push;
+            if (documentsToUpdate.$pull) updateDoc.$pull = documentsToUpdate.$pull;
+            // console.log('patientprofileDbId is: ', id);
+            // console.log('doctorid is: ', req.user._id)
+            const [updatedSelfProfile, updatedUser] = await Promise.all([
+                DoctorProfile.findOneAndUpdate(
+                    { user: req.user._id },
+                    updateDoc,
+                    { new: true, runValidators: true } // runValidators is good practice
+                ),
+                User.findByIdAndUpdate(
+                    req.user._id,
+                    { $set: userFieldsToUpdate },
+                    { new: true, runValidators: true } // runValidators is good practice
+                ).select('-password') // IMPORTANT: Don't send the password hash back
+            ]);
+            // console.log('updatedProfile is', updatedProfile);
+
+            if (!updatedSelfProfile) return res.status(404).send({ message: 'Doctor profile not found' });
+            if (!updatedUser) return res.status(404).send({ message: 'User info not found' });
 
             res.status(200).send({
                 profile: updatedSelfProfile,
