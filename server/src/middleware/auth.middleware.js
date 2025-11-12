@@ -108,7 +108,7 @@ export const protectRoom = async (req, res, next) => {
 
         // fetch authoritative user record (ensure req.user is in sync)
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        // console.log("decoded.roomId is: ", decoded.roomId, " and roomId is: ", roomId)
+        console.log("decoded.roomId is: ", decoded.roomId, " and roomId is: ", roomId)
         if (decoded.roomId !== roomId || decoded.userId !== id.toString()) {
             await Promise.all([
                 DoctorProfile.updateMany(

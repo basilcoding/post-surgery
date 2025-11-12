@@ -54,7 +54,7 @@ export default function CreateRoomPage() {
     const handleEnterRoom = async () => {
         if (!roomId) return;
         // await socket.emit("joinRoom", { roomId });
-        navigate(`/doctor/room/${roomId}`);
+        navigate(`/doctor/room/${currentRoomId}`);
     };
 
     return (

@@ -108,8 +108,25 @@ export function initSocket(server) {
         socket.on("endRoom", async ({ roomId, creator, invitee }) => {
             // console.log(`(endRoom Event) Socket ${socket.id} ended room ${roomId}`);
             // io.to(roomId).emit("roomEnded", { roomId });
-            io.to(creator._id.toString()).emit("roomEnded", { roomId });
-            io.to(invitee._id.toString()).emit("roomEnded", { roomId });
+            const cookies = socket.handshake.headers.cookie
+                ? cookie.parse(socket.handshake.headers.cookie)
+                : {};
+            const token = cookies.roomToken; //  read from cookies
+
+            if (!token) {
+                await Promise.all([
+                    DoctorProfile.updateMany(
+                        { currentRoomId: roomId },
+                        { $set: { currentRoomId: null } }
+                    ),
+                    PatientProfile.updateMany(
+                        { currentRoomId: roomId },
+                        { $set: { currentRoomId: null } }
+                    ),
+                ])
+            }
+            io.to(creator?._id.toString()).emit("roomEnded", { roomId });
+            io.to(invitee?._id.toString()).emit("roomEnded", { roomId });
 
             // when the doctor socket emits endRoom the below code will everyone's room id with doctors currentRoomId so when the protectRoom middleware runs, it will fail the check of -->is currentRoomId there in the db?<-- for both doctor and patient, so patient cant enter again once doctor has cancelled the room.
 

@@ -73,7 +73,7 @@ export default function Chatbot() {
                                     {msg.suggestedReplies.map((opt, i) => (
                                         <button
                                             key={i}
-                                            onClick={() => handleSendMessage(opt)}
+                                           onClick={() => handleSendMessage(opt)}
                                             className="text-left px-3 py-2 rounded-lg border border-black-800 bg-white/80 hover:bg-gray-200 shadow-sm hover:cursor-pointer"
                                         >
                                             <span>--{">"}    </span>{opt}

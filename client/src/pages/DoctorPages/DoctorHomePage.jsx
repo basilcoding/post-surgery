@@ -143,7 +143,7 @@ export default function DoctorHomePage() {
         <div className="flex items-center gap-4">
           <div className="avatar">
             <div className="w-14 h-14 rounded-full ring ring-primary ring-offset-base-100 ring-offset-2">
-              <img src={authUser?.image?.url || userProfile?.image?.url || "https://i.pravatar.cc/150?img=55"} alt="doc" />
+              <img src={authUser?.profilePic || userProfile?.image?.url || "https://i.pravatar.cc/150?img=55"} alt="doc" />
             </div>
           </div>
           <div>
@@ -306,7 +306,7 @@ export default function DoctorHomePage() {
                         <div className="text-xs opacity-60">Surgery: {r.surgeryName || '—'}</div>
                       </div>
                       <div className="flex items-center gap-2">
-                        <button className="btn btn-ghost btn-sm" onClick={() => navigate(`/doctor/patient/${r.patient}`)}>View</button>
+                        <button className="btn btn-ghost btn-sm" onClick={() => navigate(`/doctor/relationships/${r._id}`)}>View</button>
                         <div className="dropdown dropdown-end">
                           <label tabIndex={0} className="btn btn-ghost btn-sm">More</label>
                           <ul tabIndex={0} className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-44">
@@ -327,16 +327,16 @@ export default function DoctorHomePage() {
           <div className="card p-4 w-full">
             <div className="flex items-center gap-2">
               <div className="avatar">
-                <div className="w-12 h-12 rounded-full"><img src={authUser?.image?.url || userProfile?.image?.url || 'https://i.pravatar.cc/80'} alt="me" /></div>
+                <div className="w-12 h-12 rounded-full"><img src={authUser?.profilePic || userProfile?.image?.url || 'https://i.pravatar.cc/80'} alt="me" /></div>
               </div>
               <div>
                 <div className="font-semibold">Profile</div>
-                <div className="text-xs opacity-60">{userProfile?.yearsOfExperience || 0} yrs • {userProfile?.languages?.join(', ') || '—'}</div>
+                <div className="text-xs opacity-60">Experience: {userProfile?.yearsOfExperience || 0} yrs</div>
               </div>
             </div>
             <div className="mt-4 flex gap-2">
-              <button className="btn btn-sm" onClick={() => navigate('/doctor/profile')}>Edit Profile</button>
-              <button className="btn btn-ghost btn-sm" onClick={() => navigate('/doctor/settings')}>Settings</button>
+              <button className="btn btn-sm" onClick={() => navigate('/doctor/update-profile')}>Edit Profile</button>
+              {/* <button className="btn btn-ghost btn-sm" onClick={() => navigate('/doctor/settings')}>Settings</button> */}
             </div>
           </div>
         </div>

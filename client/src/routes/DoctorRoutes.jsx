@@ -38,7 +38,7 @@ export default function DoctorRoutes() {
             <Route path="create-care-check-list" element={<CreateCareCheckListPage />} />
             <Route path="care-check-list/:careCheckListId" element={<UpdateCareCheckListPage />} />
             <Route path="relationships/:relationshipId" element={<ViewIndividualPatient />} />
-            <Route path='room/:roomId' element={<ShowAllCareCheckListsPage />} />
+            <Route path='room/:roomId' element={<ChatRoom />} />
         </Route>
     )
 }

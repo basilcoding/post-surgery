@@ -175,8 +175,8 @@ export const getSummariesById = async (req, res) => {
                     { path: "deliveredTo.doctor", select: 'fullName' },
                     { path: "deliveredTo.doctorProfile", select: 'doctorId' },
                     { path: "assignedDoctorProfile", select: "doctorId" },
-                    { path: "user", select: "fullName"},
-                    { path: "patient", select: "patientId"},
+                    { path: "user", select: "fullName" },
+                    { path: "patient", select: "patientId" },
                 ]);
 
             if (!summary) return res.status(404).json({ message: "Requested Summary Not found!" });
@@ -239,12 +239,12 @@ export const updateSummaryById = async (req, res) => {
 
             const summaryId = req.params.id;
             const { deleteImages } = req.body;
-
-            const now = new Date();
-            const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            console.log('summaryId is: ', summaryId)
+            // const now = new Date();
+            // const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
             // fetch summary
-            const botSummary = await BotSummary.findOne({ user: req.user._id, _id: summaryId, createdAt: { $gte: startOfToday } });
+            const botSummary = await BotSummary.findOne({ user: req.user._id, _id: summaryId });
             if (!botSummary) return res.status(404).json({ message: "No summaries made Today!" });
 
 
@@ -281,6 +281,7 @@ export const updateSummaryById = async (req, res) => {
 
 
             // Handle new uploads
+            // console.log(req.files)
             if (req.files?.surgerySiteImages?.length > 0) {
                 const uploadPromises = req.files.surgerySiteImages.map(async (f) => {
                     const file = new File([f.buffer], f.originalname, { type: f.mimetype });

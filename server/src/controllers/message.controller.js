@@ -20,7 +20,7 @@ export const sendMessage = async (req, res) => {
         const { text, receiverId } = req.body; // receiverId comes from frontend
         const { roomId } = req.params;
         const senderId = req.user._id;
-
+        console.log('imageUrl is: ', req.file);
         let imageUrl;
         if (req.file) {
             const uploadResponse = await cloudinary.uploader.upload(req.file.path, {
@@ -46,7 +46,7 @@ export const sendMessage = async (req, res) => {
 
         res.status(201).json(newMessage);
     } catch (err) {
-        console.error("Error in sendMessage:", err.message);
+        console.error("Error in sendMessage:", err);
         res.status(500).json({ message: "Internal Server Error" });
     }
 };
