@@ -10,10 +10,5 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
-  "dependencies": {
-    "date-fns": "^4.1.0",
-    "nodemailer": "^7.0.10",
-    "pinata": "^2.5.1"
-  }
+  "type": "commonjs"
 }
