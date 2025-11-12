@@ -153,6 +153,7 @@ export const useSummaryStore = create((set, get) => ({
                 underReviewSummaries: summaries.underReviewSummaries || [],
                 resolvedSummaries: summaries.resolvedSummaries || [],
             })
+            toast.success("Status updated");
         } catch (err) {
             toast.error("Failed to load all summaries");
             set({ newSummaries: [], underReviewSummaries: [], resolvedSummaries: [] })
@@ -238,6 +239,7 @@ export const useSummaryStore = create((set, get) => ({
         try {
             const res = await axiosInstance.patch(`/summaries/${summaryId}`, formData);
             set({ selectedSummary: res.data.summary })
+            toast.success("Images updated");
             // set((prev) => {
             //     return { ...prev.selectedSummary, ...res.data.summary }
             // })

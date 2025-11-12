@@ -95,7 +95,7 @@ export default function DoctorJournalPage() {
     try {
       await changeStatus(summaryId, targetStatus);
       await fetchSummaries("");
-      toast.success("Status updated");
+      // toast.success("Status updated");
     } catch (err) {
       console.error(err);
       toast.error("Failed to update status");

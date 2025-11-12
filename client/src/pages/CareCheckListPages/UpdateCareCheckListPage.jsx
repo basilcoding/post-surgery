@@ -209,7 +209,7 @@ export default function UpdateCareCheckListPage() {
 
     try {
       await updateCareCheckListById(careCheckListId, payload);
-      toast.success(saveAsNewVersion ? "Checklist saved as new version" : "Checklist updated Successfully");
+      // toast.success(saveAsNewVersion ? "Checklist saved as new version" : "Checklist updated Successfully");
       setConfirmOpen(false);
       navigate("/doctor/care-check-lists");
     } catch (err) {

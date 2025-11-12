@@ -115,7 +115,7 @@ export default function ViewSelectedSummaryPage() {
             // Call only the zustand store function which sends the multipart request
             await updateSurgeryImages(formData, summaryId);
 
-            toast.success("Images updated");
+            // toast.success("Images updated");
 
             // refresh the summary in the store
             await getSummaryById(summaryId);

@@ -43,6 +43,7 @@ export const useCareCheckListStore = create((set, get) => ({
         try {
             const res = await axiosInstance.patch(`/care-check-lists/${careCheckListId}`, formData);
             set({ selectedCareCheckList: res.data })
+            toast.success("Checklist updated Successfully");
         } catch (error) {
             console.log("Error occured in getCareCheckLists zustand store: ", error);
         }

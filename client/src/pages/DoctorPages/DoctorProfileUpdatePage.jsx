@@ -246,8 +246,6 @@ export default function DoctorProfileUpdatePage() {
                 if (res.user.profilePic) {
                     setForm(prev => ({ ...prev, profilePicPreview: res.user.profilePic }));
                 }
-            } else {
-                toast.success("Profile updated.");
             }
         } catch (err) {
             console.error("Doctor profile update error:", err);
