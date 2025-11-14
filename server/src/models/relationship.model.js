@@ -23,7 +23,8 @@ const relationshipSchema = new mongoose.Schema({
         type: String,
     },
     surgeryIdentifier: {
-        type: String,
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "CareCheckList" 
     },
     careType: { // Type of care or clinical context for this doctor-patient relationship
         type: String,

@@ -29,7 +29,9 @@ export const useProfileStore = create((set, get) => ({
                 useChatStore.getState().setSelectedUserAndCurrentRoomId(otherUser, roomId);
             }
         } catch (error) {
-            console.error(error.response?.data?.message || error);
+            console.error(error?.response?.data?.message || error);
+            toast.error(error?.response?.data?.message);
+
             // If this fails, clear any potentially stale chat state
             useChatStore.getState().clearChat();
         }
@@ -56,6 +58,7 @@ export const useProfileStore = create((set, get) => ({
         const { authUser } = useAuthStore.getState();
         const res = await axiosInstance.patch(`/profiles/me/`, formData);
         // console.log('The returned res object of updateSelfProfile function is: ', res.data);
+        toast.success("Profile updated successfully.");
         return res.data;
     },
 

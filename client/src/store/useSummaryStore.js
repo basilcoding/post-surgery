@@ -153,7 +153,7 @@ export const useSummaryStore = create((set, get) => ({
                 underReviewSummaries: summaries.underReviewSummaries || [],
                 resolvedSummaries: summaries.resolvedSummaries || [],
             })
-            toast.success("Status updated");
+            // toast.success("Fetched Summaries");
         } catch (err) {
             toast.error("Failed to load all summaries");
             set({ newSummaries: [], underReviewSummaries: [], resolvedSummaries: [] })

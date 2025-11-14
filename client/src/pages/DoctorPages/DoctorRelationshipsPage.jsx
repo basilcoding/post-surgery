@@ -48,7 +48,7 @@ export default function DoctorRelationshipsPage() {
 
         if (q) {
             list = list.filter((r) => {
-                const patientName = r.patientProfile?.name || r.patient?.name || '';
+                const patientName = r.patientProfile?.name || r.patient?.fullName || '';
                 return (
                     patientName.toLowerCase().includes(q) ||
                     (r.surgeryName || '').toLowerCase().includes(q) ||

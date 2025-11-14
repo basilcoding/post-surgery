@@ -45,6 +45,13 @@ const Navbar = ({ }) => {
                                                     activeView={viewType}
                                                     selectedOption={(value) => setViewType(value)}
                                                 />
+                                                {/* <SidebarOption
+                            label="Worried About a Symptom?"
+                            to="/patient/symptom-concern"
+                            value='symptom-concern'
+                            activeView={viewType}
+                            selectedOption={(value) => setViewType(value)}
+                        /> */}
                                                 <SidebarOption
                                                     label="All Journals"
                                                     to="/patient/view-journals"
@@ -63,6 +70,13 @@ const Navbar = ({ }) => {
                                                     label="Update Your Profile"
                                                     to="/patient/update-profile"
                                                     value='update-profile'
+                                                    activeView={viewType}
+                                                    selectedOption={(value) => setViewType(value)}
+                                                />
+                                                <SidebarOption
+                                                    label="Appointments"
+                                                    to="/patient/appointments"
+                                                    value='appointments'
                                                     activeView={viewType}
                                                     selectedOption={(value) => setViewType(value)}
                                                 />
@@ -106,6 +120,28 @@ const Navbar = ({ }) => {
                                                     label="Your Patients"
                                                     to="/doctor/related-patients"
                                                     value='related-patients'
+                                                    activeView={viewType}
+                                                    selectedOption={(value) => setViewType(value)}
+                                                />
+                                                <SidebarOption
+                                                    label="Care Check Lists"
+                                                    to="/doctor/care-check-lists"
+                                                    value='care-check-lists'
+                                                    activeView={viewType}
+                                                    selectedOption={(value) => setViewType(value)}
+                                                />
+
+                                                <SidebarOption
+                                                    label="Your Profile"
+                                                    to="/doctor/update-profile"
+                                                    value='update-profile'
+                                                    activeView={viewType}
+                                                    selectedOption={(value) => setViewType(value)}
+                                                />
+                                                <SidebarOption
+                                                    label="Appointments"
+                                                    to="/doctor/appointments"
+                                                    value='appointments'
                                                     activeView={viewType}
                                                     selectedOption={(value) => setViewType(value)}
                                                 />

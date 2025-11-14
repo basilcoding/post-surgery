@@ -18,6 +18,7 @@ import relationshipRoutes from './routes/relationships.route.js';
 import patientRoutes from './routes/patient.route.js';
 import profileRoutes from './routes/profile.route.js';
 import careCheckListRoutes from './routes/careCheckList.route.js'
+import appointmentRoutes from './routes/appointment.route.js'
 
 dotenv.config();
 
@@ -45,6 +46,7 @@ app.use('/api/relationships', relationshipRoutes);
 app.use('/api/patients', patientRoutes);
 app.use('/api/profiles', profileRoutes);
 app.use('/api/care-check-lists', careCheckListRoutes);
+app.use('/api/appointments', appointmentRoutes);
 
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
