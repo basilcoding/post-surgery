@@ -2,6 +2,7 @@ import User from '../models/user.model.js';
 import bcrypt from 'bcryptjs';
 import cloudinary from '../lib/cloudinary.js';
 import fs from 'fs';
+import mongoose from 'mongoose';
 
 import Relationship from "../models/relationship.model.js";
 import DoctorProfile from '../models/doctorProfile.model.js';
@@ -95,21 +96,50 @@ export const updateCareCheckListById = async (req, res) => {
 
 
 export const deleteCareCheckListById = async (req, res) => {
+    const session = await mongoose.startSession();
+    session.startTransaction();
     try {
         // delete all carechecklists related to the doctors field only
         const { id } = req.params;
         if (req.user.role === 'doctor') {
             // doctor deleting lists starts here <---------------------------------------------
 
-            const profile = await DoctorProfile.findOne({ user: req.user._id });
-            const careCheckList = await CareCheckList.findOneAndDelete({ _id: id, relatedSpecialty: profile.specialty })
-            if (!careCheckList) return res.status(404).json({ message: 'No Care Check Lists found!' });
+            const profile = await DoctorProfile.findOne({ user: req.user._id }).session(session);;
+            if (!profile) {
+                await session.abortTransaction();
+                session.endSession();
+                return res.status(404).json({ message: "Doctor profile not found" });
+            }
 
+            const careCheckList = await CareCheckList.findOneAndDelete(
+                { _id: id, relatedSpecialty: profile.specialty },
+                { session }
+            )
+            if (!careCheckList) {
+                await session.abortTransaction();
+                session.endSession();
+                return res.status(404).json({ message: "No Care Check Lists found!" });
+            }
+
+            const identifier = careCheckList?.identifier || null;
+            if (identifier) {
+                // 1) Exact match (fast)
+                const resExact = await Relationship.updateMany(
+                    { surgeryIdentifier: identifier },
+                    { $unset: { surgeryIdentifier: "" } },
+                    { session }
+                );
+            }
+
+            await session.commitTransaction();
+            session.endSession();
             return res.status(200).json({ message: 'Deleted Care Check List Successfully!' });
             // doctor deleting lists ENDS HERE <---------------------------------------------
 
         }
     } catch (error) {
+        await session.abortTransaction();
+        session.endSession();
         console.log("An Error occured in deleteCareCheckListById controller: ", error);
         res.status(500).json({ message: "Internal Server Error!" })
     }

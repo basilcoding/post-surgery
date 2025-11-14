@@ -25,6 +25,8 @@ import { useAuthStore } from "../../store/useAuthStore";
  * Immutable UI for: languages, education, hospital address (clinicAddress still sent to backend).
  */
 
+const WEEKDAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
 export default function DoctorProfileUpdatePage() {
     const navigate = useNavigate();
     const { userProfile, setUpdatedProfile, updateSelfProfile } = useProfileStore();
@@ -38,7 +40,7 @@ export default function DoctorProfileUpdatePage() {
         email: "",
         doctorId: "",
         specialty: "",
-        licenseNumber: "",
+        // licenseNumber: "",
         yearsOfExperience: 0,
         bio: "",
         profilePicFile: null,
@@ -48,6 +50,7 @@ export default function DoctorProfileUpdatePage() {
         languages: [],
         documentsMeta: [], // existing docs from server
         documentFiles: [], // new files to upload
+        workingSlots: [] // [{ day: 0..6, slots: ["HH:mm"] }]
     });
 
     const [errors, setErrors] = useState({});
@@ -55,6 +58,9 @@ export default function DoctorProfileUpdatePage() {
     useEffect(() => {
         if (!userProfile) return;
         const user = authUser || {};
+        // Normalize workingSlots from profile or create an empty template for 7 days
+        const existingWorking = Array.isArray(userProfile.workingSlots) ? userProfile.workingSlots : [];
+        // Ensure workingSlots has entries only for days that exist in profile; we keep as-is
         setForm({
             fullName: user.fullName || "",
             email: user.email || "",
@@ -70,6 +76,10 @@ export default function DoctorProfileUpdatePage() {
             languages: userProfile.languages ? structuredClone(userProfile.languages) : [],
             documentsMeta: userProfile.documents ? structuredClone(userProfile.documents) : [],
             documentFiles: [],
+            workingSlots: existingWorking.map(w => ({
+                day: typeof w.day === "number" ? w.day : null,
+                slots: Array.isArray(w.slots) ? w.slots.map(s => String(s)) : []
+            }))
         });
         setErrors({});
         setDeleteImages([]);
@@ -94,7 +104,7 @@ export default function DoctorProfileUpdatePage() {
 
         if (!form.doctorId || String(form.doctorId).trim() === "") e.doctorId = "Doctor ID is required.";
         if (!form.specialty || String(form.specialty).trim() === "") e.specialty = "Specialty is required.";
-        if (!form.licenseNumber || String(form.licenseNumber).trim() === "") e.licenseNumber = "License number is required.";
+        // if (!form.licenseNumber || String(form.licenseNumber).trim() === "") e.licenseNumber = "License number is required.";
 
         if (typeof form.yearsOfExperience !== "undefined" && form.yearsOfExperience !== null && form.yearsOfExperience !== "") {
             if (!isNonNegativeInteger(form.yearsOfExperience)) e.yearsOfExperience = "Years of experience should be a non-negative integer.";
@@ -106,11 +116,130 @@ export default function DoctorProfileUpdatePage() {
             }
         });
 
+        // Basic validation on workingSlots: any enabled day must have at least one slot
+        const wsErrors = [];
+        (form.workingSlots || []).forEach((w, i) => {
+            if (w && Array.isArray(w.slots) && w.slots.length === 0) {
+                wsErrors.push(`If day ${w.day} is enabled it should have at least one slot.`);
+            }
+        });
+        if (wsErrors.length) e.workingSlots = wsErrors.join(" ");
+
         setErrors(e);
         return Object.keys(e).length === 0;
     }
 
-    // For immutable arrays/objects we still need getter functions for display but no setters.
+    // Working slots helpers (array-only logic)
+    function getSlotsForDay(day) {
+        const found = (form.workingSlots || []).find(w => w.day === day);
+        return found ? [...found.slots] : [];
+    }
+
+    function toggleDayEnabled(day) {
+        setForm(prev => {
+            const arr = Array.isArray(prev.workingSlots) ? [...prev.workingSlots] : [];
+            const idx = arr.findIndex(w => w.day === day);
+            if (idx === -1) {
+                // enable with one empty default slot
+                arr.push({ day, slots: ["09:00"] });
+            } else {
+                // disable: remove entry
+                arr.splice(idx, 1);
+            }
+            // keep order by day for predictability
+            arr.sort((a, b) => (a.day == null ? 7 : a.day) - (b.day == null ? 7 : b.day));
+            return { ...prev, workingSlots: arr };
+        });
+    }
+
+    // New: toggle single slot selection (adds/removes hh:mm in workingSlots for day)
+    function toggleSlotForDay(day, hhmm) {
+        setForm(prev => {
+            const arr = Array.isArray(prev.workingSlots) ? prev.workingSlots.map(w => ({ ...w, slots: Array.isArray(w.slots) ? [...w.slots] : [] })) : [];
+            let entry = arr.find(w => w.day === day);
+            if (!entry) {
+                entry = { day, slots: [] };
+                arr.push(entry);
+            }
+            const idx = entry.slots.findIndex(s => s === hhmm);
+            if (idx === -1) {
+                entry.slots.push(hhmm);
+            } else {
+                entry.slots.splice(idx, 1);
+            }
+            // if no slots left, remove entry entirely
+            if (!entry.slots.length) {
+                const eidx = arr.findIndex(w => w.day === day);
+                if (eidx !== -1) arr.splice(eidx, 1);
+            }
+            // keep order
+            arr.sort((a, b) => (a.day == null ? 7 : a.day) - (b.day == null ? 7 : b.day));
+            return { ...prev, workingSlots: arr };
+        });
+    }
+
+    // helper to check whether a slot is selected
+    function isSlotSelected(day, hhmm) {
+        const slots = getSlotsForDay(day);
+        return slots.includes(hhmm);
+    }
+
+    // helper to generate badges from 09:00 to 17:00 in 30-min steps
+    function generateDayBadges(start = "09:00", end = "17:00", stepMins = 30) {
+        const [sh, sm] = start.split(":").map(Number);
+        const [eh, em] = end.split(":").map(Number);
+        const startMinutes = sh * 60 + sm;
+        const endMinutes = eh * 60 + em;
+        const badges = [];
+        for (let t = startMinutes; t < endMinutes; t += stepMins) {
+            const hh = Math.floor(t / 60);
+            const mm = t % 60;
+            const hhmm = `${String(hh).padStart(2, "0")}:${String(mm).padStart(2, "0")}`;
+            badges.push(hhmm);
+        }
+        return badges;
+    }
+
+    // keep legacy helpers (unused elsewhere)
+    function addSlotForDay(day) {
+        setForm(prev => {
+            const arr = Array.isArray(prev.workingSlots) ? [...prev.workingSlots] : [];
+            let entry = arr.find(w => w.day === day);
+            if (!entry) {
+                entry = { day, slots: [] };
+                arr.push(entry);
+            }
+            entry.slots = Array.isArray(entry.slots) ? [...entry.slots, "09:00"] : ["09:00"];
+            return { ...prev, workingSlots: arr };
+        });
+    }
+
+    function updateSlotForDay(day, index, value) {
+        // ensure hh:mm formatting is not enforced here, caller provides string
+        setForm(prev => {
+            const arr = Array.isArray(prev.workingSlots) ? prev.workingSlots.map(w => ({ ...w, slots: Array.isArray(w.slots) ? [...w.slots] : [] })) : [];
+            const entry = arr.find(w => w.day === day);
+            if (!entry) return prev;
+            entry.slots[index] = value;
+            return { ...prev, workingSlots: arr };
+        });
+    }
+
+    function removeSlotForDay(day, index) {
+        setForm(prev => {
+            const arr = Array.isArray(prev.workingSlots) ? prev.workingSlots.map(w => ({ ...w, slots: Array.isArray(w.slots) ? [...w.slots] : [] })) : [];
+            const entry = arr.find(w => w.day === day);
+            if (!entry) return prev;
+            entry.slots.splice(index, 1);
+            // if empty after removal, remove the day entry entirely
+            if (!entry.slots.length) {
+                const idx = arr.findIndex(w => w.day === day);
+                if (idx !== -1) arr.splice(idx, 1);
+            }
+            return { ...prev, workingSlots: arr };
+        });
+    }
+
     function updateArray(path, index, key, value) {
         // kept for other editable arrays if needed (not used for education/languages because they're immutable)
         setForm((prev) => {
@@ -203,6 +332,7 @@ export default function DoctorProfileUpdatePage() {
             languages: form.languages,
             documentsMeta: form.documentsMeta,
             deleteImages, // array of public_ids to be deleted on server
+            workingSlots: form.workingSlots // <-- include workingSlots here
         };
     }
 
@@ -241,7 +371,7 @@ export default function DoctorProfileUpdatePage() {
                 // Clear staged files on success
                 setForm(prev => ({ ...prev, profilePicFile: null, documentFiles: [] }));
 
-                toast.success("Profile updated successfully.");
+                // toast.success("Profile updated successfully.");
 
                 if (res.user.profilePic) {
                     setForm(prev => ({ ...prev, profilePicPreview: res.user.profilePic }));
@@ -444,6 +574,67 @@ export default function DoctorProfileUpdatePage() {
                                 {Object.values(errors).slice(0, 4).map((err, i) => (<div key={i}>{err}</div>))}
                             </div>
                         </div>
+                    </div>
+                </section>
+
+                {/* Working Slots: new UI */}
+                <section className="card bg-base-100 shadow p-4">
+                    <div className="flex items-center justify-between mb-2">
+                        <h2 className="text-lg font-medium">Working hours</h2>
+                        <div className="text-xs text-muted">Select days and add time slots</div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {/* Render a panel per weekday */}
+                        {WEEKDAY_LABELS.map((label, idx) => {
+                            const slots = getSlotsForDay(idx);
+                            const enabled = slots.length > 0;
+                            const badges = generateDayBadges("09:00", "17:00", 30);
+                            return (
+                                <div key={idx} className="p-3 border rounded bg-base-50">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <div className="flex items-center gap-3">
+                                            <input
+                                                type="checkbox"
+                                                checked={enabled}
+                                                onChange={() => toggleDayEnabled(idx)}
+                                                className="checkbox"
+                                            />
+                                            <div className="font-medium">{label}</div>
+                                        </div>
+
+                                        <div className="text-xs text-muted">{enabled ? `${slots.length} slot(s)` : "disabled"}</div>
+                                    </div>
+
+                                    {enabled ? (
+                                        <>
+                                            <div className="grid grid-cols-4 gap-2">
+                                                {badges.map((hhmm) => {
+                                                    const sel = isSlotSelected(idx, hhmm);
+                                                    return (
+                                                        <button
+                                                            key={hhmm}
+                                                            type="button"
+                                                            onClick={() => toggleSlotForDay(idx, hhmm)}
+                                                            className={`cursor-pointer px-2 py-1 badge text-sm transition-all text-center w-[75%] ${sel ? "badge-primary text-white" : "bg-base-100 text-base-content border-base-200"}`}
+                                                        >
+                                                            {hhmm}
+                                                        </button>
+                                                    );
+                                                })}
+                                            </div>
+                                        </>
+                                    ) : (
+                                        <div className="text-sm text-muted">Enable day to add slots.</div>
+                                    )}
+                                </div>
+                            );
+                        })}
+                    </div>
+
+                    {/* small hint */}
+                    <div className="mt-3 text-xs text-muted">
+                        Slots should be selected from the badges (09:00–16:30). They represent the slot start time in your local timezone.
                     </div>
                 </section>
 

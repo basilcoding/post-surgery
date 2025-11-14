@@ -16,6 +16,7 @@ import CreateCareCheckListPage from "../pages/CareCheckListPages/CreateCareCheck
 import UpdateCareCheckListPage from "../pages/CareCheckListPages/UpdateCareCheckListPage.jsx";
 import DoctorViewSummaryPage from "../pages/DoctorPages/DoctorViewSelectedSummaryPage.jsx";
 import DoctorProfileUpdatePage from "../pages/DoctorPages/DoctorProfileUpdatePage.jsx";
+import DoctorAppointmentPage from "../pages/DoctorPages/DoctorAppointmentPage.jsx";
 
 export default function DoctorRoutes() {
 
@@ -38,8 +39,9 @@ export default function DoctorRoutes() {
             <Route path="create-care-check-list" element={<CreateCareCheckListPage />} />
             <Route path="care-check-list/:careCheckListId" element={<UpdateCareCheckListPage />} />
             <Route path="relationships/:relationshipId" element={<ViewIndividualPatient />} />
+            <Route path="appointments" element={<DoctorAppointmentPage />} />
             <Route path='room/:roomId' element={<ChatRoom />} />
-        </Route>
+        </Route >
     )
 }
 

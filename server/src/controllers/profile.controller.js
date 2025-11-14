@@ -361,43 +361,10 @@ export const updateSelfProfile = async (req, res) => {
                 // if (updates?.education.length > 0) profileFieldsToUpdate.education = updates.education;
                 // if (updates?.clinicAddress)  profileFieldsToUpdate.clinicAddress = updates.clinicAddress; 
                 if (updates?.bio) profileFieldsToUpdate.bio = updates.bio;
+                if (updates.workingSlots) profileFieldsToUpdate.workingSlots = updates.workingSlots;
 
-
-                // if (deleteImages && Array.isArray(deleteImages) && deleteImages.length > 0) {
-                //     try {
-                //         let deletedPublicIds = [];
-                //         const destroyPromises = deleteImages.map(async (public_id) => {
-                //             await cloudinary.uploader.destroy(public_id);
-                //             deletedPublicIds.push(public_id);
-                //         });
-                //         await Promise.all(destroyPromises);
-
-                //         // Remove from DB documents array by public_id. Use $pull with $in for atomic update
-                //         // if (!documentsToUpdate.$pull) documentsToUpdate.$pull = {};
-                //         // documentsToUpdate.$pull['documents'] = { public_id: { $in: deletedPublicIds } };
-                //     } catch (err) {
-                //         console.warn('Cloudinary destroy error (document):', err);
-
-                //     }
-                // }
             }
-            // else {
-            //     // --- No file is present, so we are in JSON mode ---
 
-            //     // User fields (are nested in 'user' object)
-            //     if (updates.user) {
-            //         if (updates.user.fullName) userFieldsToUpdate.fullName = updates.user.fullName;
-            //         if (updates.user.email) userFieldsToUpdate.email = updates.user.email;
-            //     }
-
-            //     if (updates.doctorId) profileFieldsToUpdate.doctorId = updates.doctorId;
-            //     if (updates.specialty) profileFieldsToUpdate.specialty = updates.specialty;
-            //     if (updates.licenseNumber) profileFieldsToUpdate.licenseNumber = updates.licenseNumber;
-            //     if (updates.yearsOfExperience) profileFieldsToUpdate.yearsOfExperience = Number(updates.yearsOfExperience);
-            //     if (updates.bio) profileFieldsToUpdate.bio = updates.bio;
-
-
-            // }
 
 
             const updateDoc = {};

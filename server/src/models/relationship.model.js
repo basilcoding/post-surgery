@@ -23,11 +23,12 @@ const relationshipSchema = new mongoose.Schema({
         type: String,
     },
     surgeryIdentifier: {
-        type: String,
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "CareCheckList" 
     },
     careType: { // Type of care or clinical context for this doctor-patient relationship
         type: String,
-        enum: ['cardiology', 'general', 'psychiatry'],
+        enum: ['cardiology', 'general', 'psychiatry', 'orthopedics'],
         required: true
     },
     status: {
