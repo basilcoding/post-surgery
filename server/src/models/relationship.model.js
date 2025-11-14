@@ -27,7 +27,7 @@ const relationshipSchema = new mongoose.Schema({
     },
     careType: { // Type of care or clinical context for this doctor-patient relationship
         type: String,
-        enum: ['cardiology', 'general', 'psychiatry'],
+        enum: ['cardiology', 'general', 'psychiatry', 'orthopedics'],
         required: true
     },
     status: {
@@ -37,10 +37,10 @@ const relationshipSchema = new mongoose.Schema({
     },
     notes: { type: String, default: "" },
     assignedAt: { type: Date, default: Date.now },
-}, 
-{
-    strict: true,
-}
+},
+    {
+        strict: true,
+    }
 );
 
 // Automatically ignore inactive (status: false)
@@ -73,7 +73,7 @@ relationshipSchema.index(
 );
 
 relationshipSchema.index(
-    { doctorProfile: 1},
+    { doctorProfile: 1 },
     { partialFilterExpression: { status: true } } // Create an index on doctor and patient that is only for documents where status is true.
 );
 
