@@ -1,5 +1,10 @@
 import mongoose from "mongoose";
 
+const workingSlotsSchema = new mongoose.Schema({
+    day: { type: Number },      // 0=Sunday..6=Saturday
+    slots: [{ type: String }]   // ["09:00", "09:30", ...]
+})
+
 const clinicAddressSchema = new mongoose.Schema({
     street: { type: String, trim: true },
     city: { type: String, trim: true },
@@ -35,19 +40,19 @@ const doctorProfileSchema = new mongoose.Schema({
     yearsOfExperience: {
         type: Number,
         min: 0,
-        default: 0 
+        default: 0
     },
     bio: {
         type: String,
         maxlength: 500,
-        trim: true 
+        trim: true
     },
     currentRoomId: {
         type: String,
         default: null,
     },
     clinicAddress: {
-        type: clinicAddressSchema, 
+        type: clinicAddressSchema,
     },
     education: [
         {
@@ -67,6 +72,9 @@ const doctorProfileSchema = new mongoose.Schema({
         type: [String],
         default: []
     },
+    workingSlots: [workingSlotsSchema],
+    defaultSlotDurationMins: { type: Number, default: 30 },
+    timezone: { type: String, default: 'UTC' }, // e.g. 'Asia/Kolkata'
 }, { timestamps: true }); // Automatically adds createdAt and updatedAt fields
 
 export default mongoose.model("DoctorProfile", doctorProfileSchema);
