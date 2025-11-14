@@ -43,7 +43,7 @@ const MessageInput = () => {
         try {
             const formData = new FormData();
             formData.append('text', text);
-            formData.append('receiverId', selectedUser._id); // ✅ store receiverId
+            formData.append('receiverId', selectedUser._id); // store receiverId
             if (file) {
                 formData.append('image', file);
             }

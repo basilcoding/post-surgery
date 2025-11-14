@@ -1,4 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+
 import { useAuthStore } from "../../store/useAuthStore";
 import { useChatbotStore } from "../../store/useChatbotStore";
 
@@ -9,6 +11,7 @@ export default function JournalbotPage() {
     const [userId] = useState(authUser?._id);
     const [input, setInput] = useState("");
     const messagesEndRef = useRef(null);
+    const navigate = useNavigate();
 
     const { messages, getChatbotMessages, sendMessage, isLoading, connectChatbotSocketListeners, disconnectChatbotSocketListeners } = useChatbotStore();
 
@@ -51,10 +54,10 @@ export default function JournalbotPage() {
                 </div>
                 <div className="flex items-center gap-3">
                     <button
-                        className="text-sm px-3 py-2 rounded-lg bg-gray-800/30 text-white"
-                        onClick={() => { }}
+                        className="cursor-pointer text-sm px-3 py-2 rounded-lg bg-gray-800/30 text-white"
+                        onClick={() => { navigate('/patient/view-journals')}}
                     >
-                        Chat option
+                        Upload Image After Finishing Your Journal
                     </button>
                 </div>
             </div>
@@ -125,21 +128,16 @@ export default function JournalbotPage() {
                 >
                     Send
                 </button> */}
+
                 <button
-                    type="button"
-                    className={`hidden sm:flex btn btn-circle `}
+                    type="submit"
+                    className="btn btn-lg btn-circle"
+                    onClick={() => handleSendMessage(input)}
                 >
-                    <Image size={20} />
+                    <Send size={22} />
                 </button>
-                <button
-                type="submit"
-                className="btn btn-lg btn-circle"
-                onClick={() => handleSendMessage(input)}
-            >
-                <Send size={22} />
-            </button>
             </div>
-            
+
         </div >
     );
 

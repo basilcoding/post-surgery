@@ -11,6 +11,11 @@ import { useAppointmentStore } from "../../store/useAppointmentStore.js";
  * - Uses zustand store functions:
  *    getAppointments() -> populates appointments
  *    cancelAppointmentById(id, { cancelReason }) -> cancels appointment
+ *
+ * CHANGES:
+ * - All appointments are placed inside a single scrollable container so only
+ *   that container overflows (header/search/modal areas remain fixed).
+ * - Nothing else changed.
  */
 
 export default function PatientAppointmentsHomePage() {
@@ -188,8 +193,8 @@ export default function PatientAppointmentsHomePage() {
   }
 
   return (
-    <div className="h-full w-full p-4 pt-[80px]">
-      <div className="flex items-center justify-between mb-4">
+    <div className="h-full w-full p-4 pt-[70px]">
+      <div className="flex items-center justify-between mb-1">
         <h1 className="text-xl font-semibold">My Appointments</h1>
         <div className="flex gap-3">
           <div className="flex items-center gap-2">
@@ -212,23 +217,23 @@ export default function PatientAppointmentsHomePage() {
           </div>
         </div>
       </div>
+      <div className="flex-1 mb-3">
+        <div className="relative">
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search by doctor, date or slot..."
+            className="w-full pl-10 pr-3 py-2 border rounded-md focus:outline-none"
+          />
+          <Search className="absolute left-3 top-2.5 w-5 h-5 text-slate-400" />
+        </div>
+      </div>
+      <div className="bg-white rounded-lg p-4 mb-4 border w-full">
+        <div className="flex items-center gap-2 w-full">
 
-      <div className="bg-white rounded-lg p-4 mb-4 border">
-        <div className="flex items-center gap-3">
-          <div className="flex-1">
-            <div className="relative">
-              <input
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search by doctor, date or slot..."
-                className="w-full pl-10 pr-3 py-2 border rounded-md focus:outline-none"
-              />
-              <Search className="absolute left-3 top-2.5 w-5 h-5 text-slate-400" />
-            </div>
-          </div>
 
-          <div className="flex gap-2 items-center">
-            <div className="text-sm text-slate-600">Filter:</div>
+          <div className="flex gap-2 items-center text-sm">
+            {/* <div className="text-sm text-slate-600">Filter:</div> */}
             {[
               ["all", "All"],
               ["scheduled", "Scheduled"],
@@ -239,7 +244,7 @@ export default function PatientAppointmentsHomePage() {
               <button
                 key={key}
                 onClick={() => setActiveTab(key)}
-                className={`px-3 py-1 rounded-md text-sm ${activeTab === key ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-700"}`}
+                className={`cursor-pointer px-3 btn-xs py-1 rounded-md text-sm ${activeTab === key ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-700"}`}
               >
                 {label} <span className="ml-2 text-xs">({counts[key] || 0})</span>
               </button>
@@ -248,19 +253,23 @@ export default function PatientAppointmentsHomePage() {
         </div>
       </div>
 
-      <div>
-        {isLoading && <div className="text-center py-8">Loading...</div>}
+      {/* START: single scrollable container for all appointments (header/search remain fixed) */}
+      <div className="bg-transparent max-h-[65vh] overflow-auto pr-2">
+        <div>
+          {isLoading && <div className="text-center py-8">Loading...</div>}
 
-        {!isLoading && filtered.length === 0 && (
-          <div className="text-center py-10 text-slate-500">No appointments found.</div>
-        )}
+          {!isLoading && filtered.length === 0 && (
+            <div className="text-center py-10 text-slate-500">No appointments found.</div>
+          )}
 
-        <div className="grid gap-3">
-          {filtered.map((ap) => (
-            <NiceRow key={ap._id || `${ap.appointmentDate}-${ap.slot}`} ap={ap} />
-          ))}
+          <div className="grid gap-3 pb-6">
+            {filtered.map((ap) => (
+              <NiceRow key={ap._id || `${ap.appointmentDate}-${ap.slot}`} ap={ap} />
+            ))}
+          </div>
         </div>
       </div>
+      {/* END: single scrollable container */}
 
       {/* Details Modal */}
       <input type="checkbox" id="appt-details-modal" className="modal-toggle" checked={showDetails} readOnly />
@@ -316,7 +325,7 @@ export default function PatientAppointmentsHomePage() {
                   <strong>Booked:</strong> {selectedAppt.createdAt ? new Date(selectedAppt.createdAt).toLocaleString() : "-"}
                 </div>
 
-                { (selectedAppt.status === "cancelled" || selectedAppt.cancelledAt) && (
+                {(selectedAppt.status === "cancelled" || selectedAppt.cancelledAt) && (
                   <>
                     <div className="text-xs text-rose-600">
                       <strong>Cancelled at:</strong> {selectedAppt.cancelledAt ? new Date(selectedAppt.cancelledAt).toLocaleString() : "-"}

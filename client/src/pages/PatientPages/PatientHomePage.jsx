@@ -1,223 +1,268 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
-import { motion } from "framer-motion";
-import toast from "react-hot-toast";
+import React, { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  RefreshCcw,
+  MessageCircle,
+  Video,
+  Calendar,
+  PlusCircle,
+  Clock,
+  Users,
+  Search,
+  ClipboardList,
+  CheckCircle,
+  XCircle,
+  Circle,
+} from "lucide-react";
 
-import { useChatStore } from "../../store/useChatStore";
 import { useAuthStore } from "../../store/useAuthStore";
-import { useChatbotStore } from "../../store/useChatbotStore";
-import ChatbotIcon from "../../components/ChatbotComponents/ChatBotIcon";
+import { useAppointmentStore } from "../../store/useAppointmentStore";
+import { useChatStore } from "../../store/useChatStore";
+import { useProfileStore } from "../../store/useProfileStore";
+
+// small helper: format time ago
+const timeAgo = (iso) => {
+  if (!iso) return "-";
+  const d = new Date(iso);
+  const diff = Date.now() - d.getTime();
+  const sec = Math.floor(diff / 1000);
+  if (sec < 60) return `${sec}s`;
+  const min = Math.floor(sec / 60);
+  if (min < 60) return `${min}m`;
+  const hr = Math.floor(min / 60);
+  if (hr < 24) return `${hr}h`;
+  const day = Math.floor(hr / 24);
+  return `${day}d`;
+};
 
 export default function PatientHomePage() {
-  const [roomId, setRoomId] = useState(null);
   const navigate = useNavigate();
+  const { authUser } = useAuthStore();
+  const { appointments, getAppointments, isLoading } = useAppointmentStore();
+  const { currentRoomId, selectedUser, subscribeToChatRoom } = useChatStore();
+  const { userProfile, getSelfProfile } = useProfileStore();
 
-  const { currentRoomId } = useChatStore();
-  const { connectChatbotSocketListeners } = useChatbotStore();
-  const { authUser, socket, subscribeToSelfRoom } = useAuthStore();
-
-  useEffect(() => {
-    if (currentRoomId) setRoomId(currentRoomId);
-  }, [currentRoomId]);
+  const [query, setQuery] = useState("");
 
   useEffect(() => {
-    subscribeToSelfRoom();
-    if (socket) connectChatbotSocketListeners(socket); // keep existing important behaviour
-  }, [subscribeToSelfRoom, socket]);
+    getAppointments?.();
+    getSelfProfile?.();
+    // attempt to subscribe to active room (defensive)
+    if (currentRoomId) subscribeToChatRoom?.(currentRoomId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  const handleEnterRoom = () => {
-    if (!roomId) return toast.error("No room assigned yet — please wait for your provider.");
-    navigate(`/patient/room/${roomId}`);
-  };
+  // derived counts
+  const counts = useMemo(() => {
+    const map = { all: 0, scheduled: 0, completed: 0, cancelled: 0 };
+    (appointments || []).forEach((a) => {
+      map.all += 1;
+      if (a.status === "scheduled") map.scheduled += 1;
+      if (a.status === "completed") map.completed += 1;
+      if (a.status === "cancelled") map.cancelled += 1;
+    });
+    return map;
+  }, [appointments]);
 
-  // small helper for initials fallback
-  const initials = (name = "Patient") =>
-    name
-      .split(" ")
-      .map((n) => n[0])
-      .slice(0, 2)
-      .join("")
-      .toUpperCase();
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!appointments) return [];
+    const base = appointments.slice().sort((a, b) => {
+      const aKey = `${a.appointmentDate || ""} ${a.slot || ""}`;
+      const bKey = `${b.appointmentDate || ""} ${b.slot || ""}`;
+      if (aKey < bKey) return -1;
+      if (aKey > bKey) return 1;
+      return 0;
+    });
+    if (!q) return base;
+    return base.filter((ap) => {
+      const doctorName = ap.doctor?.fullName || ap.doctorName || "";
+      return (
+        doctorName.toLowerCase().includes(q) ||
+        (ap.appointmentDate || "").toLowerCase().includes(q) ||
+        (ap.slot || "").toLowerCase().includes(q) ||
+        (ap.status || "").toLowerCase().includes(q)
+      );
+    });
+  }, [appointments, query]);
 
   return (
-    // [CHANGE 1] Use h-screen and flex-col. Remove padding and overflow.
-    <div className="h-screen pt-[65px] w-full bg-gradient-to-b from-white to-slate-50 flex flex-col">
-      {/* [CHANGE 2] Add flex-1 (to grow) and p-6 (moved from parent). Add w-full/mx-auto for centering. */}
-      <div className="max-w-7xl w-full mx-auto flex-1 overflow-y-auto p-6">
-        {/* Header */}
-        <div className="flex items-center justify-between gap-4 mb-6">
+    <div className="p-6 pt-24 max-w-6xl mx-auto space-y-6">
+      {/* Header row: small room indicator inside header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <div className="relative">
+            <div className="avatar">
+              <div className="w-14 h-14 rounded-full ring ring-primary ring-offset-base-100 ring-offset-2 overflow-hidden">
+                <img src={authUser?.profilePic || userProfile?.image?.url || 'https://i.pravatar.cc/150?img=12'} alt="you" />
+              </div>
+            </div>
+            {/* small room indicator: top-right of avatar */}
+            <div className="absolute -top-1 -right-1">
+              {currentRoomId ? (
+                <div title={`Room open • ${currentRoomId}`} className="flex items-center gap-1">
+                  <span className="w-3 h-3 rounded-full bg-emerald-500 animate-pulse shadow-md" />
+                </div>
+              ) : (
+                <div title="No active room">
+                  <span className="w-3 h-3 rounded-full bg-slate-300" />
+                </div>
+              )}
+            </div>
+          </div>
+
           <div>
-            <h2 className="text-3xl font-extrabold tracking-tight">Welcome back{authUser?.fullName ? `, ${authUser.fullName}` : ""}</h2>
-            <p className="text-sm text-gray-500 mt-1">Your care hub — messages, appointments and journal summaries in one place.</p>
-          </div>
-
-          <div className="flex items-center gap-4">
-            <div className="hidden sm:flex flex-col items-end mr-4">
-              <span className="text-xs text-gray-400">Account</span>
-              <span className="text-sm font-medium">{authUser?.email ?? "Not signed in"}</span>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold">{authUser?.profilePic ? initials(authUser.firstName + (authUser.lastName ? " " + authUser.lastName : "")) : "U"}</div>
-            </div>
+            <h1 className="text-2xl font-semibold">Welcome{authUser?.firstName ? `, ${authUser.firstName}` : ""}</h1>
+            <div className="text-sm text-slate-500">{userProfile?.clinicAddress?.city || "Your health at a glance"}</div>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left column - cards */}
-          <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Chat Room Card */}
-            <motion.div
-              initial={{ y: 8, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ duration: 0.3 }}
-              className="card bg-white shadow-md p-5 rounded-2xl"
-            >
-              <div className="flex items-start justify-between">
-                <div>
-                  <h3 className="text-lg font-semibold">Chat Room</h3>
-                  <p className="text-sm text-gray-500 mt-1">Join a live session with your care provider when it's available.</p>
-                </div>
-
-                <div className="text-right">
-                  <span className="text-xs text-gray-400">Status</span>
-                  <div className={`mt-1 badge ${roomId ? "badge-success" : "badge-ghost"}`}>{roomId ? "Ready" : "No room"}</div>
-                </div>
-              </div>
-
-              <div className="mt-4 flex flex-col gap-3">
-                <div className="flex items-center gap-3">
-                  <div className="bg-base-200 rounded-md px-3 py-2 font-mono text-sm overflow-x-auto">{roomId ? `Room: ${roomId}` : "—"}</div>
-
-                  {/* Added a check for navigator.clipboard */}
-                  <button 
-                    onClick={() => {
-                      if (navigator.clipboard && roomId) {
-                        navigator.clipboard.writeText(roomId).then(() => {
-                          toast.success("Room ID copied");
-                        });
-                      }
-                    }} 
-                    className="btn btn-sm"
-                    disabled={!roomId}
-                  >
-                    Copy
-                  </button>
-                </div>
-
-                <div className="flex gap-3">
-                  <button onClick={handleEnterRoom} disabled={!roomId} className={`btn btn-block ${roomId ? "btn-primary" : "btn-disabled"}`}> {roomId ? "Enter Chat Room" : "Waiting for provider"}</button>
-                </div>
-
-                <p className="text-xs text-gray-400 mt-2">Tip: If you expected an invite, check with your provider or refresh. Notifications will appear here when your room is ready.</p>
-              </div>
-            </motion.div>
-
-            {/* Journal Summary Card */}
-            <motion.div
-              initial={{ y: 8, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ duration: 0.35 }}
-              className="card bg-gradient-to-r from-white to-slate-50 shadow-md p-5 rounded-2xl"
-            >
-              <div className="flex items-start justify-between">
-                <div>
-                  <h3 className="text-lg font-semibold">Journal</h3>
-                  <p className="text-sm text-gray-500 mt-1">Concise summaries of your recent journal entries and trends.</p>
-                </div>
-
-                <div className="text-right">
-                  <span className="text-xs text-gray-400">Auto-generated</span>
-                </div>
-              </div>
-
-              <div className="mt-4">
-                <div className="h-28 rounded-lg border border-dashed border-slate-100 p-4 flex items-center justify-center">
-                  <div className="text-center">
-                    <p className="text-sm text-gray-400">No recent entries yet</p>
-                    <Link to="/journal/new" className="mt-2 inline-block btn btn-sm">Create Journal</Link>
-                  </div>
-                </div>
-
-                <div className="mt-3 flex gap-2">
-                  <Link to="/patient/patient-journals" className="btn btn-ghost btn-sm">View All Daily Journals</Link>
-                  <Link to="/journal/settings" className="btn btn-outline btn-sm">Summary Settings</Link>
-                </div>
-              </div>
-            </motion.div>
-
-            {/* Recent Messages / Notifications */}
-            <motion.div
-              initial={{ y: 8, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ duration: 0.4 }}
-              className="card bg-white shadow-md p-5 rounded-2xl md:col-span-2"
-            >
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold">Recent Notifications</h3>
-                <button className="text-sm btn btn-ghost btn-sm">Clear</button>
-              </div>
-
-              <ul className="mt-3 space-y-3 max-h-40 overflow-y-auto">
-                <li className="flex items-start gap-3">
-                  <div className="w-10 h-10 rounded-md bg-base-200 flex items-center justify-center font-semibold">MSG</div>
-                  <div>
-                    <div className="text-sm font-medium">New message from Dr. Sharma</div>
-                    <div className="text-xs text-gray-400">"Your lab results are ready." — 2h ago</div>
-                  </div>
-                </li>
-                <li className="flex items-start gap-3">
-                  <div className="w-10 h-10 rounded-md bg-base-200 flex items-center justify-center font-semibold">AP</div>
-                  <div>
-                    <div className="text-sm font-medium">Upcoming appointment</div>
-                    <div className="text-xs text-gray-400">Oct 20, 2025 — 10:00 AM</div>
-                  </div>
-                </li>
-              </ul>
-            </motion.div>
+        <div className="flex items-center gap-3">
+          <div className="hidden sm:block">
+            <div className="relative">
+              <input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search doctor, date or slot"
+                className="input input-sm w-64 pr-10"
+              />
+              <Search className="absolute right-3 top-2 w-4 h-4 text-slate-400" />
+            </div>
           </div>
 
-          {/* Right column - quick stats + chatbot preview */}
-          <div className="flex flex-col gap-6">
-            <motion.div initial={{ x: 8, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ duration: 0.35 }} className="card bg-white shadow p-5 rounded-2xl">
-              <h4 className="text-sm text-gray-500">Health Snapshot</h4>
-              <div className="mt-3 grid grid-cols-3 gap-3">
-                <div className="text-center">
-                  <div className="text-2xl font-bold">72</div>
-                  <div className="text-xs text-gray-400">Heart Rate</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold">6.8</div>
-                  <div className="text-xs text-gray-400">Mood</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold">120/80</div>
-                  <div className="text-xs text-gray-400">BP</div>
-                </div>
-              </div>
-
-              <div className="mt-4">
-                <Link to="/vitals" className="text-xs btn btn-ghost btn-sm">View Vitals</Link>
-              </div>
-            </motion.div>
-
-            <motion.div initial={{ x: 8, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ duration: 0.45 }} className="card bg-white shadow p-4 rounded-2xl">
-              <h4 className="text-sm text-gray-500">Quick Actions</h4>
-              <div className="mt-3 grid grid-cols-2 gap-2">
-                <Link to="/appointments/new" className="btn btn-sm">Book Appointment</Link>
-                <Link to="/messages/new" className="btn btn-sm btn-ghost">Message Provider</Link>
-                <Link to="/records" className="btn btn-sm btn-outline">Health Records</Link>
-                <Link to="/support" className="btn btn-sm">Support</Link>
-              </div>
-            </motion.div>
-          </div>
-        </div>
-
-        {/* Inline Chatbot component at the bottom (optional) */}
-        <div className="mt-8">
-          <ChatbotIcon />
+          <button
+            onClick={() => getAppointments?.()}
+            className="btn btn-ghost btn-sm flex items-center gap-2"
+            title="Refresh appointments"
+          >
+            <RefreshCcw size={14} /> Refresh
+          </button>
         </div>
       </div>
+
+      {/* Top stats */}
+      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+        <StatCard title="Upcoming" value={counts.scheduled} hint="Scheduled visits" icon={<Calendar />} />
+        <StatCard title="Booked" value={counts.all} hint="Total appointments" icon={<ClipboardList />} />
+        <StatCard title="Completed" value={counts.completed} hint="Completed visits" icon={<CheckCircle />} />
+        <StatCard title="Cancelled" value={counts.cancelled} hint="Cancelled" icon={<XCircle />} />
+      </div>
+
+      {/* Main area */}
+      <div className="grid md:grid-cols-3 gap-6 items-start">
+        {/* Appointments list (primary) */}
+        <div className="md:col-span-2 space-y-4 min-h-0 flex flex-col">
+          <div className="card bg-base-100 p-4 overflow-hidden">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-medium">Upcoming appointments</h2>
+              <button className="btn btn-ghost btn-sm" onClick={() => navigate('/patient/appointments')}>View all</button>
+            </div>
+
+            <div className="space-y-3 max-h-[58vh] overflow-auto pr-2">
+              {isLoading && <div className="text-center py-8">Loading...</div>}
+
+              {!isLoading && filtered.length === 0 && (
+                <div className="text-center py-10 text-slate-500">No appointments found.</div>
+              )}
+
+              {filtered.map((ap) => (
+                <div key={ap._id} className="flex items-center justify-between p-3 border rounded-lg bg-white">
+                  <div>
+                    <div className="font-medium">{ap.doctor?.fullName || ap.doctorName || 'Doctor'}</div>
+                    <div className="text-xs text-slate-500">{ap.appointmentDate} • {ap.slot}</div>
+                    {ap.patientNotes && <div className="text-xs text-slate-400 mt-2">Notes: {ap.patientNotes}</div>}
+                  </div>
+
+                  <div className="text-right flex flex-col items-end gap-2">
+                    <div className={`text-sm ${ap.status === 'cancelled' ? 'text-rose-600' : ap.status === 'completed' ? 'text-emerald-600' : 'text-slate-600'}`}>
+                      {ap.status || 'scheduled'}
+                    </div>
+
+                    <div className="flex gap-2">
+                      <button className="btn btn-xs btn-ghost" onClick={() => navigate(`/patient/appointments`)}>Details</button>
+                      {ap.status !== 'cancelled' && (
+                        <button className="btn btn-xs btn-error" onClick={() => navigate('/patient/appointments')}>Cancel</button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+          </div>
+
+          {/* Quick action tiles */}
+          <div className="grid grid-cols-2 gap-3">
+            <ActionTile label="Schedule" hint="Book a visit" icon={<PlusCircle />} onClick={() => navigate('/patient/appointments/create')} />
+            <ActionTile label="Messages" hint="Open chat" icon={<MessageCircle />} onClick={() => navigate('/patient/chat')} />
+            <ActionTile label="Teleconsult" hint="Join video call" icon={<Video />} onClick={() => navigate('/patient/teleconsult')} />
+            <ActionTile label="Room status" hint="Active room" icon={<Users />} onClick={() => navigate('/patient/room-status')} />
+          </div>
+        </div>
+
+        {/* Right column: profile + quick summary */}
+        <aside className="space-y-4 min-h-0 flex flex-col">
+          <div className="card p-4">
+            <div className="flex items-center gap-3">
+              <div className="avatar">
+                <div className="w-12 h-12 rounded-full overflow-hidden">
+                  <img src={authUser?.profilePic || userProfile?.image?.url || 'https://i.pravatar.cc/80'} alt="me" />
+                </div>
+              </div>
+              <div>
+                <div className="font-semibold">{userProfile?.fullName || authUser?.fullName || 'You'}</div>
+                <div className="text-xs opacity-70">{userProfile?.phone || authUser?.email || ''}</div>
+              </div>
+            </div>
+
+            <div className="mt-4 flex flex-col gap-2">
+              <button className="btn btn-sm" onClick={() => navigate('/patient/update-profile')}>Edit profile</button>
+              <button className="btn btn-sm btn-ghost" onClick={() => navigate('/patient/appointments')}>My appointments</button>
+            </div>
+          </div>
+
+          <div className="card p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-sm opacity-70">Next appointment</div>
+                <div className="font-medium mt-1">{(appointments || []).find(a => a.status === 'scheduled') ? ((appointments || []).find(a => a.status === 'scheduled').appointmentDate + ' • ' + (appointments || []).find(a => a.status === 'scheduled').slot) : 'None'}</div>
+              </div>
+              <Clock />
+            </div>
+
+            <div className="mt-4 text-xs opacity-70">Quick actions</div>
+            <div className="mt-2 flex flex-col gap-2">
+              <button className="btn btn-block btn-outline btn-sm" onClick={() => navigate('/patient/appointments/create')}>Quick schedule</button>
+              <button className="btn btn-block btn-ghost btn-sm" onClick={() => navigate('/patient/chat')}>Open chat</button>
+            </div>
+          </div>
+        </aside>
+      </div>
     </div>
+  );
+}
+
+function StatCard({ title, value, hint, icon }) {
+  return (
+    <div className="card p-4 shadow-sm flex items-start gap-4">
+      <div className="inline-flex items-center justify-center w-12 h-12 rounded-lg bg-slate-100">{React.cloneElement(icon, { size: 20 })}</div>
+      <div>
+        <div className="text-sm opacity-70">{title}</div>
+        <div className="text-2xl font-semibold">{value}</div>
+        <div className="text-xs opacity-60 mt-1">{hint}</div>
+      </div>
+    </div>
+  );
+}
+
+function ActionTile({ label, hint, icon, onClick }) {
+  return (
+    <button onClick={onClick} className="flex items-start gap-3 p-3 rounded-lg border hover:shadow transition-shadow bg-white text-left">
+      <div className="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-slate-100">{React.cloneElement(icon, { size: 18 })}</div>
+      <div>
+        <div className="font-medium">{label}</div>
+        <div className="text-xs opacity-60">{hint}</div>
+      </div>
+    </button>
   );
 }

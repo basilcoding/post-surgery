@@ -33,7 +33,7 @@ const appointmentSchema = new Schema({
     // paymentStatus: { type: String, enum: ['pending', 'paid', 'refunded', 'n/a'], default: 'n/a' },
     // paymentId: { type: Schema.Types.ObjectId, ref: 'Payment' },
 
-    // notes: String,
+    notes: String,
     patientNotes: { type: String, default: null },
     // archived: { type: Boolean, default: false }
 }, { timestamps: true });

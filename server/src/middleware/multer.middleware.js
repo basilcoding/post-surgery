@@ -24,4 +24,8 @@ export const surgerySiteImagesUploadConfig = upload.fields([
     { name: 'surgerySiteImages', maxCount: 10 },
 ]);
 
+export const messageImageUploadConfig = upload.fields([
+    { name: 'image', maxCount: 10 },
+]);
+
 // export default upload;
