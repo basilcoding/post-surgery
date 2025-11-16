@@ -101,6 +101,7 @@ export const deleteCareCheckListById = async (req, res) => {
     try {
         // delete all carechecklists related to the doctors field only
         const { id } = req.params;
+        console.log('id is: ', id)
         if (req.user.role === 'doctor') {
             // doctor deleting lists starts here <---------------------------------------------
 

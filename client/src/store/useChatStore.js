@@ -95,10 +95,10 @@ export const useChatStore = create((set, get) => ({
         const { messages } = get();
 
         try {
-
+            console.log('formData is: ', formData)
             const res = await axiosInstance.post(
                 `/messages/room/${roomId}/send`, formData,
-                { headers: { "Content-Type": "multipart/form-data" }, withCredentials: true }
+                { withCredentials: true }
             );
             // console.log("res is: ", res.data);
             set({ messages: [...messages, res.data] });
@@ -138,7 +138,7 @@ export const useChatStore = create((set, get) => ({
         const { socket, authUser } = useAuthStore.getState();
         const path = authUser?.role === "doctor" ? "/doctor" : "/patient";
         const { currentRoomId, selectedUser } = get();
-        if (!socket || !currentRoomId) return;
+        if (!socket) return;
         // only emit to server
         socket.emit("endRoom", { roomId: currentRoomId, creator: authUser, invitee: selectedUser });
 

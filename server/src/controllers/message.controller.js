@@ -20,14 +20,25 @@ export const sendMessage = async (req, res) => {
         const { text, receiverId } = req.body; // receiverId comes from frontend
         const { roomId } = req.params;
         const senderId = req.user._id;
-        console.log('imageUrl is: ', req.file);
+        console.log('req.files is: ', req?.files);
+
+        const file = (req?.files?.image?.[0]);
+
         let imageUrl;
-        if (req.file) {
-            const uploadResponse = await cloudinary.uploader.upload(req.file.path, {
-                folder: "chatOut-chat-images",
-            });
-            imageUrl = uploadResponse.secure_url;
-            fs.unlinkSync(req.file.path);
+        let public_id;
+        if (req.files && req.files?.image) {
+            if (file && file.buffer) {
+                const base64 = file.buffer.toString('base64');
+                const dataUri = `data:${file.mimetype};base64,${base64}`;
+
+                const uploadResponse = await cloudinary.uploader.upload(dataUri, {
+                    folder: 'srms-chat-images',
+                });
+                console.log('upload Response is: ', uploadResponse);
+                imageUrl = uploadResponse.secure_url;
+                public_id = uploadResponse.public_id;
+            }
+            // fs.unlinkSync(req.file.path);
         }
 
         const newMessage = new Message({
@@ -35,13 +46,13 @@ export const sendMessage = async (req, res) => {
             receiverId,
             roomId,
             text,
-            image: imageUrl,
+            image: { url: imageUrl, public_id: public_id },
         });
 
         await newMessage.save();
         // broadcast to the room so both sender + receiver see it
-        console.log("roomId is: ", roomId); //working
-        console.log("sockets in roomId from sendMessage controller are: ", await ioInstance().in(roomId).fetchSockets())
+        // console.log("roomId is: ", roomId); //working
+        // console.log("sockets in roomId from sendMessage controller are: ", await ioInstance().in(roomId).fetchSockets())
         ioInstance().to(roomId).emit("newMessage", newMessage); // newMessage is an object and not a string
 
         res.status(201).json(newMessage);

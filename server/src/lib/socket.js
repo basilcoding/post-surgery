@@ -77,8 +77,8 @@ export function initSocket(server) {
 
             // set server-side canonical state for authorization/chatroomAuthChecking
             const { doctor, patient } = await Promise.all([
-                DoctorProfile.findOneAndUpdate({ user: socket.userId }, { currentRoomId: roomId }),
-                PatientProfile.findOneAndUpdate({ user: invitee.user._id }, { currentRoomId: roomId })
+                DoctorProfile.findOneAndUpdate({ user: socket.userId }, { currentRoomId: roomId }, { new: true }),
+                PatientProfile.findOneAndUpdate({ user: invitee.user._id }, { currentRoomId: roomId }, { new: true })
             ]);
 
             io.to(invitee.user._id.toString()).socketsJoin(roomId); // Add *all sockets* in the invitee's personal room to the chat room
@@ -88,7 +88,7 @@ export function initSocket(server) {
             io.to(creator._id.toString()).emit("roomNotify", { roomId, otherUser: invitee.user });
             io.to(invitee.user._id.toString()).emit("roomNotify", { roomId, otherUser: creator });
 
-            sendMail(invitee.user.email, 'ChatRoom Created', `This is to notify you that a chatroom has been created by your Doctor ${creator.fullName}. Please Join the Chatroom promptly to converse with the doctor.`)
+            sendMail(invitee.user.email, 'ChatRoom Created', `This is to notify you that a Chatroom has been created by Dr. ${creator.fullName} (${doctor.specialty}) ID: ${doctor.doctorId} . Please Join the Chatroom promptly to converse with the doctor.\nRoom ID: ${roomId}`)
         })
 
         // socket.on('getOnlineUsers', ({ roomId }) => {
@@ -113,18 +113,17 @@ export function initSocket(server) {
                 : {};
             const token = cookies.roomToken; //  read from cookies
 
-            if (!token) {
-                await Promise.all([
-                    DoctorProfile.updateMany(
-                        { currentRoomId: roomId },
-                        { $set: { currentRoomId: null } }
-                    ),
-                    PatientProfile.updateMany(
-                        { currentRoomId: roomId },
-                        { $set: { currentRoomId: null } }
-                    ),
-                ])
-            }
+            await Promise.all([
+                DoctorProfile.updateMany(
+                    { currentRoomId: roomId },
+                    { $set: { currentRoomId: null } }
+                ),
+                PatientProfile.updateMany(
+                    { currentRoomId: roomId },
+                    { $set: { currentRoomId: null } }
+                ),
+            ]);
+
             io.to(creator?._id.toString()).emit("roomEnded", { roomId });
             io.to(invitee?._id.toString()).emit("roomEnded", { roomId });
 

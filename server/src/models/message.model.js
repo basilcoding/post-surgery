@@ -1,5 +1,16 @@
 import mongoose from 'mongoose';
 
+const imageSchema = new mongoose.Schema({
+    url: {
+        type: String,
+        default: "",
+    },
+    public_id: {
+        type: String,
+        default: "",
+    }
+});
+
 const messageSchema = new mongoose.Schema(
     {
         roomId: {
@@ -19,9 +30,7 @@ const messageSchema = new mongoose.Schema(
         text: {
             type: String,
         },
-        image: {
-            type: String,
-        },
+        image: imageSchema,
         expireAt: {
             type: Date,
             default: () => Date.now() + 24 * 60 * 60 * 1000, // expire in 24h

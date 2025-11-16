@@ -83,9 +83,9 @@ const ChatContainer = () => {
                         </div>
 
                         <div className="chat-bubble flex flex-col">
-                            {message.image && (
+                            {message?.image?.url && (
                                 <img
-                                    src={message.image}
+                                    src={message?.image?.url}
                                     alt="image content"
                                     className="max-w-xs rounded-lg"
                                     onLoad={() =>

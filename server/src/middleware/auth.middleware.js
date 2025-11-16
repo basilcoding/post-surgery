@@ -85,12 +85,13 @@ export const protectRoute = async (req, res, next) => {
 
 // Result: Doctor Alice successfully fetches the private conversation from room-456 between Doctor Charlie and Patient Dave. This is a major data breach.
 export const protectRoom = async (req, res, next) => {
-    try {
-        // console.log('Protecting room for user:', req.user._id);
-        let { roomId } = req.params;
-        const id = req.user._id;
+    let { roomId } = req.params;
+    const id = req.user._id;
+    const token = req.cookies.roomToken; //  read from cookies
 
-        const token = req.cookies.roomToken; //  read from cookies
+    try {
+        // console.log('roomId is', roomId);
+
 
         if (!token) {
             await Promise.all([
@@ -128,17 +129,19 @@ export const protectRoom = async (req, res, next) => {
         req.selectedUser = decoded.selectedUser;
         next();
     } catch (err) {
+        // console.log('roomId is', roomId);
+
+
+        const doctor = await DoctorProfile.updateMany(
+            { currentRoomId: roomId.toString().trim() },
+            { $set: { currentRoomId: null } }
+        );
+        const patient = await PatientProfile.updateMany(
+            { currentRoomId: roomId.toString().trim() },
+            { $set: { currentRoomId: null } }
+        );
+        // console.log(doctor, patient)
         console.error("Error in protectRoom middleware:", err.message);
-        await Promise.all([
-            DoctorProfile.updateMany(
-                { currentRoomId: roomId },
-                { $set: { currentRoomId: null } }
-            ),
-            PatientProfile.updateMany(
-                { currentRoomId: roomId },
-                { $set: { currentRoomId: null } }
-            ),
-        ])
         res.status(401).json({ message: "Room is either Unavailable or has Expired!" });
     }
 }
