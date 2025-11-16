@@ -7,7 +7,7 @@ import User from "../../models/user.model.js";  // <-- import User
 import { ioInstance } from "../../lib/socket.js";
 
 
-export const emitSummary = async function (userId, summaryObj, relationship, patientProfile, formattedTimestamp) {
+export const emitSummary = async function (userId, summaryObj, oldSummary = null, relationship, patientProfile, formattedTimestamp) {
     try {
         console.log('[emitSummary] called', { userId, summaryType: summaryObj.summaryType });
 
@@ -29,15 +29,13 @@ export const emitSummary = async function (userId, summaryObj, relationship, pat
 
         console.log('[emitSummary] onlineUsers size:', onlineUsers.size);
 
-        const now = new Date();
-        // const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-        // start of today (server-local) at 00:00:00
-        const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-
-
-        // check if there was a summary after start of current day(12:00 am midnight) ago for the current activeDoctor
-        let oldSummary = await BotSummary.findOne({ user: userId, assignedDoctor: relationship.doctor._id, createdAt: { $gte: startOfToday } })
-        console.log('[emitSummary] oldSummary found?', !!oldSummary);
+        // const now = new Date();
+        // // const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+        // // start of today (server-local) at 00:00:00
+        // const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        // // check if there was a summary after start of current day(12:00 am midnight) ago for the current activeDoctor
+        // let oldSummary = await BotSummary.findOne({ user: userId, assignedDoctor: relationship.doctor._id, createdAt: { $gte: startOfToday } })
+        // console.log('[emitSummary] oldSummary found?', !!oldSummary);
 
         const specialtyNeeded = relationship.careType || "general";
         console.log('[emitSummary] specialtyNeeded:', specialtyNeeded);

@@ -186,7 +186,7 @@ export default function ViewSelectedSummaryPage() {
 
     // Render the page
     return (
-        <div className="max-w-4xl mx-auto p-6 pt-[80px]">
+        <div className="w-full h-full mx-auto p-6 pt-[80px]">
 
             <div className="flex items-center justify-between mb-6">
                 <div>

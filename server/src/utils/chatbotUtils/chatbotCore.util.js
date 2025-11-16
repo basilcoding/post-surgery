@@ -6,6 +6,7 @@ import { sendMail } from '../../lib/email.js'
 import Chatbot from '../../models/chatbot.model.js';
 import PatientProfile from '../../models/patientProfile.model.js'
 import CareCheckList from '../../models/careCheckList.model.js'
+import BotSummary from "../../models/botsummary.model.js";
 
 import { emitSummary } from "./emitSummary.util.js";
 
@@ -29,6 +30,7 @@ import {
 
 import { formatMedicalHistory } from "./formatMedicalHistory.js";
 import { formatSurgeryChecklist } from "./formatSurgeryChecklist.js";
+import { formatOldSummary } from "./formatOldSummary.js";
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
@@ -203,7 +205,7 @@ export const chatbot = async function (userId, message, isEnd, relationship, cha
                 // const messageTsIso = msg.timestamp ? toIso(msg.timestamp) : toIso(nowForAges);
                 const cleanedHistoryForSummaryBot = recentHistoryForSummaryBot.map(msg => {
                     const ts = msg.timestamp ? msg.timestamp : nowForAgesForSummaryBot; // msg.timestamp is a Date (you store Date)
-                    const formatted = formatTimestampLabel(ts);
+                    // const formatted = formatTimestampLabel(ts);
                     return {
                         role: msg.role,
                         parts: (msg.parts || []).map(p => ({ text: p.text })),
@@ -218,6 +220,25 @@ export const chatbot = async function (userId, message, isEnd, relationship, cha
                 ];
                 console.log('chatbot context for summary bot is: ', chatbotContextForSummaryBot);
 
+                const now = new Date();
+                // const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+                // start of today (server-local) at 00:00:00
+                const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                // check if there was a summary after start of current day(12:00 am midnight) ago for the current activeDoctor
+                let oldSummary = await BotSummary.findOne({ user: userId, assignedDoctor: relationship.doctor._id, createdAt: { $gte: startOfToday } })
+                console.log('[emitSummary] oldSummary found?', !!oldSummary);
+
+
+                let fullSummarybotPrompt;
+                if (oldSummary) {
+                    // Build final system instruction
+                    const oldSummaryContext = formatOldSummary(oldSummary);
+                    fullSummarybotPrompt = journalSummarybotPrompt + oldSummaryContext;
+                } else {
+                    fullSummarybotPrompt = journalSummarybotPrompt;
+                }
+                console.log('fullSummarybotPrompt is: ', fullSummarybotPrompt);
+
                 let journalSummarybot;
                 for (let attempt = 1; attempt <= maxRetries; attempt++) {
                     try {
@@ -226,7 +247,7 @@ export const chatbot = async function (userId, message, isEnd, relationship, cha
                             model: "gemini-2.5-flash",
                             contents: chatbotContextForSummaryBot,
                             config: {
-                                systemInstruction: journalSummarybotPrompt,
+                                systemInstruction: fullSummarybotPrompt,
                                 responseMimeType: "application/json",
                                 responseSchema: journalSummarybotSchema
                             }
@@ -249,7 +270,7 @@ export const chatbot = async function (userId, message, isEnd, relationship, cha
                 chats.isEndBot = false;
                 // console.log("chats.isEnd is: ", chats.isEnd);
                 summary = JSON.parse(journalSummarybot.text);
-                emitSummary(userId, summary, relationship, patientProfile, formattedNow);
+                emitSummary(userId, summary, oldSummary, relationship, patientProfile, formattedNow);
                 console.log("successfully created emergency summary:", JSON.parse(journalSummarybot.text));
             }
         }

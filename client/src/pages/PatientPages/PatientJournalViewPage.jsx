@@ -81,7 +81,7 @@ export default function PatientJournalViewPage() {
     );
   };
 
-  const JournalCard = ({ s }) => {
+  const JournalCard = ({ s, idx }) => {
     const created = s?.createdAt ? format(new Date(s.createdAt), "PPp") : "—";
     // const updated = s?.updatedAt ? format(new Date(s.updatedAt), "PPp") : null;
     const doctor = s?.assignedDoctor?.fullName || s?.assignedDoctor?.email;
@@ -97,10 +97,9 @@ export default function PatientJournalViewPage() {
             </div>
           </div>
 
-          <div className="text-sm text-base-content/70">
-            <span>Created: {created}</span>
-            {/* {updated && <span className="ml-2">• Updated: {updated}</span>} */}
-          </div>
+          {/* <div className="text-sm text-base-content/70">
+            {(s.content.length > 1 ? `Updated: ${s.formattedTimestamps[idx]} \n` : `Created: ${s.formattedTimestamps[idx]} \n`)}{Array.isArray(s.content) ? s.content.join(" — ") : String(s.content || "")}
+          </div> */}
 
           {doctor && (
             <div className="text-sm">
@@ -109,9 +108,10 @@ export default function PatientJournalViewPage() {
           )}
 
           {Array.isArray(s?.content) && s.content.length > 0 ? (
-            <p className="text-sm leading-relaxed line-clamp-3 whitespace-pre-wrap">
-              {s.content.join("\n\n")}
-            </p>
+            // <p className="text-sm leading-relaxed line-clamp-3 whitespace-pre-wrap">
+            //   {s.content.join("\n\n")}
+            // </p>
+            <p className="text-sm leading-relaxed line-clamp-3 whitespace-pre-wrap">{(s.content.length > 1 ? `Updated: ${s.formattedTimestamps[idx]}\n` : `Created: ${s.formattedTimestamps[idx]}\n`)}{Array.isArray(s.content) ? s.content.join("\n") : String(s.content || "")}</p>
           ) : (
             <p className="text-sm italic opacity-70">No notes in this entry.</p>
           )}
@@ -139,14 +139,14 @@ export default function PatientJournalViewPage() {
 
   const Column = ({ list }) => (
     <div className="grid gap-3">
-      {list.map((s) => (
-        <JournalCard key={s._id} s={s} />
+      {list.map((s, idx) => (
+        <JournalCard key={s._id} s={s} idx={idx} />
       ))}
     </div>
   );
 
   return (
-    <div className="min-h-screen pt-[80px] px-10 w-full">
+    <div className="w-full h-full px-10 pt-[80px]">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
         <div>

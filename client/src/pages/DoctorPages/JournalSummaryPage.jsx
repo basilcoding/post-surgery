@@ -239,7 +239,7 @@ export default function DoctorJournalPage() {
                               </div>
 
                               <p className="text-sm text-muted-foreground mt-2 line-clamp-2 whitespace-pre-wrap">
-                                {(idx > 0 ? `Updated: ${s.formattedTimestamps[idx]} \n` : `Created: ${s.formattedTimestamps[idx]} \n`)}{Array.isArray(s.content) ? s.content.join(" — ") : String(s.content || "")}
+                                {(s.content.length > 1 ? `Updated: ${s.formattedTimestamps[idx]} \n` : `Created: ${s.formattedTimestamps[idx]} \n`)}{Array.isArray(s.content) ? s.content.join(" — ") : String(s.content || "")}
                               </p>
 
                               <div className="flex items-center gap-3 mt-2 text-xs">
