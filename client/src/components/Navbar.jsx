@@ -16,8 +16,8 @@ const Navbar = ({ }) => {
             <header
                 className="border-b border-base-300 w-full
             bg-primary fixed overflow-hidden z-70">
-                <div className="container px-4 h-16">
-                    <div className="flex items-center justify-between h-full">
+                <div className="container px-4 h-16 w-full">
+                    <div className="flex items-center justify-between h-full w-full">
                         {/* leftside */}
                         <div className="flex">
                             {role === 'patient' &&
@@ -67,16 +67,16 @@ const Navbar = ({ }) => {
                                                     selectedOption={(value) => setViewType(value)}
                                                 />
                                                 <SidebarOption
-                                                    label="Update Your Profile"
-                                                    to="/patient/update-profile"
-                                                    value='update-profile'
+                                                    label="Appointments"
+                                                    to="/patient/appointments"
+                                                    value='appointments'
                                                     activeView={viewType}
                                                     selectedOption={(value) => setViewType(value)}
                                                 />
                                                 <SidebarOption
-                                                    label="Appointments"
-                                                    to="/patient/appointments"
-                                                    value='appointments'
+                                                    label="Update Your Profile"
+                                                    to="/patient/update-profile"
+                                                    value='update-profile'
                                                     activeView={viewType}
                                                     selectedOption={(value) => setViewType(value)}
                                                 />
@@ -130,18 +130,17 @@ const Navbar = ({ }) => {
                                                     activeView={viewType}
                                                     selectedOption={(value) => setViewType(value)}
                                                 />
-
-                                                <SidebarOption
-                                                    label="Your Profile"
-                                                    to="/doctor/update-profile"
-                                                    value='update-profile'
-                                                    activeView={viewType}
-                                                    selectedOption={(value) => setViewType(value)}
-                                                />
                                                 <SidebarOption
                                                     label="Appointments"
                                                     to="/doctor/appointments"
                                                     value='appointments'
+                                                    activeView={viewType}
+                                                    selectedOption={(value) => setViewType(value)}
+                                                />
+                                                <SidebarOption
+                                                    label="Your Profile"
+                                                    to="/doctor/update-profile"
+                                                    value='update-profile'
                                                     activeView={viewType}
                                                     selectedOption={(value) => setViewType(value)}
                                                 />
@@ -150,20 +149,20 @@ const Navbar = ({ }) => {
                                     </div>
                                 </div>}
                             <Link to="/" className="flex items-center gap-2.5 hover:opacity-80 transition-all">
-                                <h1 className="text-lg font-bold text-base-100 hidden md:block">Surgery-Recovery-Management-System</h1>
+                                <h1 className="text-lg font-bold text-base-100 hidden md:block">SRMS</h1>
                                 <h1 className="text-lg font-bold text-base-100 block md:hidden">SRMS</h1>
                             </Link>
                         </div>
                         {/* rightside */}
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center justify-center gap-2">
                             {authUser && (
                                 <>
-                                    <Link to={"/patient/profiles"} className={`btn btn-sm gap-2`}>
-                                        <User className="size-5" />
-                                        <span className="hidden sm:inline">Profile</span>
-                                    </Link>
-
-                                    <button className="btn btn-sm flex gap-2 items-center p-2" onClick={logout}>
+                                    {authUser?.role === 'patient' &&
+                                        <Link to={"/patient/profiles"} className={`btn btn-lg btn-circle `}>
+                                            <User className="size-5" />
+                                        </Link>
+                                    }
+                                    <button className="btn btn-lg rounded-full flex gap-2 items-center p-2" onClick={logout}>
                                         <LogOut className="size-5" />
                                         <span className="hidden sm:block">
                                             Logout

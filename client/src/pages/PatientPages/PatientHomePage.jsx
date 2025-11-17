@@ -19,6 +19,7 @@ import { useAuthStore } from "../../store/useAuthStore";
 import { useAppointmentStore } from "../../store/useAppointmentStore";
 import { useChatStore } from "../../store/useChatStore";
 import { useProfileStore } from "../../store/useProfileStore";
+import { useRelationshipsStore } from "../../store/useRelationshipsStore";
 
 // small helper: format time ago
 const timeAgo = (iso) => {
@@ -41,12 +42,14 @@ export default function PatientHomePage() {
   const { appointments, getAppointments, isLoading } = useAppointmentStore();
   const { currentRoomId, selectedUser, subscribeToChatRoom } = useChatStore();
   const { userProfile, getSelfProfile } = useProfileStore();
+  const { getRelationships, userRelationships } = useRelationshipsStore();
 
   const [query, setQuery] = useState("");
 
   useEffect(() => {
     getAppointments?.();
     getSelfProfile?.();
+    getRelationships?.('patient');
     // attempt to subscribe to active room (defensive)
     if (currentRoomId) subscribeToChatRoom?.(currentRoomId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -87,14 +90,14 @@ export default function PatientHomePage() {
   }, [appointments, query]);
 
   return (
-    <div className="p-6 pt-24 max-w-6xl mx-auto space-y-6">
+    <div className="p-6 pt-[80PX] w-full h-full mx-auto space-y-6">
       {/* Header row: small room indicator inside header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <div className="relative">
             <div className="avatar">
               <div className="w-14 h-14 rounded-full ring ring-primary ring-offset-base-100 ring-offset-2 overflow-hidden">
-                <img src={authUser?.profilePic || userProfile?.image?.url || 'https://i.pravatar.cc/150?img=12'} alt="you" />
+                <img src={authUser?.profilePic || userProfile?.image?.url} alt='YOU' />
               </div>
             </div>
             {/* small room indicator: top-right of avatar */}
@@ -118,17 +121,7 @@ export default function PatientHomePage() {
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="hidden sm:block">
-            <div className="relative">
-              <input
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search doctor, date or slot"
-                className="input input-sm w-64 pr-10"
-              />
-              <Search className="absolute right-3 top-2 w-4 h-4 text-slate-400" />
-            </div>
-          </div>
+
 
           <button
             onClick={() => getAppointments?.()}
@@ -141,11 +134,9 @@ export default function PatientHomePage() {
       </div>
 
       {/* Top stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <StatCard title="Upcoming" value={counts.scheduled} hint="Scheduled visits" icon={<Calendar />} />
-        <StatCard title="Booked" value={counts.all} hint="Total appointments" icon={<ClipboardList />} />
-        <StatCard title="Completed" value={counts.completed} hint="Completed visits" icon={<CheckCircle />} />
-        <StatCard title="Cancelled" value={counts.cancelled} hint="Cancelled" icon={<XCircle />} />
+        <StatCard title="Active Doctors" value={userRelationships.length} hint="" icon={<Users />} />
       </div>
 
       {/* Main area */}
@@ -166,26 +157,30 @@ export default function PatientHomePage() {
               )}
 
               {filtered.map((ap) => (
-                <div key={ap._id} className="flex items-center justify-between p-3 border rounded-lg bg-white">
-                  <div>
-                    <div className="font-medium">{ap.doctor?.fullName || ap.doctorName || 'Doctor'}</div>
-                    <div className="text-xs text-slate-500">{ap.appointmentDate} • {ap.slot}</div>
-                    {ap.patientNotes && <div className="text-xs text-slate-400 mt-2">Notes: {ap.patientNotes}</div>}
-                  </div>
+                <>
+                  {(ap.status === 'scheduled') &&
+                    <div key={ap._id} className="flex items-center justify-between p-3 border rounded-lg bg-white">
+                      <div>
+                        <div className="font-medium">{ap.doctor?.fullName || ap.doctorName || 'Doctor'}</div>
+                        <div className="text-xs text-slate-500">{ap.appointmentDate} • {ap.slot}</div>
+                        {/* {ap.patientNotes && <div className="text-xs text-slate-400 mt-2">Notes: {ap.patientNotes}</div>} */}
+                      </div>
 
-                  <div className="text-right flex flex-col items-end gap-2">
-                    <div className={`text-sm ${ap.status === 'cancelled' ? 'text-rose-600' : ap.status === 'completed' ? 'text-emerald-600' : 'text-slate-600'}`}>
-                      {ap.status || 'scheduled'}
-                    </div>
+                      <div className="text-right flex flex-col items-end gap-2">
+                        <div className={`text-sm ${ap.status === 'cancelled' ? 'text-rose-600' : ap.status === 'completed' ? 'text-emerald-600' : 'text-slate-600'}`}>
+                          {ap.status || 'scheduled'}
+                        </div>
 
-                    <div className="flex gap-2">
-                      <button className="btn btn-xs btn-ghost" onClick={() => navigate(`/patient/appointments`)}>Details</button>
-                      {ap.status !== 'cancelled' && (
-                        <button className="btn btn-xs btn-error" onClick={() => navigate('/patient/appointments')}>Cancel</button>
-                      )}
+                        <div className="flex gap-2">
+                          <button className="btn btn-xs btn-ghost" onClick={() => navigate(`/patient/appointments`)}>Details</button>
+                          {ap.status !== 'cancelled' && (
+                            <button className="btn btn-xs btn-error" onClick={() => navigate('/patient/appointments')}>Cancel</button>
+                          )}
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </div>
+                  }
+                </>
               ))}
             </div>
 
@@ -194,8 +189,7 @@ export default function PatientHomePage() {
           {/* Quick action tiles */}
           <div className="grid grid-cols-2 gap-3">
             <ActionTile label="Schedule" hint="Book a visit" icon={<PlusCircle />} onClick={() => navigate('/patient/appointments/create')} />
-            <ActionTile label="Messages" hint="Open chat" icon={<MessageCircle />} onClick={() => navigate('/patient/chat')} />
-            <ActionTile label="Teleconsult" hint="Join video call" icon={<Video />} onClick={() => navigate('/patient/teleconsult')} />
+            <ActionTile label="All Journals" hint="Journals" icon={<Circle />} onClick={() => navigate('/patient/view-journals')} />
             <ActionTile label="Room status" hint="Active room" icon={<Users />} onClick={() => navigate('/patient/room-status')} />
           </div>
         </div>
@@ -204,11 +198,6 @@ export default function PatientHomePage() {
         <aside className="space-y-4 min-h-0 flex flex-col">
           <div className="card p-4">
             <div className="flex items-center gap-3">
-              <div className="avatar">
-                <div className="w-12 h-12 rounded-full overflow-hidden">
-                  <img src={authUser?.profilePic || userProfile?.image?.url || 'https://i.pravatar.cc/80'} alt="me" />
-                </div>
-              </div>
               <div>
                 <div className="font-semibold">{userProfile?.fullName || authUser?.fullName || 'You'}</div>
                 <div className="text-xs opacity-70">{userProfile?.phone || authUser?.email || ''}</div>

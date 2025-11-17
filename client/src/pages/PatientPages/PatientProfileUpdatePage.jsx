@@ -17,7 +17,7 @@ import { useAuthStore } from "../../store/useAuthStore";
 
 export default function PatientProfileUpdatePage() {
     const navigate = useNavigate();
-    const { userProfile, setUpdatedProfile, updateSelfProfile } = useProfileStore();
+    const { userProfile, setUpdatedProfile, updateSelfProfile, getSelfProfile } = useProfileStore();
     const { authUser, setUpdatedUser } = useAuthStore();
 
     const [loading, setLoading] = useState(false);

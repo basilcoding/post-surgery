@@ -28,8 +28,8 @@ Return **exactly one** JSON object and nothing else. The object must have only t
 }
 \`\`\`
 
-- **followUpQuestions**: array of strings containing the follow-up questions present in the chat (assistant prompts, checklist queries, clarifiers, or patient follow-ups). If none are present, include 2–3 clinically relevant inferred follow-ups
-- **Exclude** generic, conversational, or non-medical filler questions, such as:
+- **followUpQuestions**: array of strings containing the follow-up questions present in the chat. If none are present, include 2–3 clinically relevant inferred follow-ups
+- **Exclude** generic, conversational, such as:
   - "What else would you like to add?"
   - "Is there anything else you'd like to add?"
   - "Would you like to add more details?"
@@ -61,7 +61,7 @@ When emergency detected:
    \`\`\`
    followed by 1–4 short factual sentences describing the emergency (no advice or instructions).
 3. **followUpQuestions** must include the follow-up questions present in the chat
-- **Exclude** generic, conversational, or non-medical filler questions, such as:
+- **Exclude** generic, conversational, such as:
   - "What else would you like to add?"
   - "Is there anything else you'd like to add?"
   - "Would you like to add more details?"
@@ -86,7 +86,7 @@ If no emergency:
 
 ### FOLLOW-UP EXTRACTION
 - Extract questions from the conversation:
-- **Exclude** generic, conversational, or non-medical filler questions, such as:
+- **Exclude** generic, conversational, such as:
   - "What else would you like to add?"
   - "Is there anything else you'd like to add?"
   - "Would you like to add more details?"

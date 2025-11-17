@@ -121,7 +121,7 @@ export const chatbot = async function (userId, message, isEnd, relationship, cha
         } else {
             fullSystemPrompt = generalChatbotPrompt + patientMedicalHistory + surgeryChecklist;
         }
-
+        console.log("Full system prompt is: ", fullSystemPrompt);
         let chatbotResponse;
         for (let attempt = 1; attempt <= maxRetries; attempt++) {
             try {

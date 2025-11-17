@@ -5,7 +5,7 @@ import { toast } from "react-hot-toast";
 import { useAdminStore } from "../../store/useAdminStore.js";
 import { useUserStore } from "../../store/useUserStore.js";
 
-const SPECIALTIES = ["cardiology", "psychiatry", "general", "other"];
+const SPECIALTIES = ["cardiology", "psychiatry", "orthopedics", "general", "other"];
 
 const RegisterUserForm = ({ onSuccess }) => {
   const [showPassword, setShowPassword] = useState(false);

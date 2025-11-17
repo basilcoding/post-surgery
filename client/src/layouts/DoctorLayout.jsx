@@ -59,16 +59,16 @@ export default function DoctorLayout() {
             />
 
             <SidebarOption
-              label="Your Profile"
-              to="/doctor/update-profile"
-              value='update-profile'
+              label="Appointments"
+              to="/doctor/appointments"
+              value='appointments'
               activeView={viewType}
               selectedOption={(value) => setViewType(value)}
             />
             <SidebarOption
-              label="Appointments"
-              to="/doctor/appointments"
-              value='appointments'
+              label="Your Profile"
+              to="/doctor/update-profile"
+              value='update-profile'
               activeView={viewType}
               selectedOption={(value) => setViewType(value)}
             />

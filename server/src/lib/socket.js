@@ -76,7 +76,7 @@ export function initSocket(server) {
             const roomId = `room_${Date.now()}`;
 
             // set server-side canonical state for authorization/chatroomAuthChecking
-            const { doctor, patient } = await Promise.all([
+            const [doctor, patient] = await Promise.all([
                 DoctorProfile.findOneAndUpdate({ user: socket.userId }, { currentRoomId: roomId }, { new: true }),
                 PatientProfile.findOneAndUpdate({ user: invitee.user._id }, { currentRoomId: roomId }, { new: true })
             ]);

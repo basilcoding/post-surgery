@@ -327,10 +327,8 @@ export default function DoctorHomePage() {
           <div className="card p-4 w-full">
             <div className="flex items-center gap-2">
               <div className="avatar">
-                <div className="w-12 h-12 rounded-full"><img src={authUser?.profilePic || userProfile?.image?.url || 'https://i.pravatar.cc/80'} alt="me" /></div>
               </div>
               <div>
-                <div className="font-semibold">Profile</div>
                 <div className="text-xs opacity-60">Experience: {userProfile?.yearsOfExperience || 0} yrs</div>
               </div>
             </div>
