@@ -115,12 +115,12 @@ export default function DoctorViewSummaryPage() {
               </label>
 
               <label className="form-control">
-                <span className="label-text">Delivered to</span>
+                <span className="label-text">Delivered to unassinged doctors</span>
                 <input
                   className="input input-bordered"
                   value={
                     Array.isArray(selectedSummary?.deliveredTo) && selectedSummary.deliveredTo.length > 0
-                      ? selectedSummary.deliveredTo.map((d) => (`${d.doctorProfile?.doctorId}`) ?? d.doctor).join("\n ")
+                      ? selectedSummary.deliveredTo.map((d, idx) => ((idx + 1 > 1) ? (((`${d.doctorProfile?.doctorId}`) || d.doctor)) : '')).join(" ")
                       : "-"
                   }
                   readOnly

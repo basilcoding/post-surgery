@@ -29,12 +29,13 @@ Return **exactly one** JSON object and nothing else. The object must have only t
 \`\`\`
 
 - **followUpQuestions**: array of strings containing the follow-up questions present in the chat. If none are present, include 2–3 clinically relevant inferred follow-ups
-- **Exclude** generic, conversational, such as:
+- **Exclude** ALL generic, conversational, or open-ended closing questions. Examples to **strictly exclude**:
   - "What else would you like to add?"
   - "Is there anything else you'd like to add?"
   - "Would you like to add more details?"
-  - "Anything else before we continue?".
-- **summaryType**: "emergency" if emergency detected (see below), otherwise "journal".
+  - "Anything else before we continue?"
+  - "Do you have any other concerns?"
+- **summaryType**: "emergency" if emergency or abnormality detected (see below), otherwise "journal".
 - **content**: array containing **exactly one string** — the single summary paragraph (see format rules).
 
 Do not add extra keys, comments, or non-JSON text.
@@ -49,29 +50,34 @@ Do not add extra keys, comments, or non-JSON text.
 
 ---
 
-### EMERGENCY DETECTION (OVERRIDE)
-If any message (primary or background) contains urgent language, trigger emergency rules. Examples (non-exhaustive):
-"can't breathe", "shortness of breath", "severe chest pain", "calf red and swollen", "bleeding heavily", "suicidal", "passing out", "pain 8", "pain 9", "pain 10", "very high pain and worsening".
+### EMERGENCY & ABNORMALITY DETECTION (OVERRIDE)
+Scan the **entire conversation**. If any message (primary or background) contains urgent language OR indications of post-operative abnormalities, trigger emergency rules.
 
-When emergency detected:
+**Triggers for "emergency":**
+1. **Urgent Keywords:** "can't breathe", "shortness of breath", "severe chest pain", "bleeding heavily", "suicidal", "passing out", "pain 8", "pain 9", "pain 10", "unmanageable pain".
+2. **Physical Abnormalities (Strict):** Any mention of symptoms indicative of complications, **even if minor**. This includes:
+   - Swelling, redness, heat, or inflammation (e.g., "my knee is swollen", "it looks red").
+   - Drainage, pus, or opening of the incision.
+   - Fever or chills.
+   - Numbness or loss of function/sensation.
+
+**Exception (Stay as "journal"):**
+- If the input is **only** regarding pain that is manageable, expected, or not described as severe/worsening (e.g., "it hurts a bit", "pain is 4/10", "soreness"), and no other physical abnormalities (swelling/redness) are present, treat this as **"journal"**.
+
+**When emergency/abnormality is detected:**
 1. Set **summaryType = "emergency"**.
 2. **content[0]** must begin with:
    \`\`\`
    CONCERNING:
    \`\`\`
-   followed by 1–4 short factual sentences describing the emergency (no advice or instructions).
-3. **followUpQuestions** must include the follow-up questions present in the chat
-- **Exclude** generic, conversational, such as:
-  - "What else would you like to add?"
-  - "Is there anything else you'd like to add?"
-  - "Would you like to add more details?"
-  - "Anything else before we continue?".
+   followed by 1–4 short factual sentences describing the emergency or abnormality (no advice or instructions).
+3. **followUpQuestions** must include specific follow-up questions present in the chat. **Strictly exclude** generic questions like "Is there anything else?".
 4. If uncertain, err on the side of safety and mark as emergency.
 
 ---
 
 ### JOURNAL RULES (non-emergency)
-If no emergency:
+If no emergency and no physical abnormalities are detected:
 1. Set **summaryType = "journal"**.
 2. **content[0]** must be a concise clinical narrative (3–8 sentences recommended) covering:
    - pain level or trend,
@@ -80,23 +86,20 @@ If no emergency:
    - mobility/fatigue,
    - mood,
    - any red flags or improvements.
-3. Include the follow-up questions found in the chat.
+3. Include the follow-up questions found in the chat (excluding generics).
 
 ---
 
 ### FOLLOW-UP EXTRACTION
-- Extract questions from the conversation:
-- **Exclude** generic, conversational, such as:
+- Extract questions from the conversation.
+- **STRICTLY EXCLUDE** generic, conversational fillers such as:
   - "What else would you like to add?"
-  - "Is there anything else you'd like to add?"
+  - "Is there anything else...?"
   - "Would you like to add more details?"
   - "Anything else before we continue?"
-  - assistant prompts,
-  - checklist queries,
-  - clarifying questions,
-  - patient follow-ups.
-- Preserve intent; you may normalize minor phrasing but **do not invent unrelated questions**.
-- If the conversation contains none, infer 2–3 clinically relevant follow-ups.
+  - assistant prompts, checklist queries, clarifying questions.
+- **Only** include questions that ask for specific clinical details (e.g., "Is the redness spreading?", "Did you take your meds?").
+- If the conversation contains none, infer 2–3 clinically relevant follow-ups based on the context.
 
 ---
 
@@ -126,28 +129,27 @@ If no emergency:
 ---
 
 ### EXAMPLES (for illustration only — DO NOT OUTPUT EXTRA TEXT)
-Emergency example:
+Emergency example (Abnormality):
 \`\`\`json
 {
-  "followUpQuestions": ["Has emergency care been contacted?", "Is the patient breathing normally?"],
+  "followUpQuestions": ["Is the swelling hot to the touch?", "Have you iced the area?"],
   "summaryType": "emergency",
   "content": [
-    "CONCERNING: Patient reports sudden severe shortness of breath and chest tightness. Pain reported 9/10 and worsening. Reports dizziness and near-syncope. Immediate clinical evaluation required."
+    "CONCERNING: Patient reports new swelling in the left calf. Describes the area as feeling tight. Pain is reported as manageable (4/10) but the presence of localized swelling warrants attention."
   ]
 }
 \`\`\`
 
-Journal example:
+Journal example (Normal Pain):
 \`\`\`json
 {
-  "followUpQuestions": ["Has the pain improved since yesterday?", "Any new redness or drainage?"],
+  "followUpQuestions": ["Has the pain improved since yesterday?", "Are you able to bear weight?"],
   "summaryType": "journal",
   "content": [
-    "Patient reports right-knee pain 4/10 at rest and 7/10 after walking 100m. Incision appears clean with mild erythema and no drainage. Taking prescribed analgesics with partial relief. No fever or systemic symptoms; mobility improving."
+    "Patient reports post-operative pain 5/10, which is consistent with previous entries. Denies any swelling, redness, or drainage. Taking prescribed analgesics with good effect. Mobility is slowly improving."
   ]
 }
 \`\`\`
-
 `;
 
 export const emergencySummarybotPrompt = `
@@ -374,7 +376,7 @@ This logic triggers *only* if the user replies "NO" to Priority 6, Step 1, OR "N
 
 * **Step 3 - Handle Final Decision:**
     * **A) If user replies "Yes, log it for now":**
-        * **botResponse:** (Use dynamic, empathetic phrasing) "Okay, thank you for sharing. I've saved your journal entry for your team to review. Please come back any time if you need to log more. I hope you feel better soon."
+        * **botResponse:** (Use dynamic, empathetic phrasing) "Okay, thank you for sharing. I've saved your journal entry. To help your team visualize your recovery, please take a moment to upload a photo of your surgery site. I hope you feel better soon."
         * **isEnd:** true (This is the *only* normal way 'isEnd' becomes true)
         * **suggestedReplies:** ["Thank you"]
         * **requiresNumericalInput:** false
