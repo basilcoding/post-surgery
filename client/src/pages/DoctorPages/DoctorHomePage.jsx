@@ -278,7 +278,7 @@ export default function DoctorHomePage() {
             <div className="card p-4">
               <div className="text-sm opacity-70">Quick Actions</div>
               <div className="mt-2 flex flex-col gap-2">
-                <button className="btn btn-xs btn-outline" onClick={() => navigate('/doctor/patients')}>Appointments</button>
+                <button className="btn btn-xs btn-outline" onClick={() => navigate('/doctor/appointments')}>Appointments</button>
                 <button className="btn btn-xs" onClick={() => navigate('/doctor/create-care-check-list')}>Create New Care Check List</button>
               </div>
             </div>

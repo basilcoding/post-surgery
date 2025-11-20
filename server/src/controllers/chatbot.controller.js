@@ -1,5 +1,5 @@
 import User from '../models/user.model.js';
-
+import { ioInstance } from '../lib/socket.js';
 import { Blob } from "buffer";
 import pinata from "../lib/pinata.js";
 
@@ -15,6 +15,11 @@ export const sendMessage = async (req, res) => {
         const { chatbotType } = req.query;
         const userId = req.user._id.toString(); // from the verified token
         const { message, activeDoctor } = req.body; // from the client request body
+
+        if (!activeDoctor) {
+            ioInstance().to(userId.toString()).emit("botReply", { message: "Please select the active doctor from the top profile icon" });
+            return;
+        }
 
         // Find the relationship document with current activeDoctor ONLY!
         // console.log(userId, activeDoctor, chatbotType)

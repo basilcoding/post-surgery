@@ -40,7 +40,7 @@ export default function DoctorProfileUpdatePage() {
         email: "",
         doctorId: "",
         specialty: "",
-        // licenseNumber: "",
+        licenseNumber: "",
         yearsOfExperience: 0,
         bio: "",
         profilePicFile: null,
@@ -102,7 +102,7 @@ export default function DoctorProfileUpdatePage() {
         if (!form.email || String(form.email).trim() === "") e.email = "Email is required.";
         else if (!isValidEmail(form.email)) e.email = "Enter a valid email address.";
 
-        if (!form.doctorId || String(form.doctorId).trim() === "") e.doctorId = "Doctor ID is required.";
+        // if (!form.doctorId || String(form.doctorId).trim() === "") e.doctorId = "Doctor ID is required.";
         if (!form.specialty || String(form.specialty).trim() === "") e.specialty = "Specialty is required.";
         // if (!form.licenseNumber || String(form.licenseNumber).trim() === "") e.licenseNumber = "License number is required.";
 
@@ -525,6 +525,7 @@ export default function DoctorProfileUpdatePage() {
                                         className={`input input-bordered w-full ${errors.doctorId ? "input-error" : ""}`}
                                         value={form.doctorId}
                                         onChange={(e) => setForm((p) => ({ ...p, doctorId: e.target.value }))}
+                                        disabled
                                     />
                                 </label>
                             </div>
@@ -545,6 +546,7 @@ export default function DoctorProfileUpdatePage() {
                                         className={`input input-bordered w-full ${errors.licenseNumber ? "input-error" : ""}`}
                                         value={form.licenseNumber}
                                         onChange={(e) => setForm((p) => ({ ...p, licenseNumber: e.target.value }))}
+                                        disabled
                                     />
                                 </label>
 

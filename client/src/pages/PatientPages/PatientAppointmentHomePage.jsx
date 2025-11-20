@@ -200,7 +200,7 @@ export default function PatientAppointmentsHomePage() {
           <div className="flex items-center gap-2">
             <button
               onClick={() => navigate('/patient/appointments/create')}
-              className="rounded-full btn cursor-pointer px-3 py-1 border bg-white hover:bg-slate-50"
+              className="rounded-full btn cursor-pointer px-3 py-1 border border-black/20 bg-base-200 hover:bg-slate-50"
               aria-label="create"
             >
               Schedule
