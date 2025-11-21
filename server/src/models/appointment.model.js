@@ -45,9 +45,9 @@ appointmentSchema.pre('save', function (next) {
 });
 
 // indexes
-appointmentSchema.index({ doctor: 1 }, { unique: true });
-appointmentSchema.index({ patient: 1 }, { unique: true });
-appointmentSchema.index({ doctor: 1, appointmentDate: 1, slot: 1, createdAt: 1 }, { unique: true });
+appointmentSchema.index({ doctor: 1 });
+appointmentSchema.index({ patient: 1 });
+appointmentSchema.index({ doctor: 1, appointmentDate: 1, slot: 1, createdAt: 1 });
 
 
 export default mongoose.model("Appointment", appointmentSchema);
