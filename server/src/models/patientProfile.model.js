@@ -1,6 +1,55 @@
 // models/patientProfile.model.js
 import mongoose from "mongoose";
 
+// Sub-document for patient documents (bills, consultation notes, lab reports, etc.)
+const patientDocumentSchema = new mongoose.Schema(
+    {
+        // ---- Pinata / storage info (similar to your imageSchema) ----
+        fileId: {
+            type: String,
+            default: "",   // e.g. Pinata upload ID or your own UUID
+        },
+        cid: {
+            type: String,
+            default: "",   // IPFS CID
+        },
+        url: {
+            type: String,
+            default: "",   // Gateway URL (pinata gateway / ipfs.io / your own)
+        },
+
+        // ---- High-level categorization ----
+        category: {
+            type: String,
+            enum: [
+                "consultation",      // OPD visit notes, summaries
+                "bill",              // hospital / pharmacy / lab bills
+                "lab_report",        // blood tests, pathology
+                "imaging",           // X-ray, MRI, CT, etc.
+                "discharge_summary", // after admission / surgery
+                "prescription",
+                "other"
+            ],
+            required: true,
+        },
+
+        // ---- Human-friendly labels shown on frontend ----
+        title: {
+            type: String,
+            trim: true,
+            // e.g. "Orthopedics Follow-up – 12 Nov 2025"
+        },
+
+        // any extra notes by doctor or patient
+        notes: { type: String },
+
+        // basic flags you might want for UI
+        isImportant: { type: Boolean, default: false },  // allows "pinning" in UI
+    },
+    { timestamps: true }
+);
+
+
 const commonHistoryOptions = {
     notes: { type: String },
     // ADD THIS FIELD
@@ -66,12 +115,14 @@ const patientProfileSchema = new mongoose.Schema({
     patientId: {
         type: String,
     },
-    
+
     chronicConditions: [conditionSchema],
     pastSurgeries: [surgerySchema],
     allergies: [allergySchema],
     currentMedications: [medicationSchema],
     familyHistory: [familyHistorySchema],
+
+    documents: [patientDocumentSchema],
 
     activeDoctor: {
         type: mongoose.Schema.Types.ObjectId,

@@ -1,11 +1,14 @@
 import User from '../models/user.model.js';
-import bcrypt from 'bcryptjs';
-import cloudinary from '../lib/cloudinary.js';
-import fs from 'fs';
-
 import Relationship from "../models/relationship.model.js";
 import DoctorProfile from '../models/doctorProfile.model.js';
 import PatientProfile from '../models/patientProfile.model.js';
+
+import bcrypt from 'bcryptjs';
+import cloudinary from '../lib/cloudinary.js';
+import pinata from "../lib/pinata.js";
+import fs from 'fs';
+
+
 
 export const getSelfProfile = async (req, res) => {
     // console.log('getUserById controller is being triggered!')
@@ -171,7 +174,6 @@ export const updateSelfProfile = async (req, res) => {
         const id = req.user._id;
 
         console.log('req.body is: ', req.body);
-        console.log('req.body.data is: ', req.body.data);
         console.log('req.files is: ', req.files);
         // console.log('req.body is: ', req.body);
         // console.log('req.file is: ', req.file);
@@ -179,30 +181,113 @@ export const updateSelfProfile = async (req, res) => {
         if (req.user.role === 'patient') {
 
             const updates = req.body;
+            const deleteImages = req.body.deleteImages;
             const userFieldsToUpdate = {};
             const profileFieldsToUpdate = {};
+            let newPatientDocuments = [];
 
-            if (req.files && req.files.profilePic.length > 0) {
+            const hasProfilePic = req.files?.profilePic && req.files?.profilePic?.length > 0;
+            const hasDocuments = req.files?.documents && req.files?.documents?.length > 0;
 
-                const profileFile = req.files.profilePic[0];
+            if (hasProfilePic || hasDocuments) {
 
-                if (req.user?.image?.public_id) {
-                    await cloudinary.uploader.destroy(req.user.image.public_id);
+                if (req.files && req.files?.profilePic?.length > 0) {
+                    const profileFile = req.files.profilePic[0];
+
+                    if (req.user?.image?.public_id) {
+                        await cloudinary.uploader.destroy(req.user.image.public_id);
+                    }
+                    // 1. Convert the buffer from req.file.buffer into a Data URI
+                    const b64 = Buffer.from(profileFile.buffer).toString('base64');
+                    let dataURI = "data:" + profileFile.mimetype + ";base64," + b64;
+
+                    // 2. Upload the Data URI string to Cloudinary
+                    const uploadResponse = await cloudinary.uploader.upload(dataURI, {
+                        folder: 'SRMS-patient-profile-pics',
+                    });
+
+                    // Add image to the user update $set object
+                    userFieldsToUpdate.image = {
+                        url: uploadResponse.secure_url,
+                        public_id: uploadResponse.public_id,
+                    };
                 }
-                // 1. Convert the buffer from req.file.buffer into a Data URI
-                const b64 = Buffer.from(profileFile.buffer).toString('base64');
-                let dataURI = "data:" + profileFile.mimetype + ";base64," + b64;
 
-                // 2. Upload the Data URI string to Cloudinary
-                const uploadResponse = await cloudinary.uploader.upload(dataURI, {
-                    folder: 'SRMS-patient-profile-pics',
-                });
 
-                // Add image to the user update $set object
-                userFieldsToUpdate.image = {
-                    url: uploadResponse.secure_url,
-                    public_id: uploadResponse.public_id,
-                };
+                if (deleteImages) {
+                    const profile = await PatientProfile.findOne({ user: req.user._id }).select('documents');
+                    let urlsToDelete = [];
+                    urlsToDelete = deleteImages;
+                    // Get all matching images from DB
+                    const matchedImages = profile.documents.filter(img =>
+                        urlsToDelete.includes(img.url)
+                    );
+
+                    // Extract their CIDs for unpinning
+                    const fileIdsToDelete = matchedImages.map(img => img.fileId);
+
+                    let unpin;
+                    try {
+                        // const file = await pinata.groups.public.get({ groupId: process.env.PINATA_GROUP_ID });
+                        // console.log('Group details: ', file);
+                        unpin = await pinata.files.public.delete(fileIdsToDelete);
+                        // console.log(`Unpinned ${JSON.stringify(unpin)}`);
+                    } catch (err) {
+                        console.warn(`Failed to unpin ${unpin}:`, err.message);
+                    }
+
+                    // Remove the matching images from DB
+                    if (unpin) {
+                        profile.documents = profile.documents.filter(img =>
+                            !urlsToDelete.includes(img.url)
+                        );
+                    }
+
+                    await profile.save();
+                }
+
+                if (req.files?.documents?.length > 0) {
+                    // Handle new uploads
+                    const uploadPromises = req.files.documents.map(async (f) => {
+                        // In Node, File may not exist; if you're using web-File via some polyfill, keep this.
+                        const file = new File([f.buffer], f.originalname, { type: f.mimetype });
+
+                        const result = await pinata.upload.public
+                            .file(file)
+                            .group(process.env.PINATA_GROUP_ID);
+
+                        const fileId = result.id;
+                        const cid = result.cid || result.IpfsHash;
+                        const url = `https://${process.env.PINATA_GATEWAY}/ipfs/${cid}`;
+
+                        return { fileId, cid, url };
+                    });
+
+                    const uploadedImages = await Promise.all(uploadPromises);
+
+                    // documentMeta arrives from frontend as JSON string or object array
+                    // Each element corresponds to same index as req.files.documents
+                    let documentMeta = [];
+                    if (updates.documentMeta) {
+                        documentMeta = typeof updates.documentMeta === 'string'
+                            ? JSON.parse(updates.documentMeta)
+                            : updates.documentMeta;
+                    }
+
+                    // build patientDocumentSchema objects
+                    newPatientDocuments = uploadedImages.map((img, idx) => {
+                        const meta = documentMeta[idx] || {};
+                        return {
+                            fileId: img.fileId,
+                            cid: img.cid,
+                            url: img.url,
+                            category: meta.category || 'other',  // required on schema
+                            title: meta.title || '',
+                            notes: meta.notes || '',
+                            isImportant: !!meta.isImportant,
+                        };
+                    });
+                }
 
                 // --- 2. Parse FormData Text Fields ---
 
@@ -218,6 +303,38 @@ export const updateSelfProfile = async (req, res) => {
             } else {
                 // --- No file is present, so we are in JSON mode ---
 
+                if (deleteImages) {
+                    const profile = await PatientProfile.findOne({ user: req.user._id }).select('documents');
+                    let urlsToDelete = [];
+                    urlsToDelete = deleteImages;
+                    // Get all matching images from DB
+                    const matchedImages = profile.documents.filter(img =>
+                        urlsToDelete.includes(img.url)
+                    );
+
+                    // Extract their CIDs for unpinning
+                    const fileIdsToDelete = matchedImages.map(img => img.fileId);
+
+                    let unpin;
+                    try {
+                        // const file = await pinata.groups.public.get({ groupId: process.env.PINATA_GROUP_ID });
+                        // console.log('Group details: ', file);
+                        unpin = await pinata.files.public.delete(fileIdsToDelete);
+                        // console.log(`Unpinned ${JSON.stringify(unpin)}`);
+                    } catch (err) {
+                        console.warn(`Failed to unpin ${unpin}:`, err.message);
+                    }
+
+                    // Remove the matching images from DB
+                    if (unpin) {
+                        profile.documents = profile.documents.filter(img =>
+                            !urlsToDelete.includes(img.url)
+                        );
+                    }
+
+                    await profile.save();
+                }
+
                 // User fields (are nested in 'user' object)
                 if (updates.user) {
                     if (updates.user.fullName) userFieldsToUpdate.fullName = updates.user.fullName;
@@ -232,10 +349,20 @@ export const updateSelfProfile = async (req, res) => {
 
             // console.log('patientprofileDbId is: ', id);
             // console.log('doctorid is: ', req.user._id)
+
+            // Build update object
+            const profileUpdate = { $set: profileFieldsToUpdate };
+
+            if (newPatientDocuments.length > 0) {
+                profileUpdate.$push = {
+                    documents: { $each: newPatientDocuments }
+                };
+            }
+
             const [updatedSelfProfile, updatedUser] = await Promise.all([
                 PatientProfile.findOneAndUpdate(
                     { user: req.user._id },
-                    { $set: profileFieldsToUpdate },
+                    profileUpdate,
                     { new: true, runValidators: true } // runValidators is good practice
                 ),
                 User.findByIdAndUpdate(
