@@ -16,8 +16,6 @@ import ViewSelectedSummaryPage from "../pages/PatientPages/ViewSelectedSummaryPa
 import PatientAppointmentHomePage from "../pages/PatientPages/PatientAppointmentHomePage.jsx";
 import CreateAppointmentPage from "../pages/PatientPages/CreateAppointmentPage.jsx";
 
-import Chatbot from "../components/ChatbotComponents/Chatbot.jsx";
-
 import { useUserStore } from '../store/useUserStore.js'
 
 
