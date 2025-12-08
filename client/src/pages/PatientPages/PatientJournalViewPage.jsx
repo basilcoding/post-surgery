@@ -3,7 +3,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { format } from "date-fns";
 import { useNavigate } from "react-router-dom";
 import { useSummaryStore } from "../../store/useSummaryStore";
-import ChatbotIcon from "../../components/ChatbotComponents/ChatbotIcon";
+import ChatbotIcon from "../../components/ChatbotComponents/ChatbotIcon.jsx";
 
 /**
  * PatientJournalViewPage using Zustand store values

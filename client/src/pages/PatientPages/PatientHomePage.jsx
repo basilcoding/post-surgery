@@ -15,7 +15,7 @@ import {
   Circle,
 } from "lucide-react";
 
-import ChatbotIcon from "../../components/ChatbotComponents/ChatbotIcon";
+import ChatbotIcon from "../../components/ChatbotComponents/ChatbotIcon.jsx";
 
 import { useAuthStore } from "../../store/useAuthStore";
 import { useAppointmentStore } from "../../store/useAppointmentStore";
