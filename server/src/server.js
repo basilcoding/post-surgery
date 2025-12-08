@@ -59,26 +59,27 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 // Use an async function to control startup order
-const startServer = async () => {
-    try {
-        // 1. Connect to the database first
-        await connectDB();
+// const startServer = async () => {
+//     try {
+//         // 1. Connect to the database first
+//         await connectDB();
 
-        // 2. If the connection is successful, then start the server
-        const PORT = process.env.PORT || 5000;
-        server.listen(PORT, () => {
-            console.log(`Listening on port ${PORT}`);
-        });
+//         // 2. If the connection is successful, then start the server
+//         const PORT = process.env.PORT || 5000;
+//         server.listen(PORT, () => {
+//             console.log(`Listening on port ${PORT}`);
+//         });
 
-    } catch (error) {
-        console.error("Failed to connect to the database", error);
-        process.exit(1); // Exit if the DB connection fails
-    }
-};
+//     } catch (error) {
+//         console.error("Failed to connect to the database", error);
+//         process.exit(1); // Exit if the DB connection fails
+//     }
+// };
 
-startServer();
+// startServer();
 
-// const PORT = process.env.PORT || 5000;
-// server.listen(PORT, () => {
-//     console.log(`Listening on port ${PORT}`)
-// })
+const PORT = process.env.PORT || 5000;
+server.listen(PORT, () => {
+    connectDB();
+    console.log(`Listening on port ${PORT}`)
+})

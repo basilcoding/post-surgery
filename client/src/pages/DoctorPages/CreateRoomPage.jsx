@@ -125,7 +125,7 @@ export default function CreateRoomPage() {
                                             >
                                                 <img src='../../../public/closeButton.svg' className='p-0 m-0' />
                                             </button>
-                                            <div className="flex items-center gap-2">
+                                            <div className="flex items-center gap-2 mr-1">
                                                 <button
                                                     onClick={() => setCreateRoomButton(true)}
                                                     className="btn btn-primary"
@@ -138,7 +138,7 @@ export default function CreateRoomPage() {
 
                                     <div className="mt-4 text-sm text-gray-500">
                                         <p>
-                                            Tip: Use the patient ID assigned by your system (for example <span className="font-medium">PAT-2025/2500</span>).
+                                            Tip: Use the patient ID assigned by your system (for example <span className="font-medium">PAT-2025-2500</span>).
                                             The patient will be able to join the chat using the same ID.
                                         </p>
                                     </div>

@@ -250,13 +250,21 @@ export default function UpdateCareCheckListPage() {
   return (
     <div className="p-6 h-full w-full pt-[90px]">
       <div className="max-w-4xl mx-auto">
-        <div className="mb-6 flex items-center gap-3">
-          <button className="btn btn-ghost btn-sm" onClick={() => navigate(-1)} aria-label="Back">
-            <ArrowLeft size={16} /> Back
-          </button>
-          <h1 className="text-2xl font-semibold">Update Care Checklist</h1>
+        <div className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-3 md:gap-4">
+          {/* Left: Back Button & Title */}
+          <div className="flex items-center justify-between gap-3">
+            <button className="hidden md:flex btn btn-ghost btn-sm" onClick={() => navigate(-1)} aria-label="Back">
+              <ArrowLeft size={16} /> Back
+            </button>
+            <h1 className="text-xl md:text-2xl font-semibold">Update Care Checklist</h1>
+            <button className="md:hidden btn btn-ghost btn-sm" onClick={() => navigate(-1)} aria-label="Back">
+              <ArrowLeft size={16} /> Back
+            </button>
+          </div>
+
+          {/* Right: Metadata (Stacks below on mobile, moves right on desktop) */}
           {originalMeta && (
-            <div className="ml-4 text-sm opacity-60">
+            <div className="flex flex-col md:items-end text-xs md:text-sm opacity-60 pl-4 md:pl-0 md:text-right">
               <div>Created: {originalMeta.createdAt ? new Date(originalMeta.createdAt).toLocaleString() : "—"}</div>
               <div>Updated: {originalMeta.updatedAt ? new Date(originalMeta.updatedAt).toLocaleString() : "—"}</div>
             </div>
@@ -289,7 +297,28 @@ export default function UpdateCareCheckListPage() {
           </div>
 
           <div>
-            <div className="flex items-center justify-between mb-3">
+            <div className="hidden md:flex items-center justify-between mb-3 w-full">
+              <h3 className="text-lg font-medium">Topics & Items</h3>
+              <div className="flex items-center gap-2">
+                <button type="button" className="btn btn-outline btn-sm gap-2" onClick={addTopic}>
+                  <Plus size={14} /> Add Topic
+                </button>
+                <button type="button" className="btn btn-ghost btn-sm" onClick={() => { setTopics([]); toast("Cleared topics"); }}>
+                  <Trash2 size={14} /> Clear All
+                </button>
+                <button type="button" className="btn btn-ghost btn-sm" onClick={async () => {
+                  // quick refresh from store (in case someone else updated)
+                  await getCareCheckLists();
+                  const refreshed = (careCheckLists || []).find(c => String(c._id) === String(careCheckListId));
+                  if (refreshed) populateForm(refreshed);
+                  toast.success("Refreshed");
+                }}>
+                  <RefreshCw size={14} /> Refresh
+                </button>
+              </div>
+            </div>
+
+            <div className="md:hidden mb-3 w-full">
               <h3 className="text-lg font-medium">Topics & Items</h3>
               <div className="flex items-center gap-2">
                 <button type="button" className="btn btn-outline btn-sm gap-2" onClick={addTopic}>
@@ -348,15 +377,25 @@ export default function UpdateCareCheckListPage() {
           </div>
 
           {/* Slightly different controls */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <label className="cursor-pointer label">
-                <input type="checkbox" className="checkbox mr-2" checked={saveAsNewVersion} onChange={(e) => setSaveAsNewVersion(e.target.checked)} />
-                <span className="label-text">Save as new version (auto-increment identifier)</span>
+          <div className="flex flex-col md:flex-row items-center justify-between w-full gap-4 md:gap-0">
+
+            {/* Checkbox: Full width on mobile, 50% on desktop */}
+            <div className="w-full md:w-full">
+              <label className="cursor-pointer label flex w-full items-start justify-start p-0">
+                <input
+                  type="checkbox"
+                  className="checkbox mr-3 shrink-0"
+                  checked={saveAsNewVersion}
+                  onChange={(e) => setSaveAsNewVersion(e.target.checked)}
+                />
+                <span className="label-text flex-1 whitespace-normal text-left leading-tight">
+                  Save as new version (auto-increment identifier)
+                </span>
               </label>
             </div>
 
-            <div className="flex items-center gap-3">
+            {/* Buttons: Full width container on mobile to allow alignment */}
+            <div className="grid grid-cols-2 md:flex items-center justify-end gap-3 w-full md:w-auto">
               <button type="button" className="btn btn-ghost" onClick={handleRevert}>
                 <Download size={14} /> Revert
               </button>

@@ -447,10 +447,10 @@ export default function DoctorAppointmentPage() {
                 </div>
 
                 {/* Actions row spans full width below on small screens */}
-                <div className="md:col-span-3 mt-3 flex items-center justify-end gap-2">
+                <div className="grid grid-cols-1 md:flex md:col-span-3 mt-3 items-center justify-end gap-2">
                   {selectedAppt && selectedAppt.status !== "no_show" && selectedAppt.status !== "cancelled" && (
                     <button
-                      className={`btn btn-warning ${actionLoading ? "loading" : ""}`}
+                      className={`btn btn-warning w-full ${actionLoading ? "loading" : ""}`}
                       onClick={handleMarkNoShow}
                       disabled={actionLoading}
                     >
@@ -469,10 +469,10 @@ export default function DoctorAppointmentPage() {
                   )}
 
                   {selectedAppt && selectedAppt.status !== "cancelled" && (
-                    <div>
+                    <div className="col-span-1 w-full md:w-auto">
                       {!showCancelReason ? (
                         <button
-                          className={`btn btn-error ${actionLoading ? "loading" : ""}`}
+                          className={`btn btn-error cols-span-2 w-full ${actionLoading ? "loading" : ""}`}
                           onClick={handleOpenCancel}
                           disabled={actionLoading}
                         >

@@ -110,49 +110,62 @@ export default function ShowAllCareCheckListsPage() {
 
   return (
     <div className="p-6 pt-[90px] h-full w-full">
-      <div className="flex flex-col md:flex-row md:justify-between gap-4 mb-6">
+      <div className="flex flex-col md:flex-row md:justify-between gap-4 mb-6 md:items-center w-full">
         <h1 className="text-2xl font-semibold">Care Versioning</h1>
+        <div className='flex justify-end'>
+          <div className="flex justify-end items-stretch gap-3 w-full md:w-auto">
+            {/* Search */}
+            <div className="hidden md:flex items-center input-group w-full md:w-[420px]">
+              <span className="flex items-center pl-3 pr-2">
+                <Search size={18} />
+              </span>
+              <input
+                className="input input-bordered w-full"
+                placeholder="Search by surgery name, id or description"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+              />
+            </div>
 
-        <div className="flex items-stretch gap-3 w-full md:w-auto">
-          {/* Search */}
-          <div className="flex items-center input-group w-full md:w-[420px]">
-            <span className="flex items-center pl-3 pr-2">
-              <Search size={18} />
-            </span>
-            <input
-              className="input input-bordered w-full"
-              placeholder="Search by surgery name, id or description"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-            />
+            {/* DaisyUI dropdown for surgery names */}
+            <div className="dropdown w-full md:w-[30%]">
+              <label tabIndex={0} className="btn btn-outline w-full">
+                {selectedSurgery === "all" ? "All Surgeries" : selectedSurgery}
+              </label>
+              <ul tabIndex={0} className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-72 max-h-60 overflow-auto">
+                {surgeryNames.map((s) => (
+                  <li key={s}>
+                    <a
+                      className={s === selectedSurgery ? "font-semibold" : ""}
+                      onClick={() => setSelectedSurgery(s)}
+                    >
+                      {s === "all" ? "All Surgeries" : s}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <button
+              className="btn btn-primary gap-2"
+              onClick={() => navigate('/doctor/create-care-check-list')}
+            >
+              <Plus size={16} /> New
+            </button>
           </div>
-
-          {/* DaisyUI dropdown for surgery names */}
-          <div className="dropdown">
-            <label tabIndex={0} className="btn btn-outline">
-              {selectedSurgery === "all" ? "All Surgeries" : selectedSurgery}
-            </label>
-            <ul tabIndex={0} className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-72 max-h-60 overflow-auto">
-              {surgeryNames.map((s) => (
-                <li key={s}>
-                  <a
-                    className={s === selectedSurgery ? "font-semibold" : ""}
-                    onClick={() => setSelectedSurgery(s)}
-                  >
-                    {s === "all" ? "All Surgeries" : s}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <button
-            className="btn btn-primary gap-2"
-            onClick={() => navigate('/doctor/create-care-check-list')}
-          >
-            <Plus size={16} /> New
-          </button>
         </div>
+      </div>
+      {/* Search */}
+      <div className="md:hidden flex items-center input-group w-full md:w-[420px]">
+        <span className="flex items-center pl-3 pr-2">
+          <Search size={18} />
+        </span>
+        <input
+          className="input input-bordered w-full"
+          placeholder="Search by surgery name, id or description"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+        />
       </div>
 
       {isLoading ? (
@@ -299,7 +312,7 @@ export default function ShowAllCareCheckListsPage() {
             <div className="modal-action">
               <button className="btn" onClick={closeDetails}>Close</button>
               <button onClick={() => navigate(`/doctor/care-check-list/${activeList._id}`)}
-              className="btn btn-primary">View</button>
+                className="btn btn-primary">View</button>
             </div>
           </div>
         </div>

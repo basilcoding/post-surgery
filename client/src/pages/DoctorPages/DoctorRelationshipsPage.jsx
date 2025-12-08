@@ -74,25 +74,25 @@ export default function DoctorRelationshipsPage() {
 
     return (
         <div className="p-6 pt-[80px] h-full w-full mx-auto">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
-                <div>
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6 w-full">
+                <div className='w-full'>
                     <h1 className="text-2xl font-semibold">Your Active Patients</h1>
                     <p className="text-sm text-gray-500 mt-1">Showing active relationships assigned to you.</p>
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-6 w-full justify-end">
                     <div className="hidden md:flex items-center gap-4 bg-white rounded-lg shadow px-4 py-2">
                         <div className="text-sm">
                             <div className="text-xs text-gray-500">Active patients</div>
                             <div className="font-medium">{counts.total}</div>
                         </div>
-
                     </div>
 
                     {/* DaisyUI dropdowns for sort */}
                     <div className="flex items-center gap-2">
-                        <div className="dropdown dropdown-end">
-                            <label tabIndex={0} className="btn btn-ghost">Sort: {sortBy}</label>
+
+                        <div className="dropdown dropdown-start md:dropdown-end">
+                            <label tabIndex={0} className="btn btn-accent/50">Sort: {sortBy}</label>
                             <ul tabIndex={0} className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52">
                                 <li onClick={() => setSortBy('recent')}><a>Recently assigned</a></li>
                                 <li onClick={() => setSortBy('oldest')}><a>Oldest assigned</a></li>
@@ -100,10 +100,18 @@ export default function DoctorRelationshipsPage() {
                             </ul>
                         </div>
                     </div>
+                    <div className="flex w-full justify-end md:hidden ">
+                        <input
+                            placeholder="Search patients, identifier..."
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                            className="w-[100%] px-4 py-2 rounded-4xl border focus:outline-none"
+                        />
+                    </div>
                 </div>
             </div>
 
-            <div className="mb-6 w-full flex justify-end">
+            <div className="hidden mb-6 w-full md:flex justify-end">
                 <input
                     placeholder="Search patients, surgery id, or names..."
                     value={search}
@@ -123,14 +131,18 @@ export default function DoctorRelationshipsPage() {
                             <div key={r._id} className="w-full p-4 pt-2 rounded-lg border shadow-sm bg-white hover:shadow-md transition">
                                 <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
                                     <div className="flex-1">
-                                        <div className="badge badge-info text-xs mt-1 text-gray-500">Patient: {r.patientProfile.patientId || ''}</div>
+                                        <div className="hidden md:block badge badge-info text-xs mt-1 text-gray-500">Patient: {r.patientProfile.patientId || ''}</div>
+                                        <div className='md:hidden flex justify-between w-full'>
+                                            <div className="badge badge-info text-xs mt-1 text-gray-500">Patient: {r.patientProfile.patientId || ''}</div>
+                                            <button onClick={() => navigate(`/doctor/relationships/${r._id || ''}`)} className="cursor-pointer text-sm px-3 py-1 rounded-md border">View patient Details</button>
+                                        </div>
                                         <div className="font-semibold text-lg mt-4">Name: {r.patient?.fullName || 'Unknown'}</div>
                                         {/* <div className="text-sm text-gray-500 mt-1">{r.patientProfile?.email || r.patient?.email || ''}</div> */}
 
                                         {r.surgeryName && (
                                             <div className="mt-3 text-sm">
-                                                <div className="text-xs ">Surgery: </div>
-                                                <div className="font-medium">{r.surgeryName}</div>
+                                                <div className="text-xs ">Surgery: {r.surgeryName}</div>
+                                                <div className="hidden md:block font-medium">{r.surgeryName}</div>
                                                 {/* <br /> */}
                                                 <div className="text-xs ">Identifier: {r.surgeryIdentifier ? `${r.surgeryIdentifier}` : ' — '}</div>
 
@@ -138,21 +150,21 @@ export default function DoctorRelationshipsPage() {
                                         )}
 
                                         {r.notes && (
-                                            <div className="mt-3 text-sm text-gray-700">Notes: {r.notes}</div>
+                                            <div className="hidden md:block mt-3 text-sm text-gray-700">Notes: {r.notes}</div>
                                         )}
                                     </div>
 
                                     <div className="flex-shrink-0 text-right md:text-left">
-                                        <div className={`inline-block px-2 py-1 mt-1 rounded text-xs font-medium ${r.status ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'}`}>
+                                        <div className={`hidden md:inline-block px-2 py-1 mt-1 rounded text-xs font-medium ${r.status ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'}`}>
                                             {r.status ? 'Active' : 'Inactive'}
                                         </div>
-                                        <div className="text-xs text-gray-400 mt-2">{r.careType || 'General'}</div>
+                                        <div className="hidden md:block text-xs text-gray-400 mt-2">{r.careType || 'General'}</div>
                                         {r.assignedAt && (
-                                            <div className="text-xs text-gray-400 mt-2">Assigned: {format(new Date(r.assignedAt), 'PP p')}</div>
+                                            <div className="hidden md:block text-xs text-gray-400 mt-2">Assigned: {format(new Date(r.assignedAt), 'PP p')}</div>
                                         )}
 
-                                        <div className="mt-4 flex flex-wrap gap-2 justify-end">
-                                            <button onClick={() => navigate(`/doctor/relationships/${r._id || ''}`)} className="cursor-pointer text-sm px-3 py-1 rounded-md border">View patient Details</button>
+                                        <div className="hidden md-block mt-4 md-flex flex-wrap gap-2 justify-end">
+                                            <button onClick={() => navigate(`/doctor/relationships/${r._id || ''}`)} className="hidden md:block cursor-pointer text-sm px-3 py-1 rounded-md border">View patient Details</button>
                                             {/* <button onClick={() => navigate(`/relationships/${r._id}`)} className="text-sm px-3 py-1 rounded-md border">Details</button> */}
                                         </div>
                                     </div>

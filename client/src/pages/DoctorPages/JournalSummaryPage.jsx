@@ -110,16 +110,32 @@ export default function DoctorJournalPage() {
   const patient = modalSummary?.patient || null;
 
   return (
-    <div className="min-h-screen pt-[80px] bg-base-100">
-      <div className="max-w-7xl px-4 py-2">
+    <div className="min-h-screen pt-[80px] bg-base-100 w-full">
+      <div className="w-full px-4 py-2">
         {/* Header */}
-        <div className="flex items-center justify-between gap-4 mb-6">
+        <div className="flex items-center justify-between gap-4 mb-3">
           <div>
             <h1 className="text-2xl md:text-3xl font-semibold">Patient Summaries</h1>
             <p className="text-sm text-muted-foreground">Manage incoming summaries.</p>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-col md:flex-row items-center gap-2">
+            {/* DaisyUI dropdown for type filter */}
+              <div className="md:hidden mb-3">
+                <div className="dropdown dropdown-end">
+                  <label tabIndex={0} className="btn w-full justify-between">
+                    {typeFilter}
+                    <svg className="ml-2 w-4 h-4 inline" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <path strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" d="M6 9l6 6 6-6" />
+                    </svg>
+                  </label>
+                  <ul tabIndex={0} className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-44">
+                    <li><a onClick={() => setTypeFilter("All")} className={typeFilter === "All" ? "font-medium" : ""}>All</a></li>
+                    <li><a onClick={() => setTypeFilter("journal")} className={typeFilter === "journal" ? "font-medium" : ""}>Journal</a></li>
+                    <li><a onClick={() => setTypeFilter("emergency")} className={typeFilter === "emergency" ? "font-medium text-error" : ""}>Emergency</a></li>
+                  </ul>
+                </div>
+              </div>
             <button
               onClick={() => {
                 setLoading(true);
@@ -137,8 +153,8 @@ export default function DoctorJournalPage() {
           {/* Sidebar */}
           <aside className="lg:col-span-3">
             <div className="card bg-base-200 p-4 shadow-sm sticky top-[90px]">
-              <h3 className="font-semibold mb-1">Views</h3>
-              <p className="text-xs text-muted-foreground mb-3">Switch buckets</p>
+              <h3 className="hidden md:block font-semibold mb-1">Views</h3>
+              <p className="hidden md:block text-xs text-muted-foreground mb-3">Switch buckets</p>
 
               <div className="space-y-2 mb-4">
                 <button
@@ -166,10 +182,10 @@ export default function DoctorJournalPage() {
                 </button>
               </div>
 
-              <div className="divider my-3" />
+              <div className="hidden md:block divider my-3" />
 
               {/* DaisyUI dropdown for type filter */}
-              <div className="mb-3">
+              <div className="hidden md:block mb-3">
                 <div className="text-xs text-muted-foreground mb-2">Filter type</div>
                 <div className="dropdown dropdown-start">
                   <label tabIndex={0} className="btn w-full justify-between">
@@ -186,9 +202,9 @@ export default function DoctorJournalPage() {
                 </div>
               </div>
 
-              <div className="divider my-3" />
+              <div className="hidden md:block divider my-3" />
 
-              <div>
+              <div className='hidden md:block'>
                 <h4 className="text-sm font-medium mb-2">Quick actions</h4>
                 <div className="flex flex-col gap-2">
                   <button
@@ -205,11 +221,10 @@ export default function DoctorJournalPage() {
             </div>
           </aside>
 
-          {/* Summaries list (main) */}
           <main className="lg:col-span-9">
             <div className="card bg-base-200 shadow-sm">
-              <div className="card-body p-4">
-                <div className="flex items-center justify-between mb-3">
+              <div className="card-body p-2 md:p-4"> {/* Reduced padding on mobile */}
+                <div className="flex items-center justify-between mb-3 px-1 md:px-0">
                   {viewType === "new" && <h3 className="text-lg font-medium">New</h3>}
                   {viewType === "underReview" && <h3 className="text-lg font-medium">Under Review</h3>}
                   {viewType === "resolved" && <h3 className="text-lg font-medium">Resolved</h3>}
@@ -225,34 +240,38 @@ export default function DoctorJournalPage() {
                       const patientId = s?.patient?.patientId;
                       return (
                         <article key={s._id} className="p-3 rounded-lg border border-base-200 bg-base-100">
-                          <div className="flex items-start justify-between gap-3">
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center justify-between gap-2">
-                                <div className="flex items-center">
-                                  <h4 className="font-semibold text-sm truncate pr-2">Patient: </h4>
+                          {/* Mobile: Column layout, Desktop: Row layout */}
+                          <div className="flex flex-col md:flex-row items-start md:justify-between gap-3">
+                            
+                            {/* Content Section: Full width on mobile */}
+                            <div className="flex-1 min-w-0 w-full">
+                              <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-2">
+                                <div className="flex items-center gap-2 shrink-0">
+                                  <h4 className="font-semibold text-sm truncate pr-2">Patient:</h4>
                                   <CopyButtonComponent value={s?.patient?.patientId} />
                                 </div>
-                                <div className="flex items-center gap-2">
-                                  {s.type === 'emergency' && <span className="badge badge-error">Concerning</span>}
-                                  <span className="text-xs text-muted-foreground">{format(new Date(s.createdAt), "PPp")}</span>
+                                <div className="flex items-center gap-2 shrink-0">
+                                  {s.type === 'emergency' && <span className="badge badge-error badge-xs md:badge-md">Concerning</span>}
+                                  <span className="text-[10px] md:text-xs text-muted-foreground">{format(new Date(s.createdAt), "PPp")}</span>
                                 </div>
+                                
                               </div>
 
                               <p className="text-sm text-muted-foreground mt-2 line-clamp-2 whitespace-pre-wrap">
                                 {(s.content.length > 1 ? `Updated: ${s.formattedTimestamps[idx]} \n` : `Created: ${s.formattedTimestamps[idx]} \n`)}{Array.isArray(s.content) ? s.content.join(" — ") : String(s.content || "")}
                               </p>
 
-                              <div className="flex items-center gap-3 mt-2 text-xs">
+                              <div className="flex flex-wrap items-center gap-3 mt-2 text-xs opacity-80">
                                 <span className="text-xs">Assigned: Dr. <span className="font-medium">{assigned}</span></span>
                                 <span className="text-xs">Questions: <span className="font-medium">{(s.questionsAsked?.length || 0)}</span></span>
                               </div>
                             </div>
 
-                            {/* Actions */}
-                            <div className="flex flex-col items-end gap-2">
-                              <div className="dropdown dropdown-end">
+                            {/* Actions Section: Row on mobile (bottom), Column on desktop (right) */}
+                            <div className="flex flex-row md:flex-col items-center md:items-end justify-end w-full md:w-auto gap-2 mt-2 md:mt-0 pt-2 md:pt-0 border-t md:border-t-0 border-base-200 md:border-none">
+                              <div className="dropdown dropdown-end md:dropdown-end dropdown-top md:dropdown-bottom">
                                 <label tabIndex={0} className="btn btn-ghost btn-sm">Actions ▾</label>
-                                <ul tabIndex={0} className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-44">
+                                <ul tabIndex={0} className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-44 z-10 border border-base-200">
                                   {s.status === "New" && (
                                     <>
                                       <li onClick={() => handleChangeStatus(s._id, "UnderReview")} className={`${busyId === s._id ? "opacity-60 pointer-events-none" : "cursor-pointer p-2 hover:bg-black/5 rounded-xl"}`}>Mark as Under Review</li>

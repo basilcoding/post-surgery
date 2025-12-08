@@ -470,12 +470,24 @@ export default function DoctorProfileUpdatePage() {
 
     return (
         <div className="p-6 pt-[80px] h-full w-full max-w-6xl mx-auto">
-            <div className="flex items-center gap-4 mb-6">
-                <button onClick={() => navigate(-1)} className="btn btn-ghost btn-sm">
-                    <ChevronLeft size={16} /> Back
-                </button>
-                <h1 className="text-2xl font-semibold">Doctor profile</h1>
-                <span className="ml-auto text-sm text-muted">Last saved: {userProfile?.updatedAt ? new Date(userProfile.updatedAt).toLocaleString() : "—"}</span>
+            <div className="flex flex-wrap items-center justify-between gap-y-2 gap-x-4 mb-6">
+                <h1 className="hidden md:block text-xl md:text-2xl font-semibold w-full">Doctor profile</h1>
+                <div className="flex items-center gap-2 w-full md:w-auto">
+                    <button onClick={() => navigate(-1)} className="hidden md:inline-flex btn btn-ghost btn-sm px-2 -ml-2">
+                        <ChevronLeft size={16} /> Back
+                    </button>
+                    <div className='w-full flex justify-between md:justify-center'>
+                        <h1 className="md:hidden text-xl md:text-2xl font-semibold w-full">Doctor profile</h1>
+                        <button onClick={() => navigate(-1)} className="md:hidden btn btn-ghost btn-sm px-2 -ml-2">
+                            <ChevronLeft size={16} /> Back
+                        </button>
+                    </div>
+                </div>
+
+                <span className="text-xs md:text-sm text-base-content/60 w-full md:w-auto text-left md:text-right pl-1 md:pl-0">
+                    Last saved: {userProfile?.updatedAt ? new Date(userProfile.updatedAt).toLocaleString() : "—"}
+                </span>
+
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -677,7 +689,7 @@ export default function DoctorProfileUpdatePage() {
                 </section>
 
                 {/* Documents */}
-                <section className="card bg-base-100 shadow p-4">
+                <section className="card bg-base-100 shadow p-4 w-full">
                     <div className="flex items-center justify-between mb-2">
                         <h2 className="text-lg font-medium">Documents</h2>
                         <label className="btn btn-sm btn-outline cursor-pointer">
@@ -697,8 +709,11 @@ export default function DoctorProfileUpdatePage() {
                                     <div className="flex-1">
                                         <a href={d.url} target="_blank" rel="noreferrer" className="link">{d.documentType || `Document ${i + 1}`}</a>
                                         <div className="text-xs text-muted">{d.public_id}</div>
+                                        <div className='flex justify-end md:hidden mt-2'>
+                                            <button type="button" onClick={() => handleDeleteExistingDocument(d)} className="md:hidden btn btn-sm btn-error"><Trash size={14} /></button>
+                                        </div>
                                     </div>
-                                    <button type="button" onClick={() => handleDeleteExistingDocument(d)} className="btn btn-sm btn-error"><Trash size={14} /></button>
+                                    <button type="button" onClick={() => handleDeleteExistingDocument(d)} className="hidden md:block btn btn-sm btn-error"><Trash size={14} /></button>
                                 </div>
                             ))
                         )}

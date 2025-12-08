@@ -2,10 +2,10 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Bell, Users, FileText, CheckCircle, Clock, Image as ImageIcon,
-  ArrowRightCircle, Activity
+  ArrowRightCircle, Activity, ChevronRight
 } from "lucide-react";
 
-// stores (make sure paths are correct in your project)
+// stores
 import { useAuthStore } from "../../store/useAuthStore";
 import { useSummaryStore } from "../../store/useSummaryStore";
 import { useRelationshipsStore } from "../../store/useRelationshipsStore";
@@ -28,7 +28,7 @@ const timeAgo = (iso) => {
 
 export default function DoctorHomePage() {
   const navigate = useNavigate();
-  const { authUser, socket, connectSocket, disconnectSocket } = useAuthStore();
+  const { authUser, socket, connectSocket } = useAuthStore();
   const {
     newSummaries,
     underReviewSummaries,
@@ -43,24 +43,17 @@ export default function DoctorHomePage() {
 
   const [activeTab, setActiveTab] = useState("New");
   const [queryType, setQueryType] = useState("journal"); // journal | emergency
-  const [search, setSearch] = useState("");
+  const [search] = useState(""); // removed setSearch for brevity if unused in UI
 
   useEffect(() => {
-    // initial data
     getSelfProfile();
     getRelationships("doctor");
     fetchSummaries(queryType);
-    // auto-connect socket for realtime
     if (!socket && authUser) connectSocket();
-
-    return () => {
-      // no-op: stores manage their own disconnect
-    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authUser]);
 
   useEffect(() => {
-    // refetch when queryType changes (journal vs emergency)
     fetchSummaries(queryType);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [queryType]);
@@ -75,55 +68,40 @@ export default function DoctorHomePage() {
     const pool = activeTab === "New" ? newSummaries : (activeTab === "UnderReview" ? underReviewSummaries : resolvedSummaries);
     if (!pool) return [];
     if (!search.trim()) return pool;
-    return pool.filter(s => (s.content || []).join(" ").toLowerCase().includes(search.toLowerCase()) || (s._id||"").toString().includes(search));
+    return pool.filter(s => (s.content || []).join(" ").toLowerCase().includes(search.toLowerCase()) || (s._id || "").toString().includes(search));
   }, [activeTab, newSummaries, underReviewSummaries, resolvedSummaries, search]);
 
-  // Enforce: show no more than 2 new summaries on dashboard
+  // Enforce: Only show latest 2 new summaries
   const visibleSummariesToShow = useMemo(() => {
     if (activeTab === "New") {
-      return allVisibleSummaries.slice(0, 2);
+      // Create a copy and sort by date descending (latest first) just to be safe, then slice 2
+      const sorted = [...allVisibleSummaries].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      return sorted.slice(0, 2);
     }
     return allVisibleSummaries;
   }, [activeTab, allVisibleSummaries]);
 
-  // pending images: count all images individually in new summaries (sum of lengths)
   const pendingImagesTotal = useMemo(() => {
     if (!newSummaries) return 0;
     return newSummaries.reduce((acc, s) => acc + ((s.surgerySiteImages || []).length || 0), 0);
   }, [newSummaries]);
 
-  // avg response time (based on relationships' createdAt -> assignedAt)
   const avgResponseHours = useMemo(() => {
     if (!userRelationships) return 1;
     const now = Date.now();
-
     const completed = userRelationships
       .map(r => {
         const created = r.createdAt ? new Date(r.createdAt).getTime() : null;
         const assigned = r.assignedAt ? new Date(r.assignedAt).getTime() : null;
-        if (created && assigned && assigned >= created) {
-          return assigned - created;
-        }
+        if (created && assigned && assigned >= created) return assigned - created;
         return null;
       })
       .filter(ms => typeof ms === "number" && ms > 0);
 
     if (completed.length > 0) {
       const avgMs = completed.reduce((a, b) => a + b, 0) / completed.length;
-      const hrs = Math.max(1, Math.round(avgMs / (1000 * 60 * 60)));
-      return hrs;
+      return Math.max(1, Math.round(avgMs / (1000 * 60 * 60)));
     }
-
-    const waiting = userRelationships
-      .map(r => (r.createdAt ? Math.max(0, now - new Date(r.createdAt).getTime()) : null))
-      .filter(ms => typeof ms === "number" && ms > 0);
-
-    if (waiting.length > 0) {
-      const avgMs = waiting.reduce((a, b) => a + b, 0) / waiting.length;
-      const hrs = Math.max(1, Math.round(avgMs / (1000 * 60 * 60)));
-      return hrs;
-    }
-
     return 1;
   }, [userRelationships]);
 
@@ -137,205 +115,224 @@ export default function DoctorHomePage() {
   };
 
   return (
-    <div className="h-full w-full p-6 space-y-6 pt-[80px]">
-      {/* Header */}
+    <div className="h-full w-full p-7 md:p-6 space-y-4 md:space-y-6 pb-20 md:pb-6 mt-[45px] md:mt-[55px]">
+
+      {/* --- Header --- */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3 md:gap-4">
           <div className="avatar">
-            <div className="w-14 h-14 rounded-full ring ring-primary ring-offset-base-100 ring-offset-2">
+            <div className="w-full h-12 md:w-14 md:h-14 rounded-full ring ring-primary ring-offset-base-100 ring-offset-2">
               <img src={authUser?.profilePic || userProfile?.image?.url || "https://i.pravatar.cc/150?img=55"} alt="doc" />
             </div>
           </div>
-          <div>
-            <h2 className="text-2xl font-semibold">Good day, Dr. {authUser?.fullName || userProfile?.fullName || "—"}</h2>
-            <p className="text-sm opacity-70">{userProfile?.specialty ? userProfile.specialty.charAt(0).toUpperCase() + userProfile.specialty.slice(1) : "Surgeon"} • {userProfile?.clinicAddress?.city || "—"}</p>
+          <div className="flex flex-col">
+            <h2 className="text-xl md:text-2xl font-semibold">
+              <span className="hidden md:inline">Good day, </span>Dr. {authUser?.fullName?.split(' ')[0] || userProfile?.fullName?.split(' ')[0] || "Doc"}
+            </h2>
+            <p className="text-xs md:text-sm opacity-70">
+              {userProfile?.specialty || "Surgeon"}
+              <span className="hidden md:inline"> • {userProfile?.clinicAddress?.city || "—"}</span>
+            </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <button className="btn btn-ghost btn-sm" onClick={() => fetchSummaries(queryType)} title="Refresh summaries">
-            <Activity size={18} /> Refresh
+        <div className="flex items-center gap-2">
+          <button className="btn btn-ghost btn-sm btn-circle" onClick={() => fetchSummaries(queryType)} title="Refresh">
+            <Activity size={18} />
           </button>
           <div className="dropdown dropdown-end">
-            <label tabIndex={0} className="btn btn-ghost btn-circle">
-              <Bell />
+            <label tabIndex={0} className="btn btn-ghost btn-circle btn-sm">
+              <Bell size={20} />
             </label>
-            <div tabIndex={0} className="dropdown-content card card-compact w-64 p-2 shadow bg-base-100">
-              <div className="font-bold">Notifications</div>
-              <div className="text-xs opacity-70">Realtime summary and emergency alerts appear here.</div>
+            <div tabIndex={0} className="dropdown-content card card-compact w-full p-2 shadow-lg bg-base-100 border border-base-200 z-50">
+              <div className="font-bold px-2 py-1">Notifications</div>
+              <div className="text-xs opacity-70 px-2 pb-2">Realtime alerts appear here.</div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Top cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="card p-4 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="text-sm opacity-70">Active relationships</div>
-              <div className="text-2xl font-semibold">{userRelationships?.length || 0}</div>
+      {/* --- Stats Cards (Grid 2x2 on Mobile, 4x1 on Desktop) --- */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+        {[
+          { label: "Active", val: userRelationships?.length || 0, icon: Users, sub: "Patients" },
+          { label: "New", val: counts.new, icon: FileText, sub: "Summaries" },
+          { label: "Pending", val: counts.underReview, icon: Clock, sub: "Review" },
+          { label: "Done", val: counts.resolved, icon: CheckCircle, sub: "Resolved" }
+        ].map((item, idx) => (
+          <div key={idx} className="card bg-base-100 p-3 md:p-4 shadow-sm border border-base-200">
+            <div className="flex items-start justify-between">
+              <div>
+                <div className="text-xs md:text-sm opacity-70">{item.label}</div>
+                <div className="text-xl md:text-2xl font-bold mt-1">{item.val}</div>
+              </div>
+              <item.icon className="opacity-20 md:opacity-40" size={28} />
             </div>
-            <Users size={36} />
+            <div className="mt-1 text-[10px] md:text-xs opacity-60 truncate">{item.sub}</div>
           </div>
-          <div className="mt-3 text-xs opacity-70">Showing active patients assigned to you</div>
-        </div>
-
-        <div className="card p-4 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="text-sm opacity-70">New Summaries</div>
-              <div className="text-2xl font-semibold">{counts.new}</div>
-            </div>
-            <FileText size={36} />
-          </div>
-          <div className="mt-3 text-xs opacity-70">Awaiting your review</div>
-        </div>
-
-        <div className="card p-4 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="text-sm opacity-70">Under Review</div>
-              <div className="text-2xl font-semibold">{counts.underReview}</div>
-            </div>
-            <Clock size={36} />
-          </div>
-          <div className="mt-3 text-xs opacity-70">You have in-progress cases</div>
-        </div>
-
-        <div className="card p-4 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="text-sm opacity-70">Resolved</div>
-              <div className="text-2xl font-semibold">{counts.resolved}</div>
-            </div>
-            <CheckCircle size={36} />
-          </div>
-          <div className="mt-3 text-xs opacity-70">Completed reviews</div>
-        </div>
+        ))}
       </div>
 
-      {/* Main grid: Summaries list + Relationships */}
-      {/* items-start prevents vertical overlap by aligning columns to the top */}
-      <div className="grid md:grid-cols-3 gap-6 items-start">
-        {/* Summaries column (spans 2 on md) */}
-        <div className="md:col-span-2 space-y-4 min-h-0 flex flex-col">
-          <div className="card bg-base-100 p-4 w-full overflow-hidden">
+      {/* --- Main Content Grid --- */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+
+        {/* LEFT COL: Summaries */}
+        <div className="lg:col-span-2 space-y-4 min-h-0 flex flex-col">
+
+          {/* Mobile-Friendly Tabs */}
+          <div className="tabs tabs-boxed bg-base-100 p-1 overflow-x-auto flex-nowrap w-full">
+            {['New', 'UnderReview', 'Resolved'].map(tab => (
+              <a
+                key={tab}
+                className={`tab flex-1 whitespace-nowrap ${activeTab === tab ? 'tab-active font-semibold' : ''}`}
+                onClick={() => setActiveTab(tab)}
+              >
+                {tab === 'UnderReview' ? 'Reviewing' : tab}
+                <span className="ml-2 badge badge-sm badge-ghost">{tab === 'New' ? counts.new : (tab === 'UnderReview' ? counts.underReview : counts.resolved)}</span>
+              </a>
+            ))}
+          </div>
+
+          <div className="card bg-base-100 p-4 w-full shadow-sm border border-base-200">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-lg font-medium">{activeTab} Summaries — {queryType.charAt(0).toUpperCase() + queryType.slice(1)}</h3>
-              <div className="text-sm opacity-60">{allVisibleSummaries.length} shown</div>
+              <h3 className="text-md md:text-lg font-medium capitalize flex items-center gap-2">
+                {queryType} Summaries
+              </h3>
+              <div className="text-xs opacity-60">{allVisibleSummaries.length} total</div>
             </div>
 
             {!visibleSummariesToShow.length ? (
-              <div className="p-8 text-center opacity-70">No summaries in this bucket.</div>
+              <div className="py-8 text-center opacity-70 flex flex-col items-center justify-center">
+                <FileText className="opacity-20 mb-2" size={40} />
+                <span className="text-sm">No summaries in {activeTab}.</span>
+              </div>
             ) : (
-              // make the list scrollable so it won't push into the right column on smaller viewports
-              <div className="space-y-2 max-h-[58vh] md:max-h-[60vh] overflow-auto pr-2">
-                {visibleSummariesToShow.map((s) => (
-                  <div key={s._id} className="card card-compact card-bordered p-3 flex items-center justify-between">
-                    <div className="flex items-start gap-3 w-full">
-                      <div className="w-12 h-12 rounded-md bg-base-200 flex items-center justify-center">
-                        <ImageIcon />
+              <div className="space-y-3">
+                {visibleSummariesToShow.slice(0, 2).map((s) => (
+                  <div key={s._id} className="card card-compact border border-base-200 p-3 hover:bg-base-50 transition-colors">
+                    <div className="flex gap-3">
+                      {/* Icon */}
+                      <div className="w-10 h-10 min-w-[2.5rem] rounded-lg bg-base-200 flex items-center justify-center text-primary">
+                        <ImageIcon size={18} />
                       </div>
+
+                      {/* Content */}
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between gap-4">
-                          <div className="font-semibold truncate">{(s.content || []).slice(0,1).join(' ').slice(0,80) || 'Patient summary'}</div>
-                          <div className="text-xs opacity-60">{timeAgo(s.createdAt)}</div>
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="font-medium text-sm line-clamp-2 leading-tight">
+                            {(s.content || []).join(' ') || 'Patient summary update'}
+                          </div>
+                          <div className="text-[10px] opacity-50 whitespace-nowrap mt-0.5">{timeAgo(s.createdAt)}</div>
                         </div>
-                        <div className="text-xs opacity-60 mt-1">Type: {s.type} • Revision: {s.revision || 0}</div>
-                        <div className="mt-2 flex gap-2">
+
+                        <div className="flex flex-wrap gap-2 mt-2 items-center">
+                          <span className="badge badge-xs badge-outline opacity-70">{s.type}</span>
+                          <span className="text-[10px] opacity-60">Rev: {s.revision || 0}</span>
+                        </div>
+
+                        {/* Actions Toolbar */}
+                        <div className="mt-3 flex gap-2 justify-end md:justify-start border-t border-base-100 pt-2">
                           {activeTab !== 'UnderReview' && (
-                            <button className="btn btn-sm btn-outline" onClick={() => handleMark(s._id, 'UnderReview')}>Take</button>
+                            <button className="btn btn-xs btn-outline" onClick={() => handleMark(s._id, 'UnderReview')}>Take</button>
                           )}
                           {activeTab !== 'Resolved' && (
-                            <button className="btn btn-sm btn-success" onClick={() => handleMark(s._id, 'Resolved')}>Resolve</button>
+                            <button className="btn btn-xs btn-success text-white" onClick={() => handleMark(s._id, 'Resolved')}>Resolve</button>
                           )}
-                          <button className="btn btn-sm" onClick={() => handleOpenSummary(s._id)}>Open <ArrowRightCircle size={14} /></button>
+                          <button className="btn btn-xs btn-ghost gap-1" onClick={() => handleOpenSummary(s._id)}>
+                            Open <ArrowRightCircle size={12} />
+                          </button>
                         </div>
                       </div>
                     </div>
                   </div>
                 ))}
+
                 {activeTab === "New" && allVisibleSummaries.length > 2 && (
-                  <div className="text-xs opacity-60 p-2">Showing 2 of {allVisibleSummaries.length} new summaries — open the summaries page to see more.</div>
+                  <div
+                    className="btn btn-block btn-xs btn-ghost text-xs opacity-60 h-auto py-2"
+                    onClick={() => navigate('/doctor/summaries')}
+                  >
+                    View {allVisibleSummaries.length - 2} more new summaries
+                  </div>
                 )}
               </div>
             )}
+            <div className="card bg-base-100 p-3 border border-base-200 col-span-2 md:col-span-1">
+                  <button className="btn btn-sm btn-outline w-full" onClick={() => navigate('/doctor/view-journals')}>
+                    All Journals
+                  </button>
+                </div>
           </div>
 
-          {/* Quick actions / Insights */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="card p-4">
-              <div className="text-sm opacity-70">Avg. Response Time</div>
-              <div className="text-2xl font-semibold">{avgResponseHours}h</div>
-              <div className="text-xs opacity-60 mt-2">Calculated from assigned relationships</div>
+          {/* Quick Metrics Grid */}
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+            <div className="card bg-base-100 p-3 border border-base-200">
+              <div className="text-xs opacity-70">Avg Response</div>
+              <div className="text-xl font-bold">{avgResponseHours}h</div>
             </div>
-            <div className="card p-4">
-              <div className="text-sm opacity-70">Pending Images</div>
-              <div className="text-2xl font-semibold">{pendingImagesTotal}</div>
-              <div className="text-xs opacity-60 mt-2">Total images across new summaries</div>
+            <div className="card bg-base-100 p-3 border border-base-200">
+              <div className="text-xs opacity-70">Pending Images</div>
+              <div className="text-xl font-bold">{pendingImagesTotal}</div>
             </div>
-            <div className="card p-4">
-              <div className="text-sm opacity-70">Quick Actions</div>
-              <div className="mt-2 flex flex-col gap-2">
-                <button className="btn btn-xs btn-outline" onClick={() => navigate('/doctor/appointments')}>Appointments</button>
-                <button className="btn btn-xs" onClick={() => navigate('/doctor/create-care-check-list')}>Create New Care Check List</button>
-              </div>
+            <div className="card bg-base-100 p-3 border border-base-200 col-span-2 md:col-span-1">
+              <button className="btn btn-sm btn-outline w-full" onClick={() => navigate('/doctor/create-care-check-list')}>
+                + Checklist
+              </button>
             </div>
           </div>
         </div>
 
-        {/* Relationships column */}
+        {/* RIGHT COL: Relationships */}
         <div className="space-y-4 min-h-0 flex flex-col">
-          <div className="card p-4 w-full overflow-hidden">
-            <div className="flex items-center justify-between mb-2">
-              <h4 className="font-medium">Assigned Patients</h4>
-              <div className="text-xs opacity-60">Active • {userRelationships?.length || 0}</div>
+          <div className="card bg-base-100 p-4 w-full border border-base-200 shadow-sm">
+            <div className="flex items-center justify-between mb-3">
+              <h4 className="font-medium text-md">My Patients</h4>
+              <span className="badge badge-sm badge-ghost">{userRelationships?.length || 0} active</span>
             </div>
 
             {!userRelationships?.length ? (
-              <div className="p-6 text-center opacity-70">No active patients assigned.</div>
+              <div className="p-4 text-center text-xs opacity-60">No patients assigned.</div>
             ) : (
-              // make relationships list scrollable to avoid vertical overflow pushing into other columns
-              <div className="space-y-2 max-h-[58vh] md:max-h-[60vh] overflow-auto pr-2">
-                {userRelationships.map((r) => (
-                  <div key={r._id} className="p-3 border rounded-md flex flex-col">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div className="font-semibold truncate">{r.patientProfile?.fullName || r.patient?.fullName || 'Patient'}</div>
-                        <div className="text-xs opacity-60">Surgery: {r.surgeryName || '—'}</div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <button className="btn btn-ghost btn-sm" onClick={() => navigate(`/doctor/relationships/${r._id}`)}>View</button>
-                        <div className="dropdown dropdown-end">
-                          <label tabIndex={0} className="btn btn-ghost btn-sm">More</label>
-                          <ul tabIndex={0} className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-44">
-                            <li><a onClick={() => navigate(`/doctor/patient/${r.patient}/notes`)}>Notes</a></li>
-                            <li><a onClick={() => navigate(`/doctor/patient/${r.patient}/history`)}>History</a></li>
-                            <li><a onClick={() => navigate(`/chat/${r.patient}`)}>Message</a></li>
-                          </ul>
-                        </div>
-                      </div>
+              <div className="space-y-2 max-h-[400px] overflow-y-auto pr-1 scrollbar-thin">
+                {userRelationships.slice(0, 2).map((r) => (
+                  <div key={r._id} className="p-3 bg-base-50 rounded-lg flex items-center justify-between group">
+                    <div className="min-w-0 flex-1 pr-2">
+                      <div className="font-semibold text-sm truncate">{r.patientProfile?.fullName || r.patient?.fullName || 'Patient'}</div>
+                      <div className="text-xs opacity-60 truncate">{r.surgeryName || 'General Surgery'}</div>
                     </div>
-                    <div className="mt-2 text-xs opacity-60">Assigned {timeAgo(r.assignedAt || r.createdAt)}</div>
+                    <button
+                      className="btn btn-square btn-sm btn-ghost text-opacity-50"
+                      onClick={() => navigate(`/doctor/relationships/${r._id}`)}
+                    >
+                      <ChevronRight size={18} />
+                    </button>
                   </div>
+
                 ))}
+                <div className="card bg-base-100 p-3 border border-base-200 col-span-2 md:col-span-1">
+                  <button className="btn btn-sm btn-outline w-full" onClick={() => navigate('/doctor/related-patients')}>
+                    All Patients
+                  </button>
+                </div>
               </div>
             )}
           </div>
 
-          <div className="card p-4 w-full">
-            <div className="flex items-center gap-2">
-              <div className="avatar">
+          <div className="card bg-primary text-primary-content p-4 shadow-lg bg-gradient-to-br from-primary to-primary-focus">
+            <div className="flex items-center gap-3">
+              <div className="avatar placeholder">
+                <div className="bg-primary-content text-primary rounded-full w-full">
+                  <span className="text-lg font-bold">{userProfile?.yearsOfExperience || "1"}</span>
+                </div>
               </div>
               <div>
-                <div className="text-xs opacity-60">Experience: {userProfile?.yearsOfExperience || 0} yrs</div>
+                <div className="text-xs font-bold opacity-80">YEARS EXPERIENCE</div>
+                <div className="text-sm font-medium">Keep up the great work!</div>
               </div>
             </div>
-            <div className="mt-4 flex gap-2">
-              <button className="btn btn-sm" onClick={() => navigate('/doctor/update-profile')}>Edit Profile</button>
-              {/* <button className="btn btn-ghost btn-sm" onClick={() => navigate('/doctor/settings')}>Settings</button> */}
-            </div>
+            <button className="btn btn-sm btn-white text-primary mt-3 w-full border-0 bg-white hover:bg-gray-100" onClick={() => navigate('/doctor/update-profile')}>
+              Edit Profile
+            </button>
           </div>
         </div>
       </div>

@@ -144,7 +144,7 @@ export default function CreateCareCheckListPage() {
       await createCareCheckList(payload);
       // navigate back or reset form — choose reset here
       resetForm();
-      navigate("/doctor/care-check-lists"); 
+      navigate("/doctor/care-check-lists");
     } catch (err) {
       console.error("Failed to create care checklist:", err);
       toast.error("Failed to create care checklist");
@@ -286,55 +286,58 @@ export default function CreateCareCheckListPage() {
             </div>
           </div>
 
-          <div className="flex h-full w-full items-center justify-between">
-            <div className="flex flex-col md:flex-row items-center gap-3">
-              <button
-                type="button"
-                className="btn btn-ghost"
-                onClick={() => {
-                  resetForm();
-                  toast("Form cleared");
-                }}
-              >
-                <Download size={14} /> Clear
-              </button>
-              <button
-                type="button"
-                className="btn btn-ghost"
-                onClick={() => {
-                  // quick preview copy to clipboard
-                  const preview = {
-                    surgeryName,
-                    identifier,
-                    relatedSpecialty,
-                    description,
-                    topics: topics.map((tp) => ({ topicName: tp.topicName, items: tp.items.map((i) => i.text) })),
-                  };
-                  navigator.clipboard?.writeText(JSON.stringify(preview, null, 2));
-                  toast.success("Preview copied to clipboard");
-                }}
-              >
-                <Edit size={14} /> Copy Preview
-              </button>
-            </div>
+          <div className="grid grid-cols-2 gap-3 w-full md:flex md:items-center">
+            {/* Button 1: Clear */}
+            <button
+              type="button"
+              className="btn btn-ghost w-full md:w-auto"
+              onClick={() => {
+                resetForm();
+                toast("Form cleared");
+              }}
+            >
+              <Download size={14} /> Clear
+            </button>
 
-            <div className="flex flex-col md:flex-row items-center gap-3 ">
-              <button
-                type="button"
-                className="btn btn-outline"
-                onClick={() => navigate(-1)}
-              >
-                Cancel
-              </button>
+            {/* Button 2: Copy Preview */}
+            <button
+              type="button"
+              className="btn btn-ghost w-full md:w-auto"
+              onClick={() => {
+                const preview = {
+                  surgeryName,
+                  identifier,
+                  relatedSpecialty,
+                  description,
+                  topics: topics.map((tp) => ({
+                    topicName: tp.topicName,
+                    items: tp.items.map((i) => i.text),
+                  })),
+                };
+                navigator.clipboard?.writeText(JSON.stringify(preview, null, 2));
+                toast.success("Preview copied to clipboard");
+              }}
+            >
+              <Edit size={14} /> Copy Preview
+            </button>
 
-              <button
-                type="submit"
-                className={`btn btn-primary btn-sm md:btn-md ${isSubmitting ? "loading" : ""}`}
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? "Creating..." : "Create Checklist"}
-              </button>
-            </div>
+            {/* Button 3: Cancel (Pushed to right on desktop) */}
+            <button
+              type="button"
+              className="btn btn-outline w-full md:w-auto md:ml-auto"
+              onClick={() => navigate(-1)}
+            >
+              Cancel
+            </button>
+
+            {/* Button 4: Submit */}
+            <button
+              type="submit"
+              className={`btn btn-primary w-full md:w-auto ${isSubmitting ? "loading" : ""}`}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? "Creating..." : "Create Checklist"}
+            </button>
           </div>
         </form>
 

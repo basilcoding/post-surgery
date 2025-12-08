@@ -144,7 +144,7 @@ export default function DoctorViewSummaryPage() {
               {images.length === 0 ? (
                 <div className="mt-4 text-sm text-gray-500">No images available.</div>
               ) : (
-                <div className="mt-4 grid md:grid-cols-1 grid-cols-2 gap-3">
+                <div className="mt-4 grid md:grid-cols-1 grid-cols-1 gap-3">
                   {images.map((img, idx) => (
                     <button
                       key={img.cid || img.url || idx}
