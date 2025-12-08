@@ -7,7 +7,7 @@ import { useChatStore } from "../../store/useChatStore";
 import { useAuthStore } from "../../store/useAuthStore";
 import { useChatbotStore } from "../../store/useChatbotStore";
 
-import ChatbotIcon from "../../components/ChatbotComponents/ChatBotIcon";
+import ChatbotIcon from "../../components/ChatbotComponents/ChatbotIcon.jsx";
 import CopyButtonComponent from "../../components/CommonComponents/CopyButtonComponent.jsx";
 
 export default function PatientRoomStatusPage() {
