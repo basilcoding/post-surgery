@@ -6,7 +6,7 @@ import { useChatbotStore } from "../../store/useChatbotStore";
 
 import { MessageSquare } from 'lucide-react';
 
-export default function Chatbot() {
+export default function ChatbotIcon() {
     const { authUser, socket } = useAuthStore();
     const [userId] = useState(authUser?._id);
     const [input, setInput] = useState("");
