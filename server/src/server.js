@@ -3,6 +3,7 @@ import dotenv from 'dotenv'
 import cors from 'cors';
 import http from 'http';
 import cookieParser from 'cookie-parser';
+import path from 'path';
 
 import { initSocket } from './lib/socket.js';
 import { transporter } from './lib/email.js';
@@ -21,6 +22,8 @@ import careCheckListRoutes from './routes/careCheckList.route.js'
 import appointmentRoutes from './routes/appointment.route.js'
 
 dotenv.config();
+
+const __dirname = path.resolve();
 
 const app = express();
 const server = http.createServer(app);
@@ -47,6 +50,13 @@ app.use('/api/patients', patientRoutes);
 app.use('/api/profiles', profileRoutes);
 app.use('/api/care-check-lists', careCheckListRoutes);
 app.use('/api/appointments', appointmentRoutes);
+
+if (process.env.NODE_ENV === 'production') {
+    app.use(express.static(path.join(__dirname, '../client/dist')));
+    app.use((req, res) => {
+        res.sendFile(path.join(__dirname, '../client/dist', 'index.html'));
+    })
+}
 
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
