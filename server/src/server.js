@@ -65,6 +65,7 @@ const startServer = async () => {
         await connectDB();
 
         // 2. If the connection is successful, then start the server
+        const PORT = process.env.PORT || 5000;
         server.listen(PORT, () => {
             console.log(`Listening on port ${PORT}`);
         });
@@ -77,7 +78,7 @@ const startServer = async () => {
 
 startServer();
 
-const PORT = process.env.PORT || 5000;
-server.listen(PORT, () => {
-    console.log(`Listening on port ${PORT}`)
-})
+// const PORT = process.env.PORT || 5000;
+// server.listen(PORT, () => {
+//     console.log(`Listening on port ${PORT}`)
+// })
