@@ -3,6 +3,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { format } from "date-fns";
 import { useNavigate } from "react-router-dom";
 import { useSummaryStore } from "../../store/useSummaryStore";
+import ChatbotIcon from "../../components/ChatbotComponents/ChatBotIcon";
 
 /**
  * PatientJournalViewPage using Zustand store values
@@ -344,6 +345,7 @@ export default function PatientJournalViewPage() {
           <div className="modal-backdrop" onClick={() => setPreview(null)} />
         </div>
       )}
+      <ChatbotIcon />
     </div>
   );
 }

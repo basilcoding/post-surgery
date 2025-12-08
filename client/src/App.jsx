@@ -13,6 +13,7 @@ import { Toaster } from 'react-hot-toast';
 import AppRoutes from './AppRoutes.jsx';
 
 import Navbar from './components/Navbar';
+import ChatbotIcon from './components/ChatbotComponents/ChatBotIcon.jsx';
 
 const App = () => {
   const navigate = useNavigate();

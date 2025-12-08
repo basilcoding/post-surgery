@@ -4,6 +4,8 @@ import { axiosInstance } from "../../lib/axios";
 import { useAuthStore } from "../../store/useAuthStore";
 import { useChatbotStore } from "../../store/useChatbotStore";
 
+import { MessageSquare } from 'lucide-react';
+
 export default function Chatbot() {
     const { authUser, socket } = useAuthStore();
     const [userId] = useState(authUser?._id);
@@ -54,7 +56,7 @@ export default function Chatbot() {
                         <div className="flex flex-col w-[325px] h-[500px] bg-primary rounded-2xl shadow-lg overflow-hidden">
                             {/* Chat Header */}
                             <div className="bg-black-800 text-white px-4 py-3 font-bold rounded-2xl">
-                                <div>Virtual Health Assistant</div>
+                                <div>Need Help?</div>
                                 <span className={`text-xs ${socket?.connected ? 'text-green-400' : 'text-red-400'}`}>{socket?.connected ? 'Available' : 'Offline'}</span>
                             </div>
                             {/* Chat Messages */}
@@ -109,25 +111,8 @@ export default function Chatbot() {
                 animate={{ scale: bubbleClicked ? 0.9 : 1 }} // shrink when open
                 transition={{ type: "spring", stiffness: 500, damping: 15 }}
             >
-                {bubbleClicked ? "Close" : "Chat"}
+                {bubbleClicked ? "Close" : <MessageSquare />}
             </motion.div>
-            {bubbleClicked &&
-                <motion.div
-                    className="fixed bottom-5 right-22 cursor-pointer w-14 h-14 flex items-center justify-center bg-accent text-white shadow-lg rounded-full z-50"
-                    onClick={() => handleSendMessage("send")}
-                    whileTap={{
-                        scale: 0.9,
-                        rotate: -10,
-                    }}
-                    transition={{
-                        type: "spring",
-                        stiffness: 500,
-                        damping: 20,
-                    }}
-                >
-                    quit
-                </motion.div>
-            }
         </>
     );
 }

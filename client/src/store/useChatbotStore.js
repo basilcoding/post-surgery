@@ -72,7 +72,7 @@ export const useChatbotStore = create((set, get) => ({
                     messages: [
                         {
                             role: "bot",
-                            message: "Hello! Please tell me what's wrong",
+                            message: "Please tell me your query.",
                             suggestedReplies: [
                                 "I have symptom I would like some insight about from the doctor.",
                                 "I've been feeling a few changes lately that I'd like to share.",

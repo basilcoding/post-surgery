@@ -170,6 +170,24 @@ const Navbar = ({ }) => {
                                     </button>
                                 </>
                             )}
+                            {!authUser && (
+                                <div className='flex gap-7'>
+                                    <Link to={"/contact"} className={`btn btn-lg btn-circle `}>
+                                        <button className="btn btn-lg rounded-full flex gap-2 items-center p-2">
+                                              <span className="hidden sm:block">
+                                                Contact
+                                            </span>
+                                        </button>
+                                    </Link>
+                                    <Link to={"/help"} className={`btn btn-lg btn-circle `}>
+                                        <button className="btn btn-lg rounded-3xl flex gap-2 items-center p-2">
+                                            <span className="hidden sm:block">
+                                                Help
+                                            </span>
+                                        </button>
+                                    </Link>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>

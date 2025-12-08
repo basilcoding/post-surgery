@@ -15,6 +15,8 @@ import {
   Circle,
 } from "lucide-react";
 
+import ChatbotIcon from "../../components/ChatbotComponents/ChatBotIcon";
+
 import { useAuthStore } from "../../store/useAuthStore";
 import { useAppointmentStore } from "../../store/useAppointmentStore";
 import { useChatStore } from "../../store/useChatStore";
@@ -226,6 +228,9 @@ export default function PatientHomePage() {
             </div>
           </div>
         </aside>
+      </div>
+      <div className="mt-4">
+        <ChatbotIcon />
       </div>
     </div>
   );

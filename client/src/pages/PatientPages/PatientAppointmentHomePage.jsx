@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { RefreshCcw, Search, Calendar, Clock, XCircle, CheckCircle } from "lucide-react";
 import { useAppointmentStore } from "../../store/useAppointmentStore.js";
 
+import ChatbotIcon from "../../components/ChatbotComponents/ChatBotIcon.jsx";
 /**
  * Full page: patient appointments list + details modal + cancel-confirm modal.
  * - Click a row to open details modal (no navigation).
@@ -389,6 +390,9 @@ export default function PatientAppointmentsHomePage() {
             </button>
           </div>
         </div>
+      </div>
+      <div className="mt-4">
+        <ChatbotIcon />
       </div>
     </div>
   );
