@@ -320,11 +320,11 @@ export default function UpdateCareCheckListPage() {
 
             <div className="md:hidden mb-3 w-full">
               <h3 className="text-lg font-medium">Topics & Items</h3>
-              <div className="flex items-center gap-2">
-                <button type="button" className="btn btn-outline btn-sm gap-2" onClick={addTopic}>
+              <div className="flex items-center gap-1 mt-3 w-full">
+                <button type="button" className="btn btn-outline btn-sm gap-1" onClick={addTopic}>
                   <Plus size={14} /> Add Topic
                 </button>
-                <button type="button" className="btn btn-ghost btn-sm" onClick={() => { setTopics([]); toast("Cleared topics"); }}>
+                <button type="button" className="btn btn-outline btn-sm" onClick={() => { setTopics([]); toast("Cleared topics"); }}>
                   <Trash2 size={14} /> Clear All
                 </button>
                 <button type="button" className="btn btn-ghost btn-sm" onClick={async () => {

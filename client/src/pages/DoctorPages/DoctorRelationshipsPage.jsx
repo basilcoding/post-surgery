@@ -132,9 +132,9 @@ export default function DoctorRelationshipsPage() {
                                 <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
                                     <div className="flex-1">
                                         <div className="hidden md:block badge badge-info text-xs mt-1 text-gray-500">Patient: {r.patientProfile.patientId || ''}</div>
-                                        <div className='md:hidden flex justify-between w-full'>
+                                        <div className='md:hidden flex gap-3 justify-between w-full'>
                                             <div className="badge badge-info text-xs mt-1 text-gray-500">Patient: {r.patientProfile.patientId || ''}</div>
-                                            <button onClick={() => navigate(`/doctor/relationships/${r._id || ''}`)} className="cursor-pointer text-sm px-3 py-1 rounded-md border">View patient Details</button>
+                                            <button onClick={() => navigate(`/doctor/relationships/${r._id || ''}`)} className="cursor-pointer text-sm px-3 py-1 rounded-md border">Details</button>
                                         </div>
                                         <div className="font-semibold text-lg mt-4">Name: {r.patient?.fullName || 'Unknown'}</div>
                                         {/* <div className="text-sm text-gray-500 mt-1">{r.patientProfile?.email || r.patient?.email || ''}</div> */}

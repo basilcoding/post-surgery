@@ -92,11 +92,11 @@ export default function DoctorViewSummaryPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 w-full">
         {/* Left column: metadata (read-only) */}
-        <div className="col-span-1 space-y-4">
-          <div className="card bg-base-100 shadow">
-            <div className="card-body">
+        <div className="col-span-2 md:col-span-1 space-y-4 w-full">
+          <div className="card bg-base-100 shadow w-full">
+            <div className="card-body w-full">
               <h3 className="card-title">Summary details</h3>
 
               <label className="form-control">

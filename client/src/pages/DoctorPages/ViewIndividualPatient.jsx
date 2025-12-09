@@ -184,7 +184,7 @@ export default function ViewIndividualPatient({ relationship: propRelationship }
     }
 
     return (
-        <div className="p-6 max-w-4xl mx-auto">
+        <div className="p-6 max-w-4xl mx-auto mt-[50px]">
             <div className="flex items-center justify-between mb-6">
                 <h1 className="text-2xl font-semibold">Patient details — {form.fullName || "Unnamed"}</h1>
                 <div className="flex gap-2">
@@ -338,7 +338,7 @@ export default function ViewIndividualPatient({ relationship: propRelationship }
                 </section>
 
                 {/* Current medications */}
-                <section className="card bg-base-100 shadow p-4">
+                <section className="card bg-base-100 shadow p-4 w-full">
                     <div className="flex items-center justify-between mb-2">
                         <h2 className="text-lg font-medium">Current medications</h2>
                         <button type="button" onClick={() => addArrayItem("currentMedications", { medicationName: "", dosage: "", frequency: "", reason: "", status: "Patient-Reported" })} className="btn btn-sm btn-outline">
@@ -349,12 +349,12 @@ export default function ViewIndividualPatient({ relationship: propRelationship }
                     <div className="space-y-3">
                         {form.currentMedications.length === 0 && <div className="text-sm text-muted">No medications recorded.</div>}
                         {form.currentMedications.map((m, i) => (
-                            <div key={i} className="grid grid-cols-1 md:grid-cols-6 gap-2 items-end">
-                                <input placeholder="Medication" value={m.medicationName || ""} onChange={(e) => updateArray("currentMedications", i, "medicationName", e.target.value)} className="input input-bordered col-span-2" />
+                            <div key={i} className="w-full grid grid-cols-1 md:grid-cols-6 gap-2 items-end">
+                                <input placeholder="Medication" value={m.medicationName || ""} onChange={(e) => updateArray("currentMedications", i, "medicationName", e.target.value)} className="input input-bordered col-span-2 w-full" />
                                 <input placeholder="Dosage" value={m.dosage || ""} onChange={(e) => updateArray("currentMedications", i, "dosage", e.target.value)} className="input input-bordered col-span-1" />
                                 <input placeholder="Frequency" value={m.frequency || ""} onChange={(e) => updateArray("currentMedications", i, "frequency", e.target.value)} className="input input-bordered col-span-1" />
-                                <input placeholder="Reason" value={m.reason || ""} onChange={(e) => updateArray("currentMedications", i, "reason", e.target.value)} className="input input-bordered col-span-1" />
-                                <div className="flex gap-2 col-span-1">
+                                <input placeholder="Reason" value={m.reason || ""} onChange={(e) => updateArray("currentMedications", i, "reason", e.target.value)} className="input input-bordered col-span-2 w-full" />
+                                <div className="flex gap-2 w-full col-span-2 justify-end">
                                     <button type="button" onClick={() => removeArrayItem("currentMedications", i)} className="btn btn-sm btn-error">
                                         <Trash size={14} />
                                     </button>
