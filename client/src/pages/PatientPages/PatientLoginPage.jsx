@@ -63,7 +63,7 @@ const PatientLoginPage = () => {
                     type="text"
                     value={formData.patientId}
                     onChange={handleChange}
-                    placeholder="PAT-2025/2500"
+                    placeholder="PAT-2025-0000"
                     required
                     className="input input-bordered w-full pl-10"
                     autoComplete="off"

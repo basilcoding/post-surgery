@@ -63,7 +63,7 @@ const DoctorLoginPage = () => {
                                         type="text"
                                         value={formData.doctorId}
                                         onChange={handleChange}
-                                        placeholder="DOC-2025/1450"
+                                        placeholder="DOC-2025-0000"
                                         required
                                         className="input input-bordered w-full pl-10"
                                         autoComplete="off"
