@@ -35,21 +35,29 @@ const PatientLoginPage = () => {
     <div className="min-h-screen flex items-center justify-center bg-base-200 px-4">
       <div className="w-full max-w-md">
         <div className="card shadow-xl bg-base-100">
-          <div className="card-body p-20">
-            <div className="flex items-center gap-3 mb-4">
+          {/* CHANGED: p-20 was too large for mobile. Used responsive padding (p-6 mobile, p-12 desktop) */}
+          <div className="card-body p-6 sm:p-12">
+            
+            <div className="flex items-center gap-3 mb-8">
               <div className="p-3 rounded-lg bg-primary/10">
                 <User className="w-6 h-6 text-primary" />
               </div>
               <div>
                 <h2 className="text-2xl font-semibold">Login</h2>
-                <p className="text-sm text-muted-foreground">Sign in to access your dashboard</p>
+                <p className="text-sm text-muted-foreground">Sign in to access dashboard</p>
               </div>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <label className="input-group input-group-vertical">
-                <span className="text-sm">Patient ID</span>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text font-medium">Patient ID</span>
+                </label>
                 <div className="relative">
+                  {/* ADDED: Icon to match the pl-10 padding */}
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <User className="h-5 w-5 text-base-content/40" />
+                  </div>
                   <input
                     name="patientId"
                     type="text"
@@ -57,19 +65,21 @@ const PatientLoginPage = () => {
                     onChange={handleChange}
                     placeholder="PAT-2025/2500"
                     required
-                    className="input input-bordered w-full pl-10 mt-1 mb-5"
+                    className="input input-bordered w-full pl-10"
                     autoComplete="off"
                     autoFocus
                   />
                 </div>
-              </label>
+              </div>
 
-              <label className="input-group input-group-vertical">
-                <span className="text-sm">Password</span>
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text font-medium">Password</span>
+                </label>
                 <div className="relative">
-                  <span className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
-                    <Lock className="w-4 h-4 text-slate-400" />
-                  </span>
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Lock className="h-5 w-5 text-base-content/40" />
+                  </div>
 
                   <input
                     name="password"
@@ -78,13 +88,13 @@ const PatientLoginPage = () => {
                     onChange={handleChange}
                     placeholder="********"
                     required
-                    className="input input-bordered w-full pl-10 pr-10 mt-1 mb-5"
+                    className="input input-bordered w-full pl-10 pr-10"
                     autoComplete="current-password"
                   />
 
                   <button
                     type="button"
-                    className="absolute top-3 right-0 pr-3 flex items-center z-50"
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
                     onClick={() => setShowPassword(s => !s)}
                     aria-label={showPassword ? "Hide password" : "Show password"}
                   >
@@ -95,17 +105,18 @@ const PatientLoginPage = () => {
                     )}
                   </button>
                 </div>
-              </label>
+              </div>
 
-              <div>
+              <div className="pt-2">
+                {/* CHANGED: Removed 'loading' class to fix icon conflict */}
                 <button
                   type="submit"
-                  className={`btn btn-primary btn-block ${isLoggingIng ? 'loading' : ''}`}
+                  className="btn btn-primary btn-block"
                   disabled={isLoggingIng}
                 >
                   {isLoggingIng ? (
                     <>
-                      <Loader2 className="animate-spin mr-2 h-4 w-4" />
+                      <Loader2 className="animate-spin mr-2 h-5 w-5" />
                       Signing in...
                     </>
                   ) : (
@@ -119,8 +130,8 @@ const PatientLoginPage = () => {
         </div>
 
         {/* small footer */}
-        <div className="text-center mt-4 text-xs text-muted-foreground">
-          <p>By signing in you agree to our <Link to="/terms" className="link">Terms</Link>.</p>
+        <div className="text-center mt-6 text-xs text-muted-foreground">
+          <p>By signing in you agree to our <Link to="/terms" className="link hover:text-primary">Terms of Service</Link>.</p>
         </div>
       </div>
     </div>

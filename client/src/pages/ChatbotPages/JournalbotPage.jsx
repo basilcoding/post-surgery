@@ -41,11 +41,12 @@ export default function JournalbotPage() {
     };
 
     return (
-        <div className="h-screen w-full pt-[65px] bg-base-300 flex flex-col">
+        // Changed h-screen to h-[100dvh] for better mobile browser support
+        <div className="h-[100dvh] w-full pt-[61px] bg-base-300 flex flex-col">
             {/* Header */}
-            <div className="bg-black-800 px-6 py-4 text-white flex items-center justify-between flex-shrink-0">
+            <div className="bg-gray-800 px-4 py-3 pt-3 md:px-6 md:py-4 text-white flex items-center justify-between flex-shrink-0 shadow-sm">
                 <div>
-                    <div className="font-bold text-lg">Virtual Health Assistant</div>
+                    <div className="font-bold text-base md:text-lg">Virtual Health Assistant</div>
                     <div className="text-xs">
                         <span className={`${socket?.connected ? 'text-green-400' : 'text-red-400'}`}>
                             {socket?.connected ? 'Available' : 'Offline'}
@@ -54,35 +55,40 @@ export default function JournalbotPage() {
                 </div>
                 <div className="flex items-center gap-3">
                     <button
-                        className="cursor-pointer text-sm px-3 py-2 rounded-lg bg-gray-800/30 text-white"
-                        onClick={() => { navigate('/patient/view-journals')}}
+                        className="cursor-pointer text-xs md:text-sm px-3 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 text-white flex items-center gap-2 transition-colors"
+                        onClick={() => { navigate('/patient/view-journals') }}
                     >
-                        Upload Image After Finishing Your Journal
+                        <Image size={18} />
+                        {/* Responsive text: Short on mobile, full on desktop */}
+                        <span className="hidden sm:inline">Upload Image After Finishing Your Journal</span>
+                        <span className="inline sm:hidden">Upload Image</span>
                     </button>
                 </div>
             </div>
 
-            {/* Message container — the only scrollable section */}
-            <div className="flex-1 overflow-y-auto px-6 py-4 flex flex-col-reverse space-y-4 space-y-reverse scrollbar-hide">
+            {/* Message container */}
+            <div className="flex-1 overflow-y-auto px-3 md:px-6 py-4 flex flex-col-reverse space-y-4 space-y-reverse scrollbar-hide">
+                {isLoading && <div className="text-gray-400 text-sm ml-2">typing...</div>}
                 {(messages || []).slice().reverse().map((msg, index) => (
                     <div key={index} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                         <div
-                            className={`px-4 py-3 rounded-3xl max-w-[65%] text-left ${msg.role === 'user'
+                            // Adjusted max-width for mobile (85%) vs desktop (65%)
+                            className={`px-4 py-3 rounded-2xl md:rounded-3xl max-w-[85%] md:max-w-[65%] text-left text-sm md:text-base ${msg.role === 'user'
                                 ? 'bg-blue-500 text-white'
-                                : 'bg-gray-200 text-gray-800'
+                                : 'bg-black/7 text-gray-800'
                                 }`}
                         >
 
-                            <div>{msg.message}</div>
+                            <div className="break-words">{msg.message}</div>
 
                             {/* Suggested replies */}
                             {msg.role !== 'user' && Array.isArray(msg.suggestedReplies) && msg.suggestedReplies.length > 0 && (
-                                <div className="mt-3 flex flex-col gap-2">
+                                <div className="mt-3 flex flex-wrap gap-2">
                                     {msg.suggestedReplies.map((opt, i) => (
                                         <button
                                             key={i}
                                             onClick={() => handleSendMessage(opt)}
-                                            className="cursor-pointer text-left px-3 py-2 rounded-lg border border-black/20 bg-white/80 hover:bg-gray-200 shadow-sm"
+                                            className="cursor-pointer text-left px-3 py-2 rounded-2xl border border-black/10 bg-white/80 hover:bg-gray-100 shadow-sm text-xs md:text-sm transition-colors"
                                         >
                                             <span className="mr-1">→</span>{opt}
                                         </button>
@@ -92,12 +98,14 @@ export default function JournalbotPage() {
 
                             {/* Numerical options */}
                             {msg.requiresNumericalInput && (
-                                <div className="cursor-pointer mt-3 w-fit flex bg-white/80 border border-black/10 rounded-md">
+                                // Added flex-wrap so numbers don't overflow on small screens
+                                <div className="cursor-pointer mt-3 w-fit flex flex-wrap bg-white/80 border border-black/10 rounded-md overflow-hidden">
                                     {Array.from({ length: 11 }, (_, num) => (
                                         <button
                                             key={num}
                                             onClick={() => handleSendMessage(num)}
-                                            className="w-[30px] h-[30px] bg-white/80 hover:bg-gray-200 text-black text-sm font-semibold flex items-center justify-center rounded-md"
+                                            // Larger touch targets for mobile
+                                            className="w-8 h-8 md:w-[30px] md:h-[30px] bg-white/80 hover:bg-gray-200 text-black text-sm font-semibold flex items-center justify-center border-r border-b border-gray-100 last:border-r-0"
                                         >
                                             {num}
                                         </button>
@@ -105,40 +113,36 @@ export default function JournalbotPage() {
                                 </div>
                             )}
                         </div>
+
                     </div>
                 ))}
-                {isLoading && <div className="text-gray-400 text-sm">typing...</div>}
             </div>
             <div ref={messagesEndRef}></div>
 
 
             {/* Input bar */}
-            <div className="m-3 bg-white flex items-center gap-3 rounded-4xl flex-shrink-0">
-                <input
-                    type="text"
-                    className="flex-1 rounded-4xl p-3 focus:outline-none bg-white text-black placeholder:text-gray-600"
-                    placeholder="Type your message..."
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    onKeyDown={handleKeyPress}
-                />
-                {/* <button
-                    onClick={() => handleSendMessage(input)}
-                    className="bg-primary text-white px-5 py-3 rounded-r-4xl hover:bg-primary/90 transition"
-                >
-                    Send
-                </button> */}
+            <div className="p-2 md:p-3 bg-base-300 flex-shrink-0">
+                <div className="bg-white flex items-center gap-2 rounded-3xl md:rounded-4xl pr-2 shadow-lg">
+                    <input
+                        type="text"
+                        // text-base prevents iOS from zooming in when typing
+                        className="flex-1 rounded-l-3xl md:rounded-l-4xl p-3 md:p-4 focus:outline-none bg-white text-black placeholder:text-gray-500 text-base"
+                        placeholder="Type your message..."
+                        value={input}
+                        onChange={(e) => setInput(e.target.value)}
+                        onKeyDown={handleKeyPress}
+                    />
 
-                <button
-                    type="submit"
-                    className="btn btn-lg btn-circle"
-                    onClick={() => handleSendMessage(input)}
-                >
-                    <Send size={22} />
-                </button>
+                    <button
+                        type="submit"
+                        className="btn btn-circle btn-sm md:btn-lg bg-blue-500 hover:bg-blue-600 border-none text-white shadow-sm my-1"
+                        onClick={() => handleSendMessage(input)}
+                    >
+                        <Send size={20} className="ml-0.5" />
+                    </button>
+                </div>
             </div>
 
         </div >
     );
-
 }

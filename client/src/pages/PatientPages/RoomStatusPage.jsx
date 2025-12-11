@@ -70,9 +70,9 @@ export default function PatientRoomStatusPage() {
               </span>
             </div>
             <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center font-semibold text-primary">
-              {authUser?.firstName
+              {authUser?.fullName
                 ? initials(
-                  authUser.firstName +
+                  authUser.fullName +
                   (authUser.lastName ? " " + authUser.lastName : "")
                 )
                 : "U"}
@@ -82,19 +82,21 @@ export default function PatientRoomStatusPage() {
 
         <main className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <section className="lg:col-span-2">
-            <div className="card bg-white shadow-md rounded-2xl p-6">
-              <div className="flex items-start justify-between">
+            <div className="card bg-white shadow-md rounded-2xl p-4 md:p-6">
+              {/* Header Section */}
+              <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 sm:gap-4">
                 <div>
-                  <h2 className="text-lg font-semibold">Current Room</h2>
-                  <p className="text-sm text-gray-500 mt-1">
+                  <h2 className="text-base md:text-lg font-semibold">Current Room</h2>
+                  <p className="text-xs md:text-sm text-gray-500 mt-1">
                     Status and quick actions for the room assigned to you.
                   </p>
                 </div>
 
-                <div className="text-right flex justify-center items-center">
-                  <span className="text-sm text-gray-400">Room:</span>
+                {/* Status Badge - Stacks below title on very small screens, aligns right on desktop */}
+                <div className="flex items-center justify-between sm:justify-end gap-2 w-full sm:w-auto border-t sm:border-t-0 pt-2 sm:pt-0 border-gray-100">
+                  <span className="text-xs md:text-sm text-gray-400">Room:</span>
                   <div
-                    className={`mt-1 badge ml-3 ${roomId ? "badge-success" : "badge-ghost"
+                    className={`badge badge-sm md:badge-md ${roomId ? "badge-success" : "badge-ghost"
                       }`}
                   >
                     {roomId ? "Assigned" : "Waiting"}
@@ -102,48 +104,45 @@ export default function PatientRoomStatusPage() {
                 </div>
               </div>
 
-              {/* --- I HAVE REBUILT THIS SECTION ---
-                - Removed the 'sm:grid-cols-2' which wasn't needed.
-                - Created a clean layout:
-                  1. Top row: Label on left, "Join Room" button on right.
-                  2. Bottom row: Room ID and Copy Button grouped together.
-              */}
-              <div className="mt-6">
+              <div className="mt-4 md:mt-6">
                 <div className="rounded-lg bg-base-100">
 
                   {/* Top row: ID and Copy Button */}
                   <div className="flex flex-col">
-                    <div className="font-mono text-sm truncate mb-4">
-                      Room: {roomId ? '' : '—'}
+                    {/* Made this a flex container for better vertical alignment of text and button */}
+                    <div className="flex items-center justify-between bg-gray-50 rounded-lg p-3 mb-3 border border-gray-100">
+                      <div className="font-mono text-sm truncate flex-1 mr-2">
+                        <span className="text-gray-500 mr-2">ID:</span>
+                        {!roomId && <span className="font-semibold text-gray-700">{'—'}</span>}
+                      </div>
                       {roomId && (
                         <CopyButtonComponent
-                          value={roomId}
+                          value={roomId || '—'}
                         />
                       )}
                     </div>
-                    {/* Bottom row: Label and Join Button */}
+
+                    {/* Bottom row: Join Button */}
                     <div className="flex items-center w-full mb-2">
                       <button
                         onClick={handleEnterRoom}
                         className={`btn btn-md w-full ${roomId ? "btn-primary" : "btn-disabled"
                           }`}
                       >
-                        {roomId ? "Join Room" : "No Rooms Available currently."}
+                        {roomId ? "Join Room" : "No Rooms Available"}
                       </button>
                     </div>
-
-
                   </div>
 
                   {/* Waiting status */}
-                  <div className="mt-3 text-xs text-gray-500 flex items-center gap-2">
-                    <Hourglass size={14} />
-                    <span>
+                  <div className="mt-2 text-xs text-gray-500 flex items-start gap-2">
+                    <Hourglass size={14} className="mt-0.5 flex-shrink-0" />
+                    <span className="leading-tight">
                       {roomId ? (
                         waitingSince ? (
                           <>
                             Room open since: {" "}
-                            <span className="font-medium">
+                            <span className="font-medium whitespace-nowrap">
                               {waitingSince.toLocaleTimeString()}
                             </span>
                           </>
@@ -157,13 +156,12 @@ export default function PatientRoomStatusPage() {
                   </div>
                 </div>
               </div>
-              {/* --- END OF REBUILT SECTION --- */}
 
-              <div className="divider mt-6" />
+              <div className="divider mt-4 md:mt-6" />
 
               <div>
                 <h3 className="text-sm font-semibold">What to expect</h3>
-                <ul className="mt-2 list-disc list-inside text-sm text-gray-500 space-y-1">
+                <ul className="mt-2 list-disc list-inside text-xs md:text-sm text-gray-500 space-y-1">
                   <li>
                     When your provider joins, the room will go live and you'll
                     be able to chat and share files.
@@ -178,11 +176,6 @@ export default function PatientRoomStatusPage() {
                   </li>
                 </ul>
               </div>
-
-              {/* --- I HAVE REMOVED THIS SECTION ---
-                The large, duplicate "Join Room" button at the
-                bottom of the card has been removed as requested.
-              */}
             </div>
 
             <div className="card bg-white shadow-md rounded-2xl p-4 mt-6">

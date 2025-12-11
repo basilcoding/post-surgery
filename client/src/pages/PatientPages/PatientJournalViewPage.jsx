@@ -76,7 +76,7 @@ export default function PatientJournalViewPage() {
   const StatusBadge = ({ status }) => {
     const map = { New: "badge-info", UnderReview: "badge-warning", Resolved: "badge-success" };
     return (
-      <div className={`badge ${map[status] || "badge-neutral"}`}>
+      <div className={`badge ${map[status] || "badge-neutral"} badge-sm md:badge-md`}>
         {status === "UnderReview" ? "Under review" : status}
       </div>
     );
@@ -88,13 +88,14 @@ export default function PatientJournalViewPage() {
     const doctor = s?.assignedDoctor?.fullName || s?.assignedDoctor?.email;
 
     return (
-      <div className="card bg-base-100 shadow-sm border rounded-xl">
-        <div className="card-body gap-3">
-          <div className="flex items-center justify-between">
-            <h3 className="card-title text-base">Journal entry</h3>
+      // Added card-compact for mobile, normal for md+
+      <div className="card card-compact md:card-normal bg-base-100 shadow-sm border rounded-xl">
+        <div className="card-body gap-2 md:gap-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h3 className="card-title text-sm md:text-base">Journal entry</h3>
             <div className="flex gap-2">
               <StatusBadge status={s?.status} />
-              {s?.type === "emergency" && <div className="badge badge-error">Concerning</div>}
+              {s?.type === "emergency" && <div className="badge badge-error badge-sm md:badge-md">Concerning</div>}
             </div>
           </div>
 
@@ -103,7 +104,7 @@ export default function PatientJournalViewPage() {
           </div> */}
 
           {doctor && (
-            <div className="text-sm">
+            <div className="text-xs md:text-sm">
               Assigned doctor: <span className="font-medium">{doctor}</span>
             </div>
           )}
@@ -112,22 +113,22 @@ export default function PatientJournalViewPage() {
             // <p className="text-sm leading-relaxed line-clamp-3 whitespace-pre-wrap">
             //   {s.content.join("\n\n")}
             // </p>
-            <p className="text-sm leading-relaxed line-clamp-3 whitespace-pre-wrap">{(s.content.length > 1 ? `Updated: ${s.formattedTimestamps[idx]}\n` : `Created: ${s.formattedTimestamps[idx]}\n`)}{Array.isArray(s.content) ? s.content.join("\n") : String(s.content || "")}</p>
+            <p className="text-xs md:text-sm leading-relaxed line-clamp-3 whitespace-pre-wrap">{(s.content.length > 1 ? `Updated: ${s.formattedTimestamps[idx]}\n` : `Created: ${s.formattedTimestamps[idx]}\n`)}{Array.isArray(s.content) ? s.content.join("\n") : String(s.content || "")}</p>
           ) : (
-            <p className="text-sm italic opacity-70">No notes in this entry.</p>
+            <p className="text-xs md:text-sm italic opacity-70">No notes in this entry.</p>
           )}
 
-          <div className="flex items-center gap-3 text-sm opacity-80">
+          <div className="flex items-center gap-3 text-xs md:text-sm opacity-80 mt-1">
             <span>{(s?.questionsAsked?.length || 0)} question(s)</span>
             <span>{s?.revision > 1 ? `Revisions: ${s?.revision - 1}` : ""}</span>
           </div>
 
-          <div className="card-actions justify-end">
-            <button className="btn btn-ghost btn-sm" onClick={() => setPreview(s)}>
+          <div className="card-actions justify-end mt-2">
+            <button className="btn btn-ghost btn-sm text-xs md:text-sm" onClick={() => setPreview(s)}>
               Quick view
             </button>
             <button
-              className="btn btn-primary btn-sm"
+              className="btn btn-primary btn-sm text-xs md:text-sm"
               onClick={() => navigate(`/patient/view-journals/${s._id}`)}
             >
               Open
@@ -147,15 +148,16 @@ export default function PatientJournalViewPage() {
   );
 
   return (
-    <div className="w-full h-full px-10 pt-[80px]">
+    // Responsive padding: px-4 on mobile, px-10 on desktop
+    <div className="w-full h-full px-4 md:px-10 pt-[70px] md:pt-[80px] pb-20">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
         <div>
           <h1 className="text-2xl md:text-3xl font-semibold">My Journals</h1>
-          <p className="text-sm opacity-80">Review your journal entries and see their review status.</p>
+          <p className="text-xs md:text-sm opacity-80">Review your journal entries and see their review status.</p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 justify-between md:justify-end">
           <button
             className={`btn btn-outline btn-sm ${loading ? "btn-disabled" : ""}`}
             onClick={loadData}
@@ -165,7 +167,7 @@ export default function PatientJournalViewPage() {
 
           {/* DaisyUI dropdown for type filter */}
           <div className="dropdown dropdown-end">
-            <label tabIndex={0} className="btn m-1">
+            <label tabIndex={0} className="btn btn-sm m-1">
               Filter: {typeFilter}
               <svg className="ml-2 w-4 h-4 inline" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                 <path strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" d="M6 9l6 6 6-6" />
@@ -173,7 +175,7 @@ export default function PatientJournalViewPage() {
             </label>
             <ul
               tabIndex={0}
-              className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-48"
+              className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-48 z-[1]"
             >
               <li>
                 <a
@@ -205,7 +207,7 @@ export default function PatientJournalViewPage() {
       </div>
 
       {error && (
-        <div className="alert alert-error mb-4">
+        <div className="alert alert-error mb-4 text-sm md:text-base">
           <span>{error}</span>
         </div>
       )}
@@ -216,25 +218,25 @@ export default function PatientJournalViewPage() {
         </div>
       ) : (
         <>
-          {/* Tabs */}
-          <div role="tablist" className="tabs tabs-boxed">
+          {/* Tabs - Added overflow-x-auto for mobile scrolling if needed */}
+          <div role="tablist" className="tabs tabs-boxed w-full overflow-x-auto flex-nowrap">
             <a
               role="tab"
-              className={`tab ${activeTab === "New" ? "tab-active" : ""}`}
+              className={`tab whitespace-nowrap flex-1 ${activeTab === "New" ? "tab-active" : ""}`}
               onClick={() => setActiveTab("New")}
             >
               New ({filteredNew.length})
             </a>
             <a
               role="tab"
-              className={`tab ${activeTab === "UnderReview" ? "tab-active" : ""}`}
+              className={`tab whitespace-nowrap flex-1 ${activeTab === "UnderReview" ? "tab-active" : ""}`}
               onClick={() => setActiveTab("UnderReview")}
             >
               Under review ({filteredUnder.length})
             </a>
             <a
               role="tab"
-              className={`tab ${activeTab === "Resolved" ? "tab-active" : ""}`}
+              className={`tab whitespace-nowrap flex-1 ${activeTab === "Resolved" ? "tab-active" : ""}`}
               onClick={() => setActiveTab("Resolved")}
             >
               Resolved ({filteredResolved.length})
@@ -246,7 +248,7 @@ export default function PatientJournalViewPage() {
               filteredNew.length ? (
                 <Column list={filteredNew} />
               ) : (
-                <div className="p-8 border rounded-xl text-center opacity-70">No new journals.</div>
+                <div className="p-8 border rounded-xl text-center opacity-70 text-sm md:text-base">No new journals.</div>
               )
             )}
 
@@ -254,7 +256,7 @@ export default function PatientJournalViewPage() {
               filteredUnder.length ? (
                 <Column list={filteredUnder} />
               ) : (
-                <div className="p-8 border rounded-xl text-center opacity-70">Nothing under review yet.</div>
+                <div className="p-8 border rounded-xl text-center opacity-70 text-sm md:text-base">Nothing under review yet.</div>
               )
             )}
 
@@ -262,22 +264,27 @@ export default function PatientJournalViewPage() {
               filteredResolved.length ? (
                 <Column list={filteredResolved} />
               ) : (
-                <div className="p-8 border rounded-xl text-center opacity-70">No resolved journals yet.</div>
+                <div className="p-8 border rounded-xl text-center opacity-70 text-sm md:text-base">No resolved journals yet.</div>
               )
             )}
           </div>
         </>
       )}
 
-      {/* Quick View Modal */}
+      {/* --- MODAL SECTION --- */}
       {preview && (
-        <div className="modal modal-open">
-          <div className="modal-box max-w-3xl">
+        // 1. Added z-[9999] to ensure it is above Chatbot
+        // 2. Removed 'modal-bottom' and 'sm:modal-middle'. Default is centered which is safer.
+        // 3. Added 'items-center' to force centering
+        <div className="modal modal-open items-center justify-center z-[9999]">
+          
+          {/* 1. Added max-h-[85vh] to prevent it from going off-screen on mobile */}
+          {/* 2. Added overflow-y-auto to the BOX itself so the whole card scrolls if needed */}
+          <div className="modal-box w-11/12 max-w-3xl max-h-[85vh] overflow-y-auto">
             <h3 className="font-bold text-lg mb-2">Journal details</h3>
 
-            <div className="space-y-2 text-sm opacity-80">
+            <div className="space-y-2 text-xs md:text-sm opacity-80">
               <div>Created: {preview?.createdAt ? format(new Date(preview.createdAt), "PPp") : "—"}</div>
-              {/* {preview?.updatedAt && <div>Updated: {format(new Date(preview.updatedAt), "PPp")}</div>} */}
               {preview?.assignedDoctor && (
                 <div>
                   Assigned doctor:{" "}
@@ -291,47 +298,37 @@ export default function PatientJournalViewPage() {
             </div>
 
             <div className="mt-4 space-y-3">
-              {/* <div>
-                <div className="font-medium mb-2">Bot notes</div>
-                {Array.isArray(preview?.content) && preview.content.length > 0 ? (
-                  <div className="rounded-xl border p-3 text-sm whitespace-pre-wrap max-h-64 overflow-auto">
-                    {preview.content.join("\n\n")}
-                  </div>
-                ) : (
-                  <div className="text-sm italic opacity-70">No notes</div>
-                )}
-              </div> */}
               <div>
-                <div className="font-medium mt-2 mb-1">Summary</div>
+                <div className="font-medium mt-2 mb-1 text-sm md:text-base">Summary</div>
                 {preview?.content?.length ? (
-                  <div className="p-3 border rounded text-sm whitespace-pre-wrap max-h-48 overflow-auto bg-base-300">
+                  <div className="h-50 overflow-y-auto p-3 border rounded text-xs md:text-sm whitespace-pre-wrap bg-base-300">
                     {preview.content.map((c, idx) => {
                       return (
-                        <span>{(idx < (preview.formattedTimestamps.length - 1) ? `Updated: ${preview.formattedTimestamps[idx]} \n` : `Created: ${preview.formattedTimestamps[idx]} \n`)}{String(c) ? String(c + '\n\n') : String(c + '\n\n' || "")}</span>
+                        <span key={idx}>{(idx < (preview.formattedTimestamps.length - 1) ? `Updated: ${preview.formattedTimestamps[idx]} \n` : `Created: ${preview.formattedTimestamps[idx]} \n`)}{String(c) ? String(c + '\n\n') : String(c + '\n\n' || "")}</span>
                       )
                     })}
                   </div>
-                ) : (<div className="italic text-muted-foreground">No notes</div>)}
+                ) : (<div className="italic text-muted-foreground text-sm">No notes</div>)}
               </div>
 
               <div>
-                <div className="font-medium mb-2">Questions asked</div>
+                <div className="font-medium mb-2 text-sm md:text-base">Questions asked</div>
                 {Array.isArray(preview?.questionsAsked) && preview.questionsAsked.length > 0 ? (
-                  <ul className="list-disc pl-6 text-sm space-y-1 max-h-48 overflow-auto">
+                  <ul className="h-35 overflow-y-auto list-disc pl-6 text-xs md:text-sm space-y-1">
                     {preview.questionsAsked.map((item, i) => (
                       <li key={i}>{item}</li>
                     ))}
                   </ul>
                 ) : (
-                  <div className="text-sm italic opacity-70">No questions recorded</div>
+                  <div className="text-xs md:text-sm italic opacity-70">No questions recorded</div>
                 )}
               </div>
             </div>
 
-            <div className="modal-action">
-              <button className="btn" onClick={() => setPreview(null)}>Close</button>
+            <div className="modal-action bg-base-100 pt-2">
+              <button className="btn btn-sm md:btn-md" onClick={() => setPreview(null)}>Close</button>
               <button
-                className="btn btn-primary"
+                className="btn btn-primary btn-sm md:btn-md"
                 onClick={() => {
                   const id = preview._id;
                   setPreview(null);
@@ -345,6 +342,7 @@ export default function PatientJournalViewPage() {
           <div className="modal-backdrop" onClick={() => setPreview(null)} />
         </div>
       )}
+      {/* --- END MODAL SECTION --- */}
       <ChatbotIcon />
     </div>
   );

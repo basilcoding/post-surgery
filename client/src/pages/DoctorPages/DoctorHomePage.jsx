@@ -115,7 +115,7 @@ export default function DoctorHomePage() {
   };
 
   return (
-    <div className="h-full w-full p-7 md:p-6 space-y-4 md:space-y-6 pb-20 md:pb-6 mt-[45px] md:mt-[55px]">
+    <div className="h-full w-full p-7 md:p-6 space-y-4 md:space-y-6 pb-20 md:pb-6 mt-[55px]">
 
       {/* --- Header --- */}
       <div className="flex items-center justify-between">

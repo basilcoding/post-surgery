@@ -135,15 +135,15 @@ export default function ViewSelectedSummaryPage() {
 
     if (loading && !selectedSummary) {
         return (
-            <div className="p-6">
-                <p>Loading summary...</p>
+            <div className="p-6 pt-[80px] flex justify-center">
+                <span className="loading loading-spinner loading-lg"></span>
             </div>
         );
     }
 
     if (!selectedSummary) {
         return (
-            <div className="p-6">
+            <div className="p-6 pt-[80px]">
                 <p>No summary selected or it was not found.</p>
             </div>
         );
@@ -157,16 +157,16 @@ export default function ViewSelectedSummaryPage() {
         // content might be array or string
         if (Array.isArray(content)) {
             return content.map((c, i) => (
-                <div key={i} className="p-3 border rounded-lg bg-base-100">
+                <div key={i} className="p-3 border rounded-lg bg-base-100 mb-2">
                     <div className="text-xs text-gray-500 mb-1">Entry {i + 1}</div>
-                    <div className="whitespace-pre-wrap">{c}</div>
+                    <div className="whitespace-pre-wrap text-sm md:text-base">{c}</div>
                 </div>
             ));
         }
 
         return (
             <div className="p-3 border rounded-lg bg-base-100">
-                <div className="whitespace-pre-wrap">{String(content)}</div>
+                <div className="whitespace-pre-wrap text-sm md:text-base">{String(content)}</div>
             </div>
         );
     };
@@ -177,36 +177,38 @@ export default function ViewSelectedSummaryPage() {
             return <div className="text-sm text-gray-500">No questions recorded.</div>;
         }
         return questions.map((q, i) => (
-            <div key={i} className="p-3 border rounded-lg bg-base-100">
+            <div key={i} className="p-3 border rounded-lg bg-base-100 mb-2">
                 <div className="text-xs text-gray-500 mb-1">Q{String(i + 1).padStart(2, "0")}</div>
-                <div>{q}</div>
+                <div className="text-sm md:text-base">{q}</div>
             </div>
         ));
     };
 
     // Render the page
     return (
-        <div className="w-full h-full mx-auto p-6 pt-[80px]">
+        // Added responsive padding (px-4 on mobile, px-6 on desktop) and wrapper
+        <div className="w-full h-full mx-auto px-4 md:px-6 pt-[70px] md:pt-[80px] pb-10">
 
-            <div className="flex items-center justify-between mb-6">
+            {/* Header - Stacks vertically on mobile */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
                 <div>
-                    <h1 className="text-2xl font-semibold">View Summary</h1>
-                    <div className="text-sm text-gray-500 mt-1">
+                    <h1 className="text-xl md:text-2xl font-semibold">View Summary</h1>
+                    <div className="text-xs md:text-sm text-gray-500 mt-1">
                         {selectedSummary?.formattedTimestamps?.[0] ?? (selectedSummary?.createdAt ? new Date(selectedSummary.createdAt).toLocaleString() : "")}
                     </div>
                 </div>
 
-                <div className="flex gap-2 items-center">
+                <div className="flex flex-wrap gap-2 items-center">
                     <button
                         type="button"
-                        className="btn btn-outline btn-sm"
+                        className="btn btn-outline btn-sm flex-1 md:flex-none"
                         onClick={() => setShowModal(true)}
                         title="View content & questions"
                     >
                         View content & questions
                     </button>
 
-                    <button className="btn btn-ghost" onClick={() => navigate(-1)} title="Back">
+                    <button className="btn btn-ghost btn-sm" onClick={() => navigate(-1)} title="Back">
                         Back
                     </button>
                 </div>
@@ -216,78 +218,77 @@ export default function ViewSelectedSummaryPage() {
                 {/* Display summary metadata (disabled inputs) */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {selectedSummary.resolvedBy &&
-                        <label className="form-control">
-                            <div className="flex items-center justify-between">
+                        <label className="form-control w-full">
+                            <div className="label pt-0">
                                 <span className="label-text">Resolved By</span>
                             </div>
-                            <input className="input input-bordered" value={selectedSummary.resolvedBy || ""} disabled />
+                            <input className="input input-bordered w-full" value={selectedSummary.resolvedBy || ""} disabled />
                         </label>
                     }
-                    <label className="form-control">
-                        <div className="flex items-center justify-between">
+                    <label className="form-control w-full">
+                        <div className="label pt-0">
                             <span className="label-text">Status</span>
                         </div>
-                        <input className="input input-bordered" value={selectedSummary.status || ""} disabled />
+                        <input className="input input-bordered w-full" value={selectedSummary.status || ""} disabled />
                     </label>
-                    {/* {(selectedSummary?.deliveredTo?.length > 1) && selectedSummary.deliveredTo.map((s) => {
-                        return <span>{s.doctor._id === selectedSummary.assignedDoctor._id && s.doctor._id}</span>
-                    })} */}
 
-                    <label className="form-control">
-                        <div className="flex items-center justify-between">
+                    <label className="form-control w-full">
+                        <div className="label pt-0">
                             <span className="label-text">Doctor: {selectedSummary?.assignedDoctor?.fullName}</span>
                         </div>
                         <input
-                            className="input input-bordered"
+                            className="input input-bordered w-full"
                             value={selectedSummary.assignedDoctorProfile ? selectedSummary?.assignedDoctorProfile?.doctorId : ""}
                             disabled
                         />
                     </label>
 
-                    <label className="form-control">
-                        <div className="flex items-center justify-between">
+                    <label className="form-control w-full">
+                        <div className="label pt-0">
                             <span className="label-text">Revisions</span>
                         </div>
-                        <input className="input input-bordered" value={selectedSummary.revision ?? 0} disabled />
+                        <input className="input input-bordered w-full" value={selectedSummary.revision ?? 0} disabled />
                     </label>
                 </div>
 
                 {/* Existing images list with checkboxes */}
                 <div>
-                    <div className="flex items-center justify-between mb-2">
-                        <h2 className="text-lg font-medium">Surgery Site Images</h2>
+                    <div className="flex flex-wrap items-center justify-between mb-3 gap-2">
+                        <h2 className="text-base md:text-lg font-medium">Surgery Site Images</h2>
                         <div className="flex items-center gap-2">
-                            <span className="text-sm text-gray-500">{existingImages.length} image(s)</span>
-                            <span className="badge badge-info">To update only</span>
+                            <span className="text-xs md:text-sm text-gray-500">{existingImages.length} image(s)</span>
+                            <span className="badge badge-info badge-sm">To update only</span>
                         </div>
                     </div>
 
                     {existingImages.length === 0 && (
-                        <div className="p-4 border rounded-md text-sm text-gray-600">No images uploaded yet.</div>
+                        <div className="p-4 border rounded-md text-sm text-gray-600 bg-base-100">No images uploaded yet.</div>
                     )}
 
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                    {/* Adjusted grid for mobile (2 cols) and desktop (4 cols) */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                         {existingImages.map((img, idx) => {
                             const checked = urlsToDeleteSet.has(img.url);
                             return (
-                                <div key={img.cid || img.url || idx} className="relative border rounded overflow-hidden">
+                                <div key={img.cid || img.url || idx} className="relative border rounded-lg overflow-hidden shadow-sm">
                                     <img
                                         src={img.url}
                                         alt={`surgery-${idx}`}
-                                        className="w-full h-40 object-cover"
+                                        className="w-full h-32 md:h-40 object-cover"
                                         onError={(e) => {
                                             e.target.src = "/placeholder-image.png";
                                         }}
                                     />
-                                    <div className="p-2 flex items-center justify-between bg-base-200">
-                                        <label className="flex items-center gap-2">
-                                            <input type="checkbox" checked={checked} onChange={() => toggleDeleteUrl(img.url)} className="checkbox bg-black/10" />
-                                            <span className="text-xs">Select to delete</span>{/* <span className="text-xs truncate max-w-[8rem]">{img.url.split("/").pop()}</span> */}
+                                    <div className="p-2 flex items-center justify-between bg-base-200/90">
+                                        <label className="flex items-center gap-2 cursor-pointer w-full">
+                                            <input type="checkbox" checked={checked} onChange={() => toggleDeleteUrl(img.url)} className="checkbox checkbox-sm bg-base-100" />
+                                            <span className="text-[10px] md:text-xs">Delete?</span>
                                         </label>
-                                        <button type="button" className="btn btn-square btn-ghost" title="View full" onClick={() => window.open(img.url, "_blank")}>
-                                            <UploadCloud size={16} />
+                                        <button type="button" className="btn btn-square btn-ghost btn-xs" title="View full" onClick={() => window.open(img.url, "_blank")}>
+                                            <UploadCloud size={14} />
                                         </button>
                                     </div>
+                                    {checked && <div className="absolute inset-0 bg-red-500/20 pointer-events-none" />}
                                 </div>
                             );
                         })}
@@ -295,21 +296,21 @@ export default function ViewSelectedSummaryPage() {
                 </div>
 
                 {/* New uploads preview */}
-                <div>
-                    <div className="flex items-center justify-between">
-                        <h2 className="text-lg font-medium flex items-center gap-3">
+                <div className="pt-4 border-t border-base-200">
+                    <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+                        <h2 className="text-base md:text-lg font-medium flex items-center gap-2">
                             Upload New Images
                         </h2>
 
-                        <div className="text-sm text-gray-500">
-                            <span className="mr-3">Pending deletes: <strong>{pendingDeletes}</strong></span>
+                        <div className="text-xs md:text-sm text-gray-500">
+                            <span>Pending deletes: <strong>{pendingDeletes}</strong></span>
                         </div>
                     </div>
 
-                    <div className="mt-2 flex gap-2 items-center">
+                    <div className="flex flex-wrap gap-2 items-center">
                         <label className="btn btn-outline btn-sm">
                             <input type="file" accept="image/*" multiple onChange={onFilesChange} className="hidden" />
-                            <UploadCloud className="mr-2" /> Choose files
+                            <UploadCloud size={16} className="mr-1" /> Choose files
                         </label>
 
                         {localFiles.length > 0 && (
@@ -323,23 +324,23 @@ export default function ViewSelectedSummaryPage() {
                                     setModified(true);
                                 }}
                             >
-                                <X className="mr-2" /> Clear
+                                <X size={16} className="mr-1" /> Clear
                             </button>
                         )}
                     </div>
 
                     {localFiles.length > 0 && (
-                        <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 mt-4">
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4">
                             {localFiles.map((fObj, i) => (
-                                <div key={i} className="relative border rounded overflow-hidden">
-                                    <img src={fObj.previewUrl} alt={fObj.file.name} className="w-full h-32 object-cover" />
+                                <div key={i} className="relative border rounded-lg overflow-hidden shadow-sm group">
+                                    <img src={fObj.previewUrl} alt={fObj.file.name} className="w-full h-28 md:h-32 object-cover" />
                                     <div className="absolute top-1 right-1">
-                                        <button type="button" className="btn btn-square btn-xs btn-ghost" title="Remove" onClick={() => removeLocalFile(i)}>
-                                            <X size={14} />
+                                        <button type="button" className="btn btn-circle btn-xs btn-error shadow-md" title="Remove" onClick={() => removeLocalFile(i)}>
+                                            <X size={12} />
                                         </button>
                                     </div>
-                                    <div className="p-2">
-                                        <div className="text-xs truncate">{fObj.file.name}</div>
+                                    <div className="p-1 bg-white">
+                                        <div className="text-[10px] text-center truncate px-1 text-gray-600">{fObj.file.name}</div>
                                     </div>
                                 </div>
                             ))}
@@ -347,69 +348,78 @@ export default function ViewSelectedSummaryPage() {
                     )}
                 </div>
 
-                {/* actions */}
-                <div className="flex items-center gap-3">
-                    <button type="submit" className={`btn btn-primary ${loading ? "loading" : ""}`} disabled={loading}>
-                        Save changes
-                    </button>
+                {/* Actions */}
+                <div className="flex flex-col-reverse md:flex-row items-center gap-3 pt-4 pb-8">
+                    <div className="text-xs text-gray-500 md:hidden w-full text-center">
+                        <span>Last updated:</span>{" "}
+                        <span className="font-medium">{selectedSummary.updatedAt ? new Date(selectedSummary.updatedAt).toLocaleString() : "—"}</span>
+                    </div>
 
-                    <button
-                        type="button"
-                        className="btn btn-ghost"
-                        onClick={() => {
-                            // reset local state to initial summary
-                            localFiles.forEach((f) => f.previewUrl && URL.revokeObjectURL(f.previewUrl));
-                            setLocalFiles([]);
-                            setUrlsToDeleteSet(new Set());
-                            setModified(false);
-                            toast("Changes cleared");
-                        }}
-                        disabled={loading}
-                    >
-                        Cancel
-                    </button>
+                    <div className="flex gap-3 w-full md:w-auto">
+                        <button
+                            type="button"
+                            className="btn btn-ghost flex-1 md:flex-none"
+                            onClick={() => {
+                                localFiles.forEach((f) => f.previewUrl && URL.revokeObjectURL(f.previewUrl));
+                                setLocalFiles([]);
+                                setUrlsToDeleteSet(new Set());
+                                setModified(false);
+                                toast("Changes cleared");
+                            }}
+                            disabled={loading}
+                        >
+                            Cancel
+                        </button>
+                        <button type="submit" className={`btn btn-primary flex-1 md:flex-none ${loading ? "loading" : ""}`} disabled={loading}>
+                            Save changes
+                        </button>
+                    </div>
 
-                    <div className="ml-auto text-sm text-gray-500">
+                    <div className="hidden md:block ml-auto text-sm text-gray-500">
                         <span>Last updated:</span>{" "}
                         <span className="font-medium">{selectedSummary.updatedAt ? new Date(selectedSummary.updatedAt).toLocaleString() : "—"}</span>
                     </div>
                 </div>
             </form>
 
-            {/* Modal: content + questions */}
+            {/* Mobile Friendly Modal */}
             {showModal && (
-                <div className="modal modal-open">
-                    <div className="modal-box max-w-4xl">
-                        <div className="flex items-start justify-between gap-4">
+                <div className="modal modal-open items-center justify-center z-[9999]">
+                    <div className="modal-box w-11/12 max-w-4xl max-h-[85vh] flex flex-col p-0 overflow-hidden">
+                        {/* Modal Header */}
+                        <div className="p-4 border-b flex items-start justify-between bg-base-100">
                             <div>
                                 <h3 className="font-bold text-lg">Summary content</h3>
-                                <p className="text-sm text-gray-500">{selectedSummary?.formattedTimestamps?.[0] ?? ""}</p>
+                                <p className="text-xs text-gray-500 mt-1">{selectedSummary?.formattedTimestamps?.[0] ?? ""}</p>
                             </div>
-                            <div>
-                                <button className="btn btn-ghost btn-sm" onClick={() => setShowModal(false)}>
-                                    Close
-                                </button>
+                            <button className="btn btn-sm btn-circle btn-ghost" onClick={() => setShowModal(false)}>
+                                <X size={20} />
+                            </button>
+                        </div>
+
+                        {/* Modal Content - Scrollable Area */}
+                        <div className="flex-1 overflow-y-auto p-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <h4 className="font-medium mb-2 bg-base-100 z-10 py-1">Content</h4>
+                                    <div className="space-y-3">{renderContentItems()}</div>
+                                </div>
+
+                                <div>
+                                    <h4 className="font-medium mb-2 bg-base-100 z-10 py-1">Questions asked</h4>
+                                    <div className="space-y-3">{renderQuestions()}</div>
+                                </div>
                             </div>
                         </div>
 
-                        <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <h4 className="font-medium mb-2">Content</h4>
-                                <div className="space-y-3 max-h-96 overflow-auto pr-2">{renderContentItems()}</div>
-                            </div>
-
-                            <div>
-                                <h4 className="font-medium mb-2">Questions asked</h4>
-                                <div className="space-y-3 max-h-96 overflow-auto pr-2">{renderQuestions()}</div>
-                            </div>
-                        </div>
-
-                        <div className="modal-action">
-                            <button className="btn" onClick={() => setShowModal(false)}>
+                        {/* Modal Footer */}
+                        <div className="p-4 border-t bg-base-100 flex justify-end">
+                            <button className="btn btn-primary btn-sm md:btn-md" onClick={() => setShowModal(false)}>
                                 Done
                             </button>
                         </div>
                     </div>
+                    <div className="modal-backdrop bg-black/50" onClick={() => setShowModal(false)} />
                 </div>
             )}
         </div>

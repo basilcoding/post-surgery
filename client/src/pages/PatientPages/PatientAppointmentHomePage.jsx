@@ -195,7 +195,7 @@ export default function PatientAppointmentsHomePage() {
 
   return (
     <div className="h-full w-full p-4 pt-[70px]">
-      <div className="flex items-center justify-between mb-1">
+      <div className="flex items-center justify-between my-2 mb-3">
         <h1 className="text-xl font-semibold">My Appointments</h1>
         <div className="flex gap-3">
           <div className="flex items-center gap-2">
@@ -224,7 +224,7 @@ export default function PatientAppointmentsHomePage() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search by doctor, date or slot..."
-            className="w-full pl-10 pr-3 py-2 border rounded-md focus:outline-none"
+            className="w-full pl-10 pr-3 py-2 border rounded-xl focus:outline-none"
           />
           <Search className="absolute left-3 top-2.5 w-5 h-5 text-slate-400" />
         </div>
@@ -233,7 +233,7 @@ export default function PatientAppointmentsHomePage() {
         <div className="flex items-center gap-2 w-full">
 
 
-          <div className="flex gap-2 items-center text-sm">
+          <div className="flex gap-2 items-center text-sm overflow-x-auto">
             {/* <div className="text-sm text-slate-600">Filter:</div> */}
             {[
               ["all", "All"],
@@ -245,7 +245,7 @@ export default function PatientAppointmentsHomePage() {
               <button
                 key={key}
                 onClick={() => setActiveTab(key)}
-                className={`cursor-pointer px-3 btn-xs py-1 rounded-md text-sm ${activeTab === key ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-700"}`}
+                className={`flex items-center mb-2 cursor-pointer px-3 btn-xs py-1 rounded-lg text-sm ${activeTab === key ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-700"}`}
               >
                 {label} <span className="ml-2 text-xs">({counts[key] || 0})</span>
               </button>

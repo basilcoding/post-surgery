@@ -277,18 +277,30 @@ export default function PatientProfileUpdatePage() {
     }
 
     return (
-        <div className="p-6 max-w-5xl mx-auto">
-            <div className="flex items-center gap-4 mb-6">
-                <button onClick={() => navigate(-1)} className="btn btn-ghost btn-sm">
-                    <ChevronLeft size={16} /> Back
-                </button>
-            <h1 className="text-2xl font-semibold">Your profile</h1>
-                <span className="ml-auto text-sm text-muted">
+        <div className="p-6 max-w-5xl mx-auto mt-[60px]">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 md:gap-4 mb-4 md:mb-6">
+
+                {/* Left side: Back Button + Title */}
+                <div className="hidden md:flex items-center gap-3">
+                    <button onClick={() => navigate(-1)} className="btn btn-ghost btn-sm px-2">
+                        <ChevronLeft size={16} /> <span className="text-sm">Back</span>
+                    </button>
+                    <h1 className="text-xl md:text-2xl font-semibold">Your profile</h1>
+                </div>
+                <div className="md:hidden flex justify-between items-center gap-3">
+                    <h1 className="text-xl md:text-2xl font-semibold">Your profile</h1>
+                    <button onClick={() => navigate(-1)} className="btn btn-ghost btn-sm px-2">
+                        <ChevronLeft size={16} /> <span className="text-sm">Back</span>
+                    </button>
+                </div>
+                <span className="text-xs md:text-sm text-gray-500 pl-3 md:pl-0 md:ml-auto">
                     Last saved:{" "}
                     {userProfile?.updatedAt
                         ? new Date(userProfile.updatedAt).toLocaleString()
                         : "—"}
                 </span>
+
+
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -688,9 +700,9 @@ export default function PatientProfileUpdatePage() {
                                     onChange={(e) =>
                                         updateArray("allergies", i, "severity", e.target.value)
                                     }
-                                    className="input input-bordered col-span-1"
+                                    className="input input-bordered col-span-1 md:col-span-1"
                                 />
-                                <div className="flex gap-2 col-span-1">
+                                <div className="flex md:flex-row-reverse gap-2 col-span-1">
                                     <button
                                         type="button"
                                         onClick={() => removeArrayItem("allergies", i)}
@@ -774,8 +786,8 @@ export default function PatientProfileUpdatePage() {
                                         )
                                     }
                                     className={`input input-bordered col-span-2 ${errors[`chronicConditions.${i}.diagnosisDate`]
-                                            ? "input-error"
-                                            : ""
+                                        ? "input-error"
+                                        : ""
                                         }`}
                                     disabled
                                 />
@@ -911,9 +923,9 @@ export default function PatientProfileUpdatePage() {
                                             e.target.value
                                         )
                                     }
-                                    className="input input-bordered col-span-1"
+                                    className="input input-bordered col-span-2"
                                 />
-                                <div className="flex gap-2 col-span-1">
+                                <div className="flex col-span-2 md:col-span-6 flex-row-reverse gap-2">
                                     <button
                                         type="button"
                                         onClick={() =>
@@ -986,7 +998,7 @@ export default function PatientProfileUpdatePage() {
                                     }
                                     className="input input-bordered col-span-3"
                                 />
-                                <div className="flex gap-2 col-span-1">
+                                <div className="hidden md:flex flex-row-reverse gap-2 col-span-1">
                                     <button
                                         type="button"
                                         onClick={() =>
@@ -1010,6 +1022,17 @@ export default function PatientProfileUpdatePage() {
                                     }
                                     className="textarea textarea-sm textarea-bordered md:col-span-6"
                                 />
+                                <div className="md:hidden flex gap-2 col-span-1 md:col-span-6">
+                                    <button
+                                        type="button"
+                                        onClick={() =>
+                                            removeArrayItem("familyHistory", i)
+                                        }
+                                        className="btn btn-sm btn-error"
+                                    >
+                                        <Trash size={14} />
+                                    </button>
+                                </div>
                             </div>
                         ))}
                     </div>
@@ -1077,8 +1100,8 @@ export default function PatientProfileUpdatePage() {
                                         )
                                     }
                                     className={`input input-bordered col-span-2 ${errors[`pastSurgeries.${i}.procedureDate`]
-                                            ? "input-error"
-                                            : ""
+                                        ? "input-error"
+                                        : ""
                                         }`}
                                     disabled
                                 />

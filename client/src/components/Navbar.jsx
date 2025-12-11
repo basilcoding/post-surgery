@@ -14,7 +14,7 @@ const Navbar = ({ }) => {
     return (
         <>
             <header
-                className="border-b border-base-300 w-full
+                className="border-b w-full
             bg-primary fixed overflow-hidden z-70">
                 <div className="container px-4 h-16 w-full">
                     <div className="flex items-center justify-between h-full w-full">
@@ -163,7 +163,7 @@ const Navbar = ({ }) => {
                                         </Link>
                                     }
                                     <button className="btn btn-lg rounded-full flex gap-2 items-center p-2" onClick={logout}>
-                                        <LogOut className="size-5" />
+                                        <LogOut className="size-8 md:size-5" />
                                         <span className="hidden sm:block">
                                             Logout
                                         </span>
@@ -171,17 +171,17 @@ const Navbar = ({ }) => {
                                 </>
                             )}
                             {!authUser && (
-                                <div className='flex gap-7'>
+                                <div className='flex gap-4 md:gap-7'>
                                     <Link to={"/contact"} className={`btn btn-lg btn-circle `}>
                                         <button className="btn btn-lg rounded-full flex gap-2 items-center p-2">
-                                              <span className="hidden sm:block">
+                                              <span className="text-sm md:text-lg">
                                                 Contact
                                             </span>
                                         </button>
                                     </Link>
                                     <Link to={"/help"} className={`btn btn-lg btn-circle `}>
                                         <button className="btn btn-lg rounded-3xl flex gap-2 items-center p-2">
-                                            <span className="hidden sm:block">
+                                            <span className="text-sm md:text-lg">
                                                 Help
                                             </span>
                                         </button>
