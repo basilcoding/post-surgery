@@ -221,11 +221,11 @@ export const chatbot = async function (userId, message, isEnd, relationship, cha
                 console.log('chatbot context for summary bot is: ', chatbotContextForSummaryBot);
 
                 const now = new Date();
-                // const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-                // start of today (server-local) at 00:00:00
-                const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-                // check if there was a summary after start of current day(12:00 am midnight) ago for the current activeDoctor
-                let oldSummary = await BotSummary.findOne({ user: userId, assignedDoctor: relationship.doctor._id, createdAt: { $gte: startOfToday } })
+
+                // Get the time exactly 24 hours ago from this moment
+
+                const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+                let oldSummary = await BotSummary.findOne({ user: userId, assignedDoctor: relationship.doctor._id, createdAt: { $gte: twentyFourHoursAgo } })
                 console.log('[emitSummary] oldSummary found?', !!oldSummary);
 
 
@@ -274,44 +274,7 @@ export const chatbot = async function (userId, message, isEnd, relationship, cha
                 console.log("successfully created emergency summary:", JSON.parse(journalSummarybot.text));
             }
         }
-        // else if (!chats.isEnd && chats.chatbotType === 'journal') {
-        //     // Run this code if conversation has NOT ended. Then flag it has ended. So since we flag it as ended, next time this code wont run because conversation HAS ended.
-        //     console.log("jounaling conversation has ended, so creating normal summary");
-        //     let journalSummarybot;
 
-        //     for (let attempt = 1; attempt <= maxRetries; attempt++) {
-        //         try {
-        //             console.log(`Chatbot API attempt ${attempt}/${maxRetries}...`);
-        //             journalSummarybot = await ai.models.generateContent({
-        //                 model: "gemini-2.0-flash",
-        //                 contents: JSON.parse(JSON.stringify(chats.history)),
-        //                 config: {
-        //                     systemInstruction: journalSummarybotPrompt,
-        //                     responseMimeType: "application/json",
-        //                     responseSchema: journalSummarybotSchema
-        //                 }
-        //             });
-        //             // If successful, break the loop
-        //             break;
-        //         } catch (error) {
-        //             console.error(`Chatbot API attempt ${attempt} failed:`, error.message);
-        //             lastError = error;
-        //             if (attempt === maxRetries) {
-        //                 console.error("All retry attempts failed for chatbot.");
-        //                 throw lastError; // Throw the last error to be caught by outer try...catch
-        //             }
-        //             // Wait for the delay before retrying
-        //             await delay(retryDelayMs);
-        //         }
-        //     }
-        //     chats.isEnd = true; // This will prevent any further user responses because even if isEnd = true, !chats.isEnd = false "always... after making the furst summary"
-        //     chats.isEndBot = false;
-        //     console.log("chats.isEnd is: ", chats.isEnd);
-        //     summary = JSON.parse(journalSummarybot.text);
-        //     emitSummary(userId, summary, relationship);
-        //     console.log("journal summary created successfully ", JSON.parse(journalSummarybot.text));
-
-        // }
 
         await chats.save();
         console.log("chat history saved, now total length is: ", chats.history.length);

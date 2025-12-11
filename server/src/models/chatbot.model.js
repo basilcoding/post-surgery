@@ -59,7 +59,11 @@ const chatbotSchema = new mongoose.Schema({
     createdAt: {
         type: Date,
         default: Date.now,
-        expires: '1440m', // auto-delete after 24 hours
+    },
+    updatedAt: {
+        type: Date,
+        default: Date.now,
+        expires: '1440m' // delete after 24 hours
     }
 });
 
