@@ -98,18 +98,26 @@ export default function JournalbotPage() {
 
                             {/* Numerical options */}
                             {msg.requiresNumericalInput && (
-                                // Added flex-wrap so numbers don't overflow on small screens
-                                <div className="cursor-pointer mt-3 w-fit flex flex-wrap bg-white/80 border border-black/10 rounded-md overflow-hidden">
-                                    {Array.from({ length: 11 }, (_, num) => (
-                                        <button
-                                            key={num}
-                                            onClick={() => handleSendMessage(num)}
-                                            // Larger touch targets for mobile
-                                            className="w-8 h-8 md:w-[30px] md:h-[30px] bg-white/80 hover:bg-gray-200 text-black text-sm font-semibold flex items-center justify-center border-r border-b border-gray-100 last:border-r-0"
-                                        >
-                                            {num}
-                                        </button>
-                                    ))}
+                                <div className="mt-4 w-full">
+                                    {/* Changed to flex-wrap with gap: 
+            This allows buttons to flow naturally like 'tags' or 'chips' 
+            instead of forcing a rigid grid that breaks on mobile.
+        */}
+                                    <div className="flex flex-wrap justify-start">
+                                        {Array.from({ length: 11 }, (_, num) => (
+                                            <button
+                                                key={num}
+                                                onClick={() => handleSendMessage(num)}
+                                                // Mobile friendly changes:
+                                                // 1. Individual buttons (rounded-lg, shadow-sm) instead of a merged bar.
+                                                // 2. w-10 h-10: Large comfortable touch target for thumbs.
+                                                // 3. border-gray-200: Subtle border for each item.
+                                                className="cursor-pointer w-10 h-10 flex items-center justify-center text-sm font-semibold rounded-sm border border-gray-200 bg-white text-gray-700 shadow-sm hover:bg-primary hover:text-white hover:border-primary transition-colors active:scale-95"
+                                            >
+                                                {num}
+                                            </button>
+                                        ))}
+                                    </div>
                                 </div>
                             )}
                         </div>
