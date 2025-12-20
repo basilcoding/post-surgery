@@ -51,5 +51,3 @@ Project Details
       available doctor according to their availability timing. 
     • Secure storage of patient health records and chat history for future reference. 
     • Appointment booking system for follow-up consultations with the operating doctor. 
-    • On-time medication remainders delivered by the chatbot. 
-
